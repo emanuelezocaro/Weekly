@@ -9,9 +9,11 @@ import {
   isSameDay,
   nowISODateTime,
   parseISODateTime,
+  startOfDay,
   toISODate,
+  toISODateTime,
 } from '../utils/date'
-import { entriesForDay, getOpenEntry } from '../utils/entries'
+import { DAY_MS, entriesForDay, findGapsForDay, getOpenEntry } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
 const QUARTER_HOUR_OPTIONS = Array.from({ length: 96 }, (_, i) => {
@@ -134,6 +136,20 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   )
 }
 
+function GapRow({ gap, activities, expanded, onToggle, onPick }) {
+  return (
+    <li className="timeline__item">
+      <button type="button" className="timeline__gap" onClick={onToggle}>
+        <span className="timeline__gap-text">
+          Buco · {formatTime(gap.start)}–{formatTime(gap.end)} · {formatDuration(gap.end - gap.start)}
+        </span>
+        <span className="timeline__gap-action">{expanded ? 'Chiudi' : 'Cosa hai fatto?'}</span>
+      </button>
+      {expanded && <ActivityGrid activities={activities} onPick={onPick} />}
+    </li>
+  )
+}
+
 export default function DayAgenda({
   cursor,
   onCursorChange,
@@ -156,10 +172,19 @@ export default function DayAgenda({
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
+  const [expandedGap, setExpandedGap] = useState(null)
   const [addingManual, setAddingManual] = useState(false)
 
+  const now = new Date()
   const openEntry = getOpenEntry(entries)
-  const items = entriesForDay(entries, cursor, new Date())
+  const items = entriesForDay(entries, cursor, now)
+  const gaps = findGapsForDay(entries, cursor, now)
+  const dayElapsedMs = isToday ? Math.max(1, now - startOfDay(cursor)) : DAY_MS
+
+  const rows = [
+    ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
+    ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })),
+  ].sort((a, b) => a.sortKey - b.sortKey)
 
   function handleStart(activityId) {
     onStartActivity(activityId)
@@ -174,6 +199,11 @@ export default function DayAgenda({
   function handleDelete(id) {
     onRemoveEntry(id)
     setExpandedId(null)
+  }
+
+  function handleFillGap(gap, activityId) {
+    onAddManualEntry(activityId, toISODateTime(gap.start), toISODateTime(gap.end))
+    setExpandedGap(null)
   }
 
   return (
@@ -243,14 +273,30 @@ export default function DayAgenda({
             </div>
           )}
 
-          {items.length === 0 && !isToday && (
+          {rows.length === 0 && !isToday && (
             <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
           )}
 
           <ul className="timeline">
-            {items.map(({ entry, clippedStart, clippedEnd, isOpen }) => {
+            {rows.map((row) => {
+              if (row.type === 'gap') {
+                const key = toISODateTime(row.gap.start)
+                return (
+                  <GapRow
+                    key={key}
+                    gap={row.gap}
+                    activities={activities}
+                    expanded={expandedGap === key}
+                    onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
+                    onPick={(activityId) => handleFillGap(row.gap, activityId)}
+                  />
+                )
+              }
+
+              const { entry, clippedStart, clippedEnd, isOpen } = row
               const activity = activityFor(activities, entry.activityId)
               const expanded = expandedId === entry.id
+              const pct = Math.round(((clippedEnd - clippedStart) / dayElapsedMs) * 100)
               return (
                 <li key={entry.id} className="timeline__item">
                   <button
@@ -268,6 +314,7 @@ export default function DayAgenda({
                       </span>
                       <span className="timeline__time">
                         {formatTime(clippedStart)} – {isOpen ? 'ora' : formatTime(clippedEnd)}
+                        <span className="timeline__pct"> · {pct}%</span>
                       </span>
                     </span>
                     <span className="timeline__duration">
@@ -315,10 +362,10 @@ export default function DayAgenda({
   )
 }
 
-function ManualAddForm({ activities, dayDate, onAdd, onCancel }) {
+function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '09:00', initialEnd = '10:00' }) {
   const [activityId, setActivityId] = useState(activities[0]?.id)
-  const [startTime, setStartTime] = useState('09:00')
-  const [endTime, setEndTime] = useState('10:00')
+  const [startTime, setStartTime] = useState(initialStart)
+  const [endTime, setEndTime] = useState(initialEnd)
 
   function handleAdd() {
     const dateIso = toISODate(dayDate)

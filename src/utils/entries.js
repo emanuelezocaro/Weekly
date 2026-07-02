@@ -114,6 +114,25 @@ export function activityStats(activities, entries, rangeStart, rangeEnd, now = n
   return { stats, elapsedDays, trackedMs, untrackedMs, avgUntrackedMsPerDay }
 }
 
+const MIN_GAP_MS = 60 * 1000
+
+// Unlogged stretches within a day: before the first block, between blocks,
+// and after the last block up to now (or midnight, for a past day).
+export function findGapsForDay(entries, dayDate, now = new Date()) {
+  const dayStart = startOfDay(dayDate)
+  const dayEnd = endOfDay(dayDate)
+  const upperBound = now < dayEnd ? now : dayEnd
+  const items = entriesForDay(entries, dayDate, now)
+  const gaps = []
+  let cursor = dayStart
+  for (const { clippedStart, clippedEnd } of items) {
+    if (clippedStart - cursor >= MIN_GAP_MS) gaps.push({ start: cursor, end: clippedStart })
+    if (clippedEnd > cursor) cursor = clippedEnd
+  }
+  if (upperBound - cursor >= MIN_GAP_MS) gaps.push({ start: cursor, end: upperBound })
+  return gaps
+}
+
 // Per-day ms spent on a single activity, for a day-by-day trend/drill-down
 // chart. `days` is an array of Date, one entry per day to report on.
 export function dailyTotalsForActivity(entries, activityId, days, now = new Date()) {

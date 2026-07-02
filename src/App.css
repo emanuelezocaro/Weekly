@@ -300,6 +300,36 @@
   flex-shrink: 0;
 }
 
+.timeline__pct {
+  color: var(--text-muted);
+}
+
+.timeline__gap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.timeline__gap-action {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.timeline__item .activity-grid {
+  margin-top: 6px;
+}
+
 /* Entry editor (expanded block / manual add) */
 .entry-editor {
   border: 1px solid var(--border);
