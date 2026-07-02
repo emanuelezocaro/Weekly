@@ -4,9 +4,9 @@ import {
   addMonths,
   APP_START_DATE,
   endOfDay,
+  formatDateRange,
   formatFullDate,
   formatMonthLabel,
-  formatWeekRange,
   getDatesInMonth,
   getWeekDates,
   isFuture,
@@ -56,7 +56,10 @@ function periodHeaderLabel(period, cursor) {
   if (period === 'day') {
     return isSameDay(cursor, new Date()) ? 'Oggi' : formatFullDate(cursor)
   }
-  if (period === 'week') return formatWeekRange(startOfWeek(cursor))
+  if (period === 'week') {
+    const [start, end] = periodRange('week', cursor)
+    return formatDateRange(start, end)
+  }
   return formatMonthLabel(startOfMonth(cursor))
 }
 

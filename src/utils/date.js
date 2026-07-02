@@ -70,10 +70,17 @@ export function dayLabel(date, full = false) {
 }
 
 export function formatWeekRange(weekStart) {
-  const weekEnd = addDays(weekStart, 6)
-  const sameMonth = weekStart.getMonth() === weekEnd.getMonth()
-  const startStr = `${weekStart.getDate()}${sameMonth ? '' : ' ' + MONTH_LABELS[weekStart.getMonth()].slice(0, 3)}`
-  const endStr = `${weekEnd.getDate()} ${MONTH_LABELS[weekEnd.getMonth()].slice(0, 3)}`
+  return formatDateRange(weekStart, addDays(weekStart, 7))
+}
+
+// endExclusive is midnight of the day after the range (as returned by
+// periodRange), so the label always reflects the actual data range shown
+// -- e.g. clamped to APP_START_DATE for the very first week/month tracked.
+export function formatDateRange(startInclusive, endExclusive) {
+  const lastDay = addDays(endExclusive, -1)
+  const sameMonth = startInclusive.getMonth() === lastDay.getMonth()
+  const startStr = `${startInclusive.getDate()}${sameMonth ? '' : ' ' + MONTH_LABELS[startInclusive.getMonth()].slice(0, 3)}`
+  const endStr = `${lastDay.getDate()} ${MONTH_LABELS[lastDay.getMonth()].slice(0, 3)}`
   return `${startStr} – ${endStr}`
 }
 
