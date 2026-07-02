@@ -55,6 +55,18 @@ function activityFor(activities, id) {
   return activities.find((a) => a.id === id)
 }
 
+// Default the manual "add block" form to continue right where the last
+// recorded block for that day left off, instead of always suggesting 09:00.
+const DAY_END_CAP_MS = 23 * 60 * 60 * 1000 + 45 * 60 * 1000
+function defaultAddTimes(items, dayDate) {
+  const dayStart = startOfDay(dayDate)
+  const lastEndMs =
+    items.length > 0 ? Math.max(...items.map((it) => it.clippedEnd.getTime())) : dayStart.getTime()
+  const cappedStartMs = Math.min(lastEndMs, dayStart.getTime() + DAY_END_CAP_MS)
+  const endMs = Math.min(cappedStartMs + 60 * 60 * 1000, dayStart.getTime() + DAY_END_CAP_MS)
+  return { start: formatTimeRounded(new Date(cappedStartMs)), end: formatTimeRounded(new Date(endMs)) }
+}
+
 function ActivityPicker({ activities, onPick }) {
   return (
     <select
@@ -193,6 +205,7 @@ export default function DayAgenda({
   const items = entriesForDay(entries, cursor, now)
   const gaps = findGapsForDay(entries, cursor, now)
   const dayElapsedMs = isToday ? Math.max(1, now - startOfDay(cursor)) : DAY_MS
+  const addBlockDefaults = defaultAddTimes(items, cursor)
 
   const rows = [
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
@@ -362,6 +375,8 @@ export default function DayAgenda({
                 <ManualAddForm
                   activities={activities}
                   dayDate={cursor}
+                  initialStart={addBlockDefaults.start}
+                  initialEnd={addBlockDefaults.end}
                   onAdd={(activityId, start, end) => {
                     onAddManualEntry(activityId, start, end)
                     setAddingManual(false)
