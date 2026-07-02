@@ -6,6 +6,8 @@ import {
   formatFullDate,
   formatMonthLabel,
   formatWeekRange,
+  getDatesInMonth,
+  getWeekDates,
   isFuture,
   isSameDay,
   startOfDay,
@@ -19,6 +21,8 @@ const PERIODS = [
   { id: 'week', label: 'Settimana' },
   { id: 'month', label: 'Mese' },
 ]
+
+const PERIOD_PHRASE = { day: 'della giornata', week: 'della settimana', month: 'del mese' }
 
 function shiftCursor(period, cursor, direction) {
   if (period === 'day') return addDays(cursor, direction)
@@ -36,7 +40,13 @@ function periodRange(period, cursor) {
   return [start, startOfMonth(addMonths(cursor, 1))]
 }
 
-function periodLabel(period, cursor) {
+function periodDays(period, cursor) {
+  if (period === 'day') return [cursor]
+  if (period === 'week') return getWeekDates(startOfWeek(cursor))
+  return getDatesInMonth(startOfMonth(cursor))
+}
+
+function periodHeaderLabel(period, cursor) {
   if (period === 'day') {
     return isSameDay(cursor, new Date()) ? 'Oggi' : formatFullDate(cursor)
   }
@@ -84,7 +94,7 @@ export default function ReportView({ activities, entries }) {
           ‹
         </button>
         <div className="day-switcher__label">
-          <strong>{periodLabel(period, cursor)}</strong>
+          <strong>{periodHeaderLabel(period, cursor)}</strong>
         </div>
         <button
           type="button"
@@ -104,6 +114,8 @@ export default function ReportView({ activities, entries }) {
         rangeEnd={rangeEnd}
         prevRangeStart={prevRangeStart}
         prevRangeEnd={prevRangeEnd}
+        days={periodDays(period, cursor)}
+        periodLabel={PERIOD_PHRASE[period]}
       />
     </div>
   )

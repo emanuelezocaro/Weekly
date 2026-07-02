@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { formatDuration } from '../utils/date'
 import { DAY_MS, activityStats } from '../utils/entries'
 import { colorVar } from '../utils/palette'
+import ActivityTrendChart from './ActivityTrendChart'
 
 function formatPct(fraction) {
   return `${Math.round(fraction * 100)}%`
@@ -13,8 +15,12 @@ export default function ActivityStatsSummary({
   rangeEnd,
   prevRangeStart,
   prevRangeEnd,
+  days,
+  periodLabel,
   now = new Date(),
 }) {
+  const [expandedId, setExpandedId] = useState(null)
+
   if (activities.length === 0) {
     return <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
   }
@@ -34,6 +40,7 @@ export default function ActivityStatsSummary({
   }
 
   const barSegments = stats.filter((s) => s.avgMsPerDay > 0)
+  const canDrillDown = Array.isArray(days) && days.length > 1
 
   return (
     <div className="stats-summary">
@@ -61,15 +68,21 @@ export default function ActivityStatsSummary({
             prev && prev.avgMsPerDay > 0
               ? Math.round(((activity.avgMsPerDay - prev.avgMsPerDay) / prev.avgMsPerDay) * 100)
               : null
+          const expanded = expandedId === activity.id
           return (
             <li key={activity.id} className="report-card">
-              <div className="report-card__header">
+              <button
+                type="button"
+                className="report-card__header report-card__header--btn"
+                disabled={!canDrillDown}
+                onClick={() => setExpandedId(expanded ? null : activity.id)}
+              >
                 <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
                 <span className="report-card__name">{activity.name}</span>
                 <span className="report-card__pct">{formatDuration(activity.avgMsPerDay)}/giorno</span>
-              </div>
+              </button>
               <p className="report-card__avg">
-                {formatPct(activity.pctOfDay)} della giornata
+                {formatPct(activity.pctOfDay)} {periodLabel}
                 {delta !== null && (
                   <span className="report-card__delta">
                     {' · '}
@@ -78,6 +91,9 @@ export default function ActivityStatsSummary({
                   </span>
                 )}
               </p>
+              {expanded && (
+                <ActivityTrendChart activity={activity} days={days} entries={entries} now={now} />
+              )}
             </li>
           )
         })}

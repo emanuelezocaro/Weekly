@@ -113,3 +113,18 @@ export function activityStats(activities, entries, rangeStart, rangeEnd, now = n
 
   return { stats, elapsedDays, trackedMs, untrackedMs, avgUntrackedMsPerDay }
 }
+
+// Per-day ms spent on a single activity, for a day-by-day trend/drill-down
+// chart. `days` is an array of Date, one entry per day to report on.
+export function dailyTotalsForActivity(entries, activityId, days, now = new Date()) {
+  const relevant = entries.filter((e) => !e.deleted && e.activityId === activityId)
+  return days.map((day) => {
+    const dayStart = startOfDay(day)
+    const dayEnd = endOfDay(day)
+    let ms = 0
+    for (const entry of relevant) {
+      ms += msInRange(entry, dayStart, dayEnd, now)
+    }
+    return { date: day, ms }
+  })
+}

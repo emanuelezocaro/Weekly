@@ -1,4 +1,4 @@
-import { addMonths, formatMonthLabel, isFuture, startOfMonth } from '../utils/date'
+import { addMonths, formatMonthLabel, getDatesInMonth, isFuture, startOfMonth } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
 
 export default function MonthGrid({ cursor, onCursorChange, activities, entries }) {
@@ -39,6 +39,8 @@ export default function MonthGrid({ cursor, onCursorChange, activities, entries 
         rangeEnd={monthEnd}
         prevRangeStart={prevMonthStart}
         prevRangeEnd={monthStart}
+        days={getDatesInMonth(monthStart)}
+        periodLabel="del mese"
       />
     </div>
   )

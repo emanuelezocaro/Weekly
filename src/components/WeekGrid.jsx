@@ -1,4 +1,4 @@
-import { addDays, formatWeekRange, isFuture, startOfWeek } from '../utils/date'
+import { addDays, formatWeekRange, getWeekDates, isFuture, startOfWeek } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
 
 export default function WeekGrid({ cursor, onCursorChange, activities, entries }) {
@@ -39,6 +39,8 @@ export default function WeekGrid({ cursor, onCursorChange, activities, entries }
         rangeEnd={weekEnd}
         prevRangeStart={prevWeekStart}
         prevRangeEnd={weekStart}
+        days={getWeekDates(weekStart)}
+        periodLabel="della settimana"
       />
     </div>
   )
