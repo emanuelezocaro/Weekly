@@ -159,8 +159,6 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
 }
 
 export default function DayAgenda({
-  cursor,
-  onCursorChange,
   activities,
   entries,
   onStartActivity,
@@ -168,6 +166,7 @@ export default function DayAgenda({
   onRemoveEntry,
   onAddManualEntry,
 }) {
+  const [cursor, onCursorChange] = useState(() => new Date())
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
 

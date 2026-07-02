@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import BottomNav from './components/BottomNav'
-import CalendarView from './components/CalendarView'
+import DayAgenda from './components/DayAgenda'
 import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
@@ -48,7 +48,7 @@ function App() {
 
       <main className="app-main">
         {tab === 'calendar' && (
-          <CalendarView
+          <DayAgenda
             activities={activities}
             entries={entries}
             onStartActivity={startActivity}
