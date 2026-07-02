@@ -131,3 +131,49 @@ export function getMonthMatrix(monthDate) {
   }
   return weeks
 }
+
+// --- Full datetime (date + time-of-day) helpers, for continuous time entries ---
+
+export function toISODateTime(date) {
+  const h = String(date.getHours()).padStart(2, '0')
+  const mi = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${toISODate(date)}T${h}:${mi}:${s}`
+}
+
+export function nowISODateTime() {
+  return toISODateTime(new Date())
+}
+
+export function parseISODateTime(iso) {
+  const [datePart, timePart = '00:00:00'] = iso.split('T')
+  const [y, m, d] = datePart.split('-').map(Number)
+  const [h, mi, s] = timePart.split(':').map(Number)
+  return new Date(y, m - 1, d, h, mi, s || 0)
+}
+
+export function startOfDay(date) {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+// Exclusive upper bound: midnight of the following day.
+export function endOfDay(date) {
+  return addDays(startOfDay(date), 1)
+}
+
+export function formatTime(date) {
+  const h = String(date.getHours()).padStart(2, '0')
+  const mi = String(date.getMinutes()).padStart(2, '0')
+  return `${h}:${mi}`
+}
+
+export function formatDuration(ms) {
+  const totalMinutes = Math.round(ms / 60000)
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  if (h === 0) return `${m}m`
+  if (m === 0) return `${h}h`
+  return `${h}h ${m}m`
+}

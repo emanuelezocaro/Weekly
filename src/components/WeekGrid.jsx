@@ -8,8 +8,42 @@ import {
   startOfWeek,
   toISODate,
 } from '../utils/date'
+import { daySegments } from '../utils/entries'
+import { colorVar } from '../utils/palette'
 
-export default function WeekGrid({ cursor, onCursorChange, onSelectDay, activities, logs, onToggle }) {
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function activityFor(activities, id) {
+  return activities.find((a) => a.id === id)
+}
+
+function DayBar({ date, activities, entries }) {
+  const segments = daySegments(entries, date, new Date())
+  return (
+    <div className="day-bar">
+      {segments.map((seg, i) => {
+        const widthPct = ((seg.end - seg.start) / DAY_MS) * 100
+        if (widthPct <= 0) return null
+        if (seg.kind === 'future') {
+          return <span key={i} className="day-bar__seg day-bar__seg--future" style={{ width: `${widthPct}%` }} />
+        }
+        if (seg.kind === 'gap') {
+          return <span key={i} className="day-bar__seg day-bar__seg--gap" style={{ width: `${widthPct}%` }} />
+        }
+        const activity = activityFor(activities, seg.activityId)
+        return (
+          <span
+            key={i}
+            className="day-bar__seg"
+            style={{ width: `${widthPct}%`, background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+export default function WeekGrid({ cursor, onCursorChange, onSelectDay, activities, entries }) {
   const weekStart = startOfWeek(cursor)
   const dates = getWeekDates(weekStart)
   const nextWeekDisabled = isFuture(addDays(weekStart, 7))
@@ -40,61 +74,19 @@ export default function WeekGrid({ cursor, onCursorChange, onSelectDay, activiti
       </div>
 
       {activities.length === 0 ? (
-        <p className="empty-state">
-          Nessuna attività ancora. Aggiungine una dalla scheda "Impostazioni".
-        </p>
+        <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
       ) : (
-        <div className="week-grid-wrap">
-          <table className="week-grid">
-            <thead>
-              <tr>
-                <th className="week-grid__activity-col" />
-                {dates.map((date) => (
-                  <th
-                    key={toISODate(date)}
-                    className={isSameDay(date, new Date()) ? 'is-today' : ''}
-                  >
-                    <button
-                      type="button"
-                      className="week-grid__day-btn"
-                      onClick={() => onSelectDay(date)}
-                    >
-                      <span className="week-grid__day">{dayLabel(date)}</span>
-                      <span className="week-grid__date">{date.getDate()}</span>
-                    </button>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {activities.map((activity) => (
-                <tr key={activity.id}>
-                  <th scope="row" className="week-grid__activity-col">
-                    <span aria-hidden="true">{activity.emoji}</span> {activity.name}
-                  </th>
-                  {dates.map((date) => {
-                    const iso = toISODate(date)
-                    const done = !!logs[iso]?.[activity.id]
-                    const future = isFuture(date)
-                    return (
-                      <td key={iso} className={isSameDay(date, new Date()) ? 'is-today' : ''}>
-                        <button
-                          type="button"
-                          className={`week-grid__cell ${done ? 'is-done' : ''}`}
-                          disabled={future}
-                          onClick={() => onToggle(iso, activity.id)}
-                          aria-label={`${activity.name} - ${iso}`}
-                        >
-                          {done ? '✓' : ''}
-                        </button>
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ul className="week-bars">
+          {dates.map((date) => (
+            <li key={toISODate(date)} className={`week-bars__row ${isSameDay(date, new Date()) ? 'is-today' : ''}`}>
+              <button type="button" className="week-bars__day" onClick={() => onSelectDay(date)}>
+                <span className="week-bars__label">{dayLabel(date)}</span>
+                <span className="week-bars__date">{date.getDate()}</span>
+              </button>
+              <DayBar date={date} activities={activities} entries={entries} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

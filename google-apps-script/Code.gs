@@ -1,5 +1,6 @@
-// Backend minimo per Weekly: salva un unico blob JSON (attività + log) in una
-// cella del foglio Google. Vedi README.md per le istruzioni di pubblicazione.
+// Backend minimo per Weekly: salva un unico blob JSON (tutto ciò che l'app
+// manda, tranne il token) in una cella del foglio Google. Vedi README.md per
+// le istruzioni di pubblicazione.
 
 var SHEET_NAME = 'WeeklyData'
 var TOKEN = 'CHANGE_ME' // sostituisci con una password a tua scelta
@@ -10,7 +11,7 @@ function doGet(e) {
   }
   var sheet = getSheet()
   var raw = sheet.getRange('A1').getValue()
-  var data = raw ? JSON.parse(raw) : { activities: [], logs: {} }
+  var data = raw ? JSON.parse(raw) : {}
   return jsonResponse(data)
 }
 
@@ -19,8 +20,11 @@ function doPost(e) {
   if (!isTokenValid(body.token)) {
     return jsonResponse({ error: 'Token non valido' })
   }
+  var payload = {}
+  for (var key in body) {
+    if (key !== 'token') payload[key] = body[key]
+  }
   var sheet = getSheet()
-  var payload = { activities: body.activities || [], logs: body.logs || {} }
   sheet.getRange('A1').setValue(JSON.stringify(payload))
   return jsonResponse({ ok: true })
 }

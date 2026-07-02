@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
+import { deleteEntry, makeEntryId, startEntry, updateEntry } from '../utils/entries'
+import { nowISODateTime } from '../utils/date'
 
 const ACTIVITIES_KEY = 'weekly:activitiesMeta'
-const LOGS_KEY = 'weekly:logsMeta'
+const ENTRIES_KEY = 'weekly:entriesMeta'
 const SETTINGS_KEY = 'weekly:settings'
 
 const DEFAULT_ACTIVITIES = [
   { id: 'leggere', name: 'Leggere', emoji: '📖' },
   { id: 'sport', name: 'Sport', emoji: '🏃' },
-  { id: 'inglese', name: 'Inglese', emoji: '🇬🇧' },
-  { id: 'linkedin', name: 'LinkedIn', emoji: '💼' },
-].map((a, i) => ({ ...a, order: i, updatedAt: 0, deleted: false }))
+  { id: 'lavoro', name: 'Lavoro', emoji: '💼' },
+  { id: 'sonno', name: 'Sonno', emoji: '😴' },
+].map((a, i) => ({ ...a, colorSlot: i, order: i, updatedAt: 0, deleted: false }))
 
 const DEFAULT_SETTINGS = {
   sheetUrl: '',
@@ -28,7 +30,7 @@ function loadJSON(key, fallback) {
   }
 }
 
-function makeId() {
+function makeActivityId() {
   return `a_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
@@ -36,19 +38,7 @@ function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
     .sort((a, b) => a.order - b.order)
-    .map(({ id, name, emoji }) => ({ id, name, emoji }))
-}
-
-function toPlainLogs(meta) {
-  const plain = {}
-  for (const [iso, day] of Object.entries(meta)) {
-    const plainDay = {}
-    for (const [activityId, entry] of Object.entries(day)) {
-      if (entry?.done) plainDay[activityId] = true
-    }
-    plain[iso] = plainDay
-  }
-  return plain
+    .map(({ id, name, emoji, colorSlot }) => ({ id, name, emoji, colorSlot }))
 }
 
 const AUTO_SYNC_INTERVAL_MS = 3 * 60 * 1000
@@ -58,7 +48,7 @@ export function useHabitData() {
   const [activitiesMeta, setActivitiesMeta] = useState(() =>
     loadJSON(ACTIVITIES_KEY, DEFAULT_ACTIVITIES),
   )
-  const [logsMeta, setLogsMeta] = useState(() => loadJSON(LOGS_KEY, {}))
+  const [entriesMeta, setEntriesMeta] = useState(() => loadJSON(ENTRIES_KEY, []))
   const [settings, setSettingsState] = useState(() => loadJSON(SETTINGS_KEY, DEFAULT_SETTINGS))
   const [syncStatus, setSyncStatus] = useState({ state: 'idle', lastSyncedAt: null, error: null })
 
@@ -67,18 +57,18 @@ export function useHabitData() {
   }, [activitiesMeta])
 
   useEffect(() => {
-    localStorage.setItem(LOGS_KEY, JSON.stringify(logsMeta))
-  }, [logsMeta])
+    localStorage.setItem(ENTRIES_KEY, JSON.stringify(entriesMeta))
+  }, [entriesMeta])
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
   }, [settings])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
-  const logs = useMemo(() => toPlainLogs(logsMeta), [logsMeta])
+  const entries = useMemo(() => entriesMeta.filter((e) => !e.deleted), [entriesMeta])
 
-  const stateRef = useRef({ activitiesMeta, logsMeta })
-  stateRef.current = { activitiesMeta, logsMeta }
+  const stateRef = useRef({ activitiesMeta, entriesMeta })
+  stateRef.current = { activitiesMeta, entriesMeta }
 
   const runSync = useCallback(async () => {
     const { sheetUrl, token } = settings
@@ -87,10 +77,10 @@ export function useHabitData() {
     try {
       const merged = await syncNow(sheetUrl, token, {
         activities: stateRef.current.activitiesMeta,
-        logs: stateRef.current.logsMeta,
+        entries: stateRef.current.entriesMeta,
       })
       setActivitiesMeta(merged.activities)
-      setLogsMeta(merged.logs)
+      setEntriesMeta(merged.entries)
       setSyncStatus({ state: 'synced', lastSyncedAt: Date.now(), error: null })
     } catch (err) {
       setSyncStatus((s) => ({ ...s, state: 'error', error: err.message || 'Sync fallita' }))
@@ -100,7 +90,6 @@ export function useHabitData() {
   const runSyncRef = useRef(runSync)
   runSyncRef.current = runSync
 
-  // Initial sync + periodic sync while the sheet is configured.
   useEffect(() => {
     if (!settings.sheetUrl) return
     runSyncRef.current()
@@ -115,7 +104,6 @@ export function useHabitData() {
     }
   }, [settings.sheetUrl])
 
-  // Debounced sync after local changes.
   const debounceTimer = useRef(null)
   const scheduleSync = useCallback(() => {
     if (!settings.sheetUrl) return
@@ -123,18 +111,46 @@ export function useHabitData() {
     debounceTimer.current = setTimeout(() => runSyncRef.current(), DEBOUNCE_SYNC_MS)
   }, [settings.sheetUrl])
 
-  const toggleEntry = useCallback(
-    (iso, activityId) => {
-      setLogsMeta((prev) => {
-        const day = prev[iso] || {}
-        const wasDone = !!day[activityId]?.done
-        const nextDay = { ...day, [activityId]: { done: !wasDone, updatedAt: Date.now() } }
-        return { ...prev, [iso]: nextDay }
-      })
+  // --- Entries (continuous time blocks) ---
+
+  const startActivity = useCallback(
+    (activityId, atISO = nowISODateTime()) => {
+      setEntriesMeta((prev) => startEntry(prev, activityId, atISO))
       scheduleSync()
     },
     [scheduleSync],
   )
+
+  const editEntry = useCallback(
+    (id, patch) => {
+      setEntriesMeta((prev) => updateEntry(prev, id, patch))
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
+  const removeEntry = useCallback(
+    (id) => {
+      setEntriesMeta((prev) => deleteEntry(prev, id))
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
+  // Add a self-contained block (start and end both given), for backfilling a
+  // past day without disturbing whatever is currently open today.
+  const addManualEntry = useCallback(
+    (activityId, startISO, endISO) => {
+      setEntriesMeta((prev) => [
+        ...prev,
+        { id: makeEntryId(), activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
+      ])
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
+  // --- Activities ---
 
   const addActivity = useCallback(
     (name, emoji) => {
@@ -145,9 +161,10 @@ export function useHabitData() {
         return [
           ...prev,
           {
-            id: makeId(),
+            id: makeActivityId(),
             name: trimmed,
             emoji: emoji || '✅',
+            colorSlot: prev.length,
             order: maxOrder + 1,
             updatedAt: Date.now(),
             deleted: false,
@@ -186,9 +203,7 @@ export function useHabitData() {
   const reorderActivities = useCallback(
     (fromIndex, toIndex) => {
       setActivitiesMeta((prev) => {
-        const visible = prev
-          .filter((a) => !a.deleted)
-          .sort((a, b) => a.order - b.order)
+        const visible = prev.filter((a) => !a.deleted).sort((a, b) => a.order - b.order)
         if (toIndex < 0 || toIndex >= visible.length) return prev
         const reordered = [...visible]
         const [moved] = reordered.splice(fromIndex, 1)
@@ -212,46 +227,32 @@ export function useHabitData() {
     return JSON.stringify(
       {
         app: 'weekly-habit-tracker',
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         activities: activitiesMeta,
-        logs: logsMeta,
+        entries: entriesMeta,
       },
       null,
       2,
     )
-  }, [activitiesMeta, logsMeta])
+  }, [activitiesMeta, entriesMeta])
 
   const importData = useCallback((json) => {
     const parsed = JSON.parse(json)
-    if (!Array.isArray(parsed.activities) || typeof parsed.logs !== 'object' || parsed.logs === null) {
+    if (!Array.isArray(parsed.activities) || !Array.isArray(parsed.entries)) {
       throw new Error('File di backup non valido')
     }
-    if (parsed.version === 2) {
-      setActivitiesMeta(parsed.activities)
-      setLogsMeta(parsed.logs)
-    } else {
-      // v1 backup: plain {id,name,emoji} activities and boolean logs.
-      const now = Date.now()
-      setActivitiesMeta(
-        parsed.activities.map((a, i) => ({ ...a, order: i, updatedAt: now, deleted: false })),
-      )
-      const migratedLogs = {}
-      for (const [iso, day] of Object.entries(parsed.logs)) {
-        const migratedDay = {}
-        for (const [activityId, done] of Object.entries(day)) {
-          migratedDay[activityId] = { done: !!done, updatedAt: now }
-        }
-        migratedLogs[iso] = migratedDay
-      }
-      setLogsMeta(migratedLogs)
-    }
+    setActivitiesMeta(parsed.activities)
+    setEntriesMeta(parsed.entries)
   }, [])
 
   return {
     activities,
-    logs,
-    toggleEntry,
+    entries,
+    startActivity,
+    editEntry,
+    removeEntry,
+    addManualEntry,
     addActivity,
     renameActivity,
     deleteActivity,

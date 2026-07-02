@@ -1,10 +1,12 @@
 # Weekly
 
-Habit tracker installabile come PWA (anche su iPhone) per tracciare ogni
-giorno le tue attività ricorrenti: lettura, sport, inglese, LinkedIn e altro.
+App di time-tracking installabile come PWA (anche su iPhone). Ogni volta che
+cambi attività lo segni: il blocco nuovo parte automaticamente da dove è
+finito il precedente, così la giornata resta sempre coperta senza buchi
+(sonno incluso).
 
-- **Calendario** con vista Giorno / Settimana / Mese e navigazione avanti-indietro
-- **Report** giornalieri, settimanali e mensili con percentuali di completamento e streak
+- **Calendario** con vista Giorno (timeline a blocchi) / Settimana / Mese e navigazione avanti-indietro
+- **Report** giornalieri, settimanali e mensili: classifica delle attività per tempo speso
 - **Sincronizzazione su Google Sheet**, così i dati sopravvivono a un cambio di telefono
 - **Notifiche locali** come promemoria giornaliero
 - Nessun account richiesto: i dati vivono in `localStorage` e (opzionalmente) sul tuo Google Sheet

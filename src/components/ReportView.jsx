@@ -2,17 +2,19 @@ import { useState } from 'react'
 import {
   addDays,
   addMonths,
+  endOfDay,
+  formatDuration,
   formatFullDate,
   formatMonthLabel,
   formatWeekRange,
-  getDatesInMonth,
-  getWeekDates,
   isFuture,
   isSameDay,
+  startOfDay,
   startOfMonth,
   startOfWeek,
 } from '../utils/date'
-import { bestStreak, currentStreak, rangeCompletion } from '../utils/stats'
+import { aggregateDuration } from '../utils/entries'
+import { colorVar } from '../utils/palette'
 
 const PERIODS = [
   { id: 'day', label: 'Giorno' },
@@ -26,10 +28,14 @@ function shiftCursor(period, cursor, direction) {
   return addMonths(cursor, direction)
 }
 
-function periodDates(period, cursor) {
-  if (period === 'day') return [cursor]
-  if (period === 'week') return getWeekDates(startOfWeek(cursor))
-  return getDatesInMonth(startOfMonth(cursor))
+function periodRange(period, cursor) {
+  if (period === 'day') return [startOfDay(cursor), endOfDay(cursor)]
+  if (period === 'week') {
+    const start = startOfWeek(cursor)
+    return [start, addDays(start, 7)]
+  }
+  const start = startOfMonth(cursor)
+  return [start, startOfMonth(addMonths(cursor, 1))]
 }
 
 function periodLabel(period, cursor) {
@@ -47,12 +53,23 @@ function isNextDisabled(period, cursor) {
   return isFuture(startOfMonth(next))
 }
 
-export default function ReportView({ activities, logs }) {
+export default function ReportView({ activities, entries }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
 
-  const dates = periodDates(period, cursor)
+  const [rangeStart, rangeEnd] = periodRange(period, cursor)
+  const now = new Date()
   const nextDisabled = isNextDisabled(period, cursor)
+
+  const totals = aggregateDuration(entries, rangeStart, rangeEnd, now)
+  const trackedMs = Array.from(totals.values()).reduce((sum, ms) => sum + ms, 0)
+  const elapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
+  const untrackedMs = Math.max(0, elapsedMs - trackedMs)
+
+  const ranked = activities
+    .map((a) => ({ ...a, ms: totals.get(a.id) || 0 }))
+    .sort((a, b) => b.ms - a.ms)
+  const maxMs = Math.max(1, ...ranked.map((a) => a.ms))
 
   return (
     <div className="view">
@@ -95,32 +112,41 @@ export default function ReportView({ activities, logs }) {
       {activities.length === 0 ? (
         <p className="empty-state">Aggiungi delle attività per vedere i report.</p>
       ) : (
-        <ul className="report-list">
-          {activities.map((activity) => {
-            const { done, total, pct } = rangeCompletion(logs, activity.id, dates)
-            const streak = currentStreak(logs, activity.id)
-            const best = bestStreak(logs, activity.id)
-            return (
+        <>
+          <div className="report-summary">
+            <span>
+              Tracciato: <strong>{formatDuration(trackedMs)}</strong>
+            </span>
+            <span className="report-summary__muted">
+              Non registrato: {formatDuration(untrackedMs)}
+            </span>
+          </div>
+
+          <ul className="report-list">
+            {ranked.map((activity) => (
               <li key={activity.id} className="report-card">
                 <div className="report-card__header">
+                  <span
+                    className="report-card__swatch"
+                    style={{ background: colorVar(activity.colorSlot) }}
+                  />
                   <span aria-hidden="true">{activity.emoji}</span>
                   <span className="report-card__name">{activity.name}</span>
-                  <span className="report-card__pct">{pct}%</span>
+                  <span className="report-card__pct">{formatDuration(activity.ms)}</span>
                 </div>
                 <div className="report-card__bar">
-                  <div className="report-card__bar-fill" style={{ width: `${pct}%` }} />
-                </div>
-                <div className="report-card__meta">
-                  <span>
-                    {done}/{total} giorni
-                  </span>
-                  <span>🔥 streak: {streak}</span>
-                  <span>🏆 record: {best}</span>
+                  <div
+                    className="report-card__bar-fill"
+                    style={{
+                      width: `${(activity.ms / maxMs) * 100}%`,
+                      background: colorVar(activity.colorSlot),
+                    }}
+                  />
                 </div>
               </li>
-            )
-          })}
-        </ul>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   )

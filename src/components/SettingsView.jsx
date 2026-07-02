@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { shareOrDownloadText } from '../utils/shareFile'
+import { colorVar } from '../utils/palette'
 
 const EMOJI_CHOICES = ['✅', '📖', '🏃', '🇬🇧', '💼', '🧘', '🎸', '💧', '🥗', '😴', '💻', '🎨']
 
@@ -150,6 +151,10 @@ export default function SettingsView({
                 </>
               ) : (
                 <>
+                  <span
+                    className="activity-manage-row__swatch"
+                    style={{ background: colorVar(activity.colorSlot) }}
+                  />
                   <span className="activity-manage-row__emoji" aria-hidden="true">
                     {activity.emoji}
                   </span>

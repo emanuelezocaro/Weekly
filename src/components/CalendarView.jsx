@@ -9,7 +9,14 @@ const MODES = [
   { id: 'month', label: 'Mese' },
 ]
 
-export default function CalendarView({ activities, logs, onToggle }) {
+export default function CalendarView({
+  activities,
+  entries,
+  onStartActivity,
+  onEditEntry,
+  onRemoveEntry,
+  onAddManualEntry,
+}) {
   const [mode, setMode] = useState('day')
   const [cursor, setCursor] = useState(() => new Date())
 
@@ -38,8 +45,11 @@ export default function CalendarView({ activities, logs, onToggle }) {
           cursor={cursor}
           onCursorChange={setCursor}
           activities={activities}
-          logs={logs}
-          onToggle={onToggle}
+          entries={entries}
+          onStartActivity={onStartActivity}
+          onEditEntry={onEditEntry}
+          onRemoveEntry={onRemoveEntry}
+          onAddManualEntry={onAddManualEntry}
         />
       )}
       {mode === 'week' && (
@@ -48,8 +58,7 @@ export default function CalendarView({ activities, logs, onToggle }) {
           onCursorChange={setCursor}
           onSelectDay={selectDay}
           activities={activities}
-          logs={logs}
-          onToggle={onToggle}
+          entries={entries}
         />
       )}
       {mode === 'month' && (
@@ -58,7 +67,7 @@ export default function CalendarView({ activities, logs, onToggle }) {
           onCursorChange={setCursor}
           onSelectDay={selectDay}
           activities={activities}
-          logs={logs}
+          entries={entries}
         />
       )}
     </div>

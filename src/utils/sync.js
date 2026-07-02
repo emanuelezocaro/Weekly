@@ -1,7 +1,7 @@
 // Merge logic + wire format for syncing against a Google Apps Script Web App
 // that stores a single JSON blob in a Google Sheet cell. Each activity and
-// each day/activity log entry carries its own `updatedAt` timestamp so two
-// devices that were offline can be merged with simple last-write-wins.
+// each time entry carries its own `updatedAt` timestamp so two devices that
+// were offline can be merged with simple last-write-wins.
 
 export function mergeActivities(localList, remoteList) {
   const byId = new Map()
@@ -13,30 +13,20 @@ export function mergeActivities(localList, remoteList) {
   return Array.from(byId.values())
 }
 
-export function mergeLogs(localLogs, remoteLogs) {
-  const isoSet = new Set([...Object.keys(localLogs), ...Object.keys(remoteLogs)])
-  const merged = {}
-  for (const iso of isoSet) {
-    const l = localLogs[iso] || {}
-    const r = remoteLogs[iso] || {}
-    const activityIds = new Set([...Object.keys(l), ...Object.keys(r)])
-    const day = {}
-    for (const id of activityIds) {
-      const le = l[id]
-      const re = r[id]
-      if (!re) day[id] = le
-      else if (!le) day[id] = re
-      else day[id] = le.updatedAt >= re.updatedAt ? le : re
-    }
-    merged[iso] = day
+export function mergeEntries(localList, remoteList) {
+  const byId = new Map()
+  for (const e of remoteList) byId.set(e.id, e)
+  for (const e of localList) {
+    const r = byId.get(e.id)
+    if (!r || e.updatedAt >= r.updatedAt) byId.set(e.id, e)
   }
-  return merged
+  return Array.from(byId.values())
 }
 
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
-    logs: mergeLogs(localState.logs, remoteState?.logs || {}),
+    entries: mergeEntries(localState.entries, remoteState?.entries || []),
   }
 }
 
@@ -52,7 +42,7 @@ export async function fetchRemoteState(url, token) {
   const u = new URL(url)
   u.searchParams.set('token', token)
   const json = await request(u.toString(), token, { method: 'GET' })
-  return { activities: json.activities || [], logs: json.logs || {} }
+  return { activities: json.activities || [], entries: json.entries || [] }
 }
 
 export async function pushRemoteState(url, token, state) {
@@ -61,7 +51,7 @@ export async function pushRemoteState(url, token, state) {
   await request(url, token, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ token, activities: state.activities, logs: state.logs }),
+    body: JSON.stringify({ token, activities: state.activities, entries: state.entries }),
   })
 }
 

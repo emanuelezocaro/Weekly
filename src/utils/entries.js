@@ -1,0 +1,95 @@
+import { endOfDay, nowISODateTime, parseISODateTime, startOfDay } from './date'
+
+export function makeEntryId() {
+  return `e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+export function getOpenEntry(entries) {
+  return entries.find((e) => !e.deleted && e.end === null) || null
+}
+
+// Closes whatever entry is currently open (chains it to `atISO`) and opens a
+// new one for `activityId` starting at the same instant, so the timeline
+// never has a gap.
+export function startEntry(entries, activityId, atISO = nowISODateTime()) {
+  const now = Date.now()
+  const closed = entries.map((e) =>
+    !e.deleted && e.end === null ? { ...e, end: atISO, updatedAt: now } : e,
+  )
+  return [...closed, { id: makeEntryId(), activityId, start: atISO, end: null, updatedAt: now, deleted: false }]
+}
+
+export function updateEntry(entries, id, patch) {
+  const now = Date.now()
+  return entries.map((e) => (e.id === id ? { ...e, ...patch, updatedAt: now } : e))
+}
+
+export function deleteEntry(entries, id) {
+  const now = Date.now()
+  return entries.map((e) => (e.id === id ? { ...e, deleted: true, updatedAt: now } : e))
+}
+
+function effectiveEnd(entry, now) {
+  return entry.end ? parseISODateTime(entry.end) : now
+}
+
+// Overlap in ms between an entry's [start, effectiveEnd) and [rangeStart, rangeEnd).
+export function msInRange(entry, rangeStart, rangeEnd, now) {
+  const start = parseISODateTime(entry.start)
+  const end = effectiveEnd(entry, now)
+  const overlapStart = start < rangeStart ? rangeStart : start
+  const overlapEnd = end > rangeEnd ? rangeEnd : end
+  const ms = overlapEnd - overlapStart
+  return ms > 0 ? ms : 0
+}
+
+// Entries (or entry fragments) that touch a single day, clipped to that
+// day's [00:00, 24:00) boundary and sorted chronologically.
+export function entriesForDay(entries, dayDate, now = new Date()) {
+  const dayStart = startOfDay(dayDate)
+  const dayEnd = endOfDay(dayDate)
+  return entries
+    .filter((e) => !e.deleted)
+    .map((e) => {
+      const start = parseISODateTime(e.start)
+      const end = effectiveEnd(e, now)
+      const clippedStart = start < dayStart ? dayStart : start
+      const clippedEnd = end > dayEnd ? dayEnd : end
+      return { entry: e, clippedStart, clippedEnd, isOpen: e.end === null }
+    })
+    .filter(({ clippedStart, clippedEnd }) => clippedEnd > clippedStart)
+    .sort((a, b) => a.clippedStart - b.clippedStart)
+}
+
+// Full-day breakdown for a stacked timeline bar: tracked blocks, untracked
+// gaps (past time with nothing logged) and the not-yet-happened remainder of
+// today, all as contiguous segments spanning [00:00, 24:00).
+export function daySegments(entries, dayDate, now = new Date()) {
+  const dayStart = startOfDay(dayDate)
+  const dayEnd = endOfDay(dayDate)
+  const upperBound = now < dayEnd ? now : dayEnd
+  const items = entriesForDay(entries, dayDate, now)
+  const segments = []
+  let cursor = dayStart
+  for (const { entry, clippedStart, clippedEnd } of items) {
+    if (clippedStart > cursor) segments.push({ kind: 'gap', start: cursor, end: clippedStart })
+    segments.push({ kind: 'entry', activityId: entry.activityId, start: clippedStart, end: clippedEnd })
+    if (clippedEnd > cursor) cursor = clippedEnd
+  }
+  if (cursor < upperBound) segments.push({ kind: 'gap', start: cursor, end: upperBound })
+  if (upperBound < dayEnd) segments.push({ kind: 'future', start: upperBound, end: dayEnd })
+  return segments
+}
+
+// Total ms spent per activity within [rangeStart, rangeEnd).
+export function aggregateDuration(entries, rangeStart, rangeEnd, now = new Date()) {
+  const totals = new Map()
+  const clampedEnd = rangeEnd > now ? now : rangeEnd
+  if (clampedEnd <= rangeStart) return totals
+  for (const entry of entries) {
+    if (entry.deleted) continue
+    const ms = msInRange(entry, rangeStart, clampedEnd, now)
+    if (ms > 0) totals.set(entry.activityId, (totals.get(entry.activityId) || 0) + ms)
+  }
+  return totals
+}

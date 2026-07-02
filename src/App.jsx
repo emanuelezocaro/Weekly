@@ -17,8 +17,11 @@ function App() {
   const [tab, setTab] = useState('calendar')
   const {
     activities,
-    logs,
-    toggleEntry,
+    entries,
+    startActivity,
+    editEntry,
+    removeEntry,
+    addManualEntry,
     addActivity,
     renameActivity,
     deleteActivity,
@@ -45,9 +48,16 @@ function App() {
 
       <main className="app-main">
         {tab === 'calendar' && (
-          <CalendarView activities={activities} logs={logs} onToggle={toggleEntry} />
+          <CalendarView
+            activities={activities}
+            entries={entries}
+            onStartActivity={startActivity}
+            onEditEntry={editEntry}
+            onRemoveEntry={removeEntry}
+            onAddManualEntry={addManualEntry}
+          />
         )}
-        {tab === 'report' && <ReportView activities={activities} logs={logs} />}
+        {tab === 'report' && <ReportView activities={activities} entries={entries} />}
         {tab === 'settings' && (
           <SettingsView
             activities={activities}

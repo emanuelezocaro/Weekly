@@ -8,11 +8,36 @@ import {
   startOfMonth,
   toISODate,
 } from '../utils/date'
-import { dayCompletionRatio } from '../utils/stats'
+import { daySegments } from '../utils/entries'
+import { colorVar } from '../utils/palette'
 
 const WEEKDAY_LABELS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
+const DAY_MS = 24 * 60 * 60 * 1000
 
-export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activities, logs }) {
+function activityFor(activities, id) {
+  return activities.find((a) => a.id === id)
+}
+
+function MiniBar({ date, activities, entries }) {
+  const segments = daySegments(entries, date, new Date()).filter((s) => s.kind === 'entry')
+  if (segments.length === 0) return <span className="month-grid__bar month-grid__bar--empty" />
+  return (
+    <span className="month-grid__bar">
+      {segments.map((seg, i) => {
+        const widthPct = ((seg.end - seg.start) / DAY_MS) * 100
+        const activity = activityFor(activities, seg.activityId)
+        return (
+          <span
+            key={i}
+            style={{ width: `${widthPct}%`, background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
+          />
+        )
+      })}
+    </span>
+  )
+}
+
+export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activities, entries }) {
   const monthDate = startOfMonth(cursor)
   const weeks = getMonthMatrix(monthDate)
   const nextDisabled = isFuture(startOfMonth(addMonths(monthDate, 1)))
@@ -55,7 +80,6 @@ export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activit
               const outside = !isSameMonth(date, monthDate)
               const today = isSameDay(date, new Date())
               const future = isFuture(date)
-              const ratio = activities.length > 0 ? dayCompletionRatio(logs, activities, iso) : 0
               return (
                 <button
                   key={iso}
@@ -65,10 +89,7 @@ export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activit
                 >
                   <span className="month-grid__num">{date.getDate()}</span>
                   {!outside && !future && activities.length > 0 && (
-                    <span
-                      className="month-grid__dot"
-                      style={{ opacity: ratio > 0 ? 0.35 + ratio * 0.65 : 0.15 }}
-                    />
+                    <MiniBar date={date} activities={activities} entries={entries} />
                   )}
                 </button>
               )
