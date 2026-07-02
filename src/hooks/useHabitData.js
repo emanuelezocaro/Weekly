@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
-import { closeStaleOpenEntries, deleteEntry, makeEntryId, startEntry, updateEntry } from '../utils/entries'
+import {
+  closeStaleOpenEntries,
+  deleteEntry,
+  makeEntryId,
+  resolveOverlaps,
+  startEntry,
+  updateEntry,
+} from '../utils/entries'
 import { nowISODateTime } from '../utils/date'
 
 const ACTIVITIES_KEY = 'weekly:activitiesMeta'
@@ -123,7 +130,7 @@ export function useHabitData() {
 
   const editEntry = useCallback(
     (id, patch) => {
-      setEntriesMeta((prev) => updateEntry(prev, id, patch))
+      setEntriesMeta((prev) => resolveOverlaps(updateEntry(prev, id, patch), id))
       scheduleSync()
     },
     [scheduleSync],
@@ -138,13 +145,18 @@ export function useHabitData() {
   )
 
   // Add a self-contained block (start and end both given), for backfilling a
-  // past day without disturbing whatever is currently open today.
+  // past day without disturbing whatever is currently open today. Trims any
+  // existing block it overlaps so the timeline stays gap-free and non-overlapping.
   const addManualEntry = useCallback(
     (activityId, startISO, endISO) => {
-      setEntriesMeta((prev) => [
-        ...prev,
-        { id: makeEntryId(), activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
-      ])
+      setEntriesMeta((prev) => {
+        const id = makeEntryId()
+        const withNew = [
+          ...prev,
+          { id, activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
+        ]
+        return resolveOverlaps(withNew, id)
+      })
       scheduleSync()
     },
     [scheduleSync],

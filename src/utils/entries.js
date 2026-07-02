@@ -1,4 +1,4 @@
-import { endOfDay, nowISODateTime, parseISODateTime, startOfDay } from './date'
+import { endOfDay, nowISODateTime, parseISODateTime, startOfDay, toISODateTime } from './date'
 
 export const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -29,6 +29,35 @@ export function updateEntry(entries, id, patch) {
 export function deleteEntry(entries, id) {
   const now = Date.now()
   return entries.map((e) => (e.id === id ? { ...e, deleted: true, updatedAt: now } : e))
+}
+
+// After a manual time edit (or a manually added block) can end up overlapping
+// a neighbor, this trims that neighbor's boundary back to where the changed
+// block now begins/ends — or removes it if fully covered — so the timeline
+// never ends up with two blocks claiming the same minute.
+export function resolveOverlaps(entries, changedId, now = new Date()) {
+  const changed = entries.find((e) => e.id === changedId)
+  if (!changed || changed.deleted) return entries
+  const newStart = parseISODateTime(changed.start)
+  const newEnd = changed.end ? parseISODateTime(changed.end) : now
+  const nowMs = Date.now()
+
+  return entries.map((e) => {
+    if (e.id === changedId || e.deleted) return e
+    const eStart = parseISODateTime(e.start)
+    const eEnd = e.end ? parseISODateTime(e.end) : now
+    if (!(eStart < newEnd && eEnd > newStart)) return e
+
+    if (eStart < newStart) {
+      // e started earlier and now bleeds into the changed block: pull its end back.
+      return { ...e, end: changed.start, updatedAt: nowMs }
+    }
+    // e starts at/after the changed block and spills past its end: push its start forward.
+    const trimmedStart = changed.end ?? toISODateTime(newEnd)
+    return e.end !== null && parseISODateTime(trimmedStart) >= eEnd
+      ? { ...e, deleted: true, updatedAt: nowMs }
+      : { ...e, start: trimmedStart, updatedAt: nowMs }
+  })
 }
 
 function effectiveEnd(entry, now) {
