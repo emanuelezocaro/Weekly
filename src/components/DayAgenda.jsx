@@ -369,7 +369,11 @@ export default function DayAgenda({
             })}
           </ul>
 
-          {!isToday && (
+          {!isToday && gaps.length === 0 && (
+            <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
+          )}
+
+          {!isToday && gaps.length > 0 && (
             <div className="add-block">
               {addingManual ? (
                 <ManualAddForm
