@@ -126,7 +126,10 @@ export function aggregateDuration(entries, rangeStart, rangeEnd, now = new Date(
 export function activityStats(activities, entries, rangeStart, rangeEnd, now = new Date()) {
   const totals = aggregateDuration(entries, rangeStart, rangeEnd, now)
   const elapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
-  const elapsedDays = Math.max(elapsedMs / DAY_MS, 1 / 1440)
+  // A single-day range (the "Giorno" view) always counts as exactly one day,
+  // even mid-day -- otherwise dividing by the elapsed fraction of today
+  // extrapolates an inflated full-day projection instead of today's actual total.
+  const elapsedDays = rangeEnd - rangeStart <= DAY_MS ? 1 : Math.max(elapsedMs / DAY_MS, 1 / 1440)
 
   const stats = activities
     .map((a) => {
