@@ -126,10 +126,11 @@ export function aggregateDuration(entries, rangeStart, rangeEnd, now = new Date(
 export function activityStats(activities, entries, rangeStart, rangeEnd, now = new Date()) {
   const totals = aggregateDuration(entries, rangeStart, rangeEnd, now)
   const elapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
-  // A single-day range (the "Giorno" view) always counts as exactly one day,
-  // even mid-day -- otherwise dividing by the elapsed fraction of today
-  // extrapolates an inflated full-day projection instead of today's actual total.
-  const elapsedDays = rangeEnd - rangeStart <= DAY_MS ? 1 : Math.max(elapsedMs / DAY_MS, 1 / 1440)
+  // "Daily average" divides by the number of calendar days that have
+  // started so far (each one counts as a full day even while still in
+  // progress) -- e.g. 9h yesterday + 8h so far today averages to 8.5h/day,
+  // not an hour-weighted extrapolation of today's still-open total.
+  const elapsedDays = Math.max(1, Math.ceil(elapsedMs / DAY_MS))
 
   const stats = activities
     .map((a) => {
