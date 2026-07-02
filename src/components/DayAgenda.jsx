@@ -32,6 +32,18 @@ function QuarterHourSelect({ value, onChange }) {
   )
 }
 
+function ActivitySelect({ activities, value, onChange }) {
+  return (
+    <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
+      {activities.map((a) => (
+        <option key={a.id} value={a.id}>
+          {a.name}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 function activityFor(activities, id) {
   return activities.find((a) => a.id === id)
 }
@@ -40,13 +52,7 @@ function ActivityGrid({ activities, onPick }) {
   return (
     <div className="activity-grid">
       {activities.map((a) => (
-        <button
-          key={a.id}
-          type="button"
-          className="activity-grid__item"
-          style={{ '--chip-color': colorVar(a.colorSlot) }}
-          onClick={() => onPick(a.id)}
-        >
+        <button key={a.id} type="button" className="activity-grid__item" onClick={() => onPick(a.id)}>
           <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
           <span className="activity-grid__name">{a.name}</span>
         </button>
@@ -91,20 +97,10 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
 
   return (
     <div className="entry-editor">
-      <div className="activity-grid activity-grid--compact">
-        {activities.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            className={`activity-grid__item ${activityId === a.id ? 'is-selected' : ''}`}
-            style={{ '--chip-color': colorVar(a.colorSlot) }}
-            onClick={() => setActivityId(a.id)}
-          >
-            <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
-            <span className="activity-grid__name">{a.name}</span>
-          </button>
-        ))}
-      </div>
+      <label className="entry-editor__field">
+        <span>Attività</span>
+        <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
+      </label>
 
       <div className="entry-editor__times">
         <label>
@@ -331,20 +327,10 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel }) {
 
   return (
     <div className="entry-editor">
-      <div className="activity-grid activity-grid--compact">
-        {activities.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            className={`activity-grid__item ${activityId === a.id ? 'is-selected' : ''}`}
-            style={{ '--chip-color': colorVar(a.colorSlot) }}
-            onClick={() => setActivityId(a.id)}
-          >
-            <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
-            <span className="activity-grid__name">{a.name}</span>
-          </button>
-        ))}
-      </div>
+      <label className="entry-editor__field">
+        <span>Attività</span>
+        <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
+      </label>
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
