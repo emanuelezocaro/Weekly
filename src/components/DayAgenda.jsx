@@ -35,10 +35,14 @@ function QuarterHourSelect({ value, onChange }) {
   )
 }
 
+function sortByName(activities) {
+  return [...activities].sort((a, b) => a.name.localeCompare(b.name, 'it'))
+}
+
 function ActivitySelect({ activities, value, onChange }) {
   return (
     <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {activities.map((a) => (
+      {sortByName(activities).map((a) => (
         <option key={a.id} value={a.id}>
           {a.name}
         </option>
@@ -63,7 +67,7 @@ function ActivityPicker({ activities, onPick }) {
       <option value="" disabled>
         Scegli attività…
       </option>
-      {activities.map((a) => (
+      {sortByName(activities).map((a) => (
         <option key={a.id} value={a.id}>
           {a.name}
         </option>

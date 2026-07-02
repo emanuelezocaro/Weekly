@@ -395,6 +395,10 @@
   display: flex;
 }
 
+.add-block > * {
+  flex: 1;
+}
+
 /* Report view */
 .report-summary {
   display: flex;
