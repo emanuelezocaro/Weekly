@@ -10,16 +10,12 @@ import {
 } from '../utils/entries'
 import { nowISODateTime } from '../utils/date'
 
-const ACTIVITIES_KEY = 'weekly:activitiesMeta'
-const ENTRIES_KEY = 'weekly:entriesMeta'
-const SETTINGS_KEY = 'weekly:settings'
+// v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
+const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
+const ENTRIES_KEY = 'weekly:v2:entriesMeta'
+const SETTINGS_KEY = 'weekly:v2:settings'
 
-const DEFAULT_ACTIVITIES = [
-  { id: 'leggere', name: 'Leggere' },
-  { id: 'sport', name: 'Sport' },
-  { id: 'lavoro', name: 'Lavoro' },
-  { id: 'sonno', name: 'Sonno' },
-].map((a, i) => ({ ...a, colorSlot: i, order: i, updatedAt: 0, deleted: false }))
+const DEFAULT_ACTIVITIES = []
 
 const DEFAULT_SETTINGS = {
   sheetUrl: '',
@@ -165,7 +161,7 @@ export function useHabitData() {
   // --- Activities ---
 
   const addActivity = useCallback(
-    (name) => {
+    (name, colorSlot = 0) => {
       const trimmed = name.trim()
       if (!trimmed) return
       setActivitiesMeta((prev) => {
@@ -175,7 +171,7 @@ export function useHabitData() {
           {
             id: makeActivityId(),
             name: trimmed,
-            colorSlot: prev.length,
+            colorSlot,
             order: maxOrder + 1,
             updatedAt: Date.now(),
             deleted: false,
@@ -188,9 +184,18 @@ export function useHabitData() {
   )
 
   const renameActivity = useCallback(
-    (id, name) => {
+    (id, name, colorSlot) => {
       setActivitiesMeta((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, name: name.trim() || a.name, updatedAt: Date.now() } : a)),
+        prev.map((a) =>
+          a.id === id
+            ? {
+                ...a,
+                name: name.trim() || a.name,
+                colorSlot: colorSlot ?? a.colorSlot,
+                updatedAt: Date.now(),
+              }
+            : a,
+        ),
       )
       scheduleSync()
     },
@@ -202,25 +207,6 @@ export function useHabitData() {
       setActivitiesMeta((prev) =>
         prev.map((a) => (a.id === id ? { ...a, deleted: true, updatedAt: Date.now() } : a)),
       )
-      scheduleSync()
-    },
-    [scheduleSync],
-  )
-
-  const reorderActivities = useCallback(
-    (fromIndex, toIndex) => {
-      setActivitiesMeta((prev) => {
-        const visible = prev.filter((a) => !a.deleted).sort((a, b) => a.order - b.order)
-        if (toIndex < 0 || toIndex >= visible.length) return prev
-        const reordered = [...visible]
-        const [moved] = reordered.splice(fromIndex, 1)
-        reordered.splice(toIndex, 0, moved)
-        const now = Date.now()
-        const orderById = new Map(reordered.map((a, i) => [a.id, i]))
-        return prev.map((a) =>
-          orderById.has(a.id) ? { ...a, order: orderById.get(a.id), updatedAt: now } : a,
-        )
-      })
       scheduleSync()
     },
     [scheduleSync],
@@ -263,7 +249,6 @@ export function useHabitData() {
     addActivity,
     renameActivity,
     deleteActivity,
-    reorderActivities,
     exportData,
     importData,
     settings,

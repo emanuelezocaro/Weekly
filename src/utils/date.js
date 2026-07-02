@@ -84,7 +84,9 @@ export function isSameDay(a, b) {
 export function isFuture(date) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  return date > today
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d > today
 }
 
 export function isSameMonth(a, b) {

@@ -25,7 +25,6 @@ function App() {
     addActivity,
     renameActivity,
     deleteActivity,
-    reorderActivities,
     exportData,
     importData,
     settings,
@@ -64,7 +63,6 @@ function App() {
             onAdd={addActivity}
             onRename={renameActivity}
             onDelete={deleteActivity}
-            onReorder={reorderActivities}
             onExport={exportData}
             onImport={importData}
             settings={settings}

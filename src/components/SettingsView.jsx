@@ -1,6 +1,23 @@
 import { useRef, useState } from 'react'
 import { shareOrDownloadText } from '../utils/shareFile'
-import { colorVar } from '../utils/palette'
+import { colorVar, PALETTE_SIZE } from '../utils/palette'
+
+function ColorPicker({ value, onChange }) {
+  return (
+    <div className="color-picker">
+      {Array.from({ length: PALETTE_SIZE }, (_, i) => (
+        <button
+          key={i}
+          type="button"
+          className={`color-picker__swatch ${value === i ? 'is-selected' : ''}`}
+          style={{ background: colorVar(i) }}
+          aria-label={`Colore ${i + 1}`}
+          onClick={() => onChange(i)}
+        />
+      ))}
+    </div>
+  )
+}
 
 const SYNC_LABELS = {
   idle: 'Non ancora sincronizzato',
@@ -19,7 +36,6 @@ export default function SettingsView({
   onAdd,
   onRename,
   onDelete,
-  onReorder,
   onExport,
   onImport,
   settings,
@@ -29,8 +45,10 @@ export default function SettingsView({
   notifications,
 }) {
   const [name, setName] = useState('')
+  const [colorSlot, setColorSlot] = useState(0)
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
+  const [editColorSlot, setEditColorSlot] = useState(0)
   const [backupMessage, setBackupMessage] = useState('')
   const [sheetUrlDraft, setSheetUrlDraft] = useState(settings.sheetUrl)
   const [tokenDraft, setTokenDraft] = useState(settings.token)
@@ -39,17 +57,19 @@ export default function SettingsView({
   function handleAdd(e) {
     e.preventDefault()
     if (!name.trim()) return
-    onAdd(name)
+    onAdd(name, colorSlot)
     setName('')
+    setColorSlot((s) => (s + 1) % 8)
   }
 
   function startEdit(activity) {
     setEditingId(activity.id)
     setEditName(activity.name)
+    setEditColorSlot(activity.colorSlot)
   }
 
   function saveEdit(id) {
-    onRename(id, editName)
+    onRename(id, editName, editColorSlot)
     setEditingId(null)
   }
 
@@ -98,22 +118,26 @@ export default function SettingsView({
             />
             <button type="submit">Aggiungi</button>
           </div>
+          <ColorPicker value={colorSlot} onChange={setColorSlot} />
         </form>
 
         <ul className="activity-manage-list">
-          {activities.map((activity, index) => (
+          {activities.map((activity) => (
             <li key={activity.id} className="activity-manage-row">
               {editingId === activity.id ? (
-                <div className="add-activity__row">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    autoFocus
-                  />
-                  <button type="button" onClick={() => saveEdit(activity.id)}>
-                    Salva
-                  </button>
+                <div className="activity-manage-row__edit">
+                  <div className="add-activity__row">
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      autoFocus
+                    />
+                    <button type="button" onClick={() => saveEdit(activity.id)}>
+                      Salva
+                    </button>
+                  </div>
+                  <ColorPicker value={editColorSlot} onChange={setEditColorSlot} />
                 </div>
               ) : (
                 <>
@@ -123,22 +147,6 @@ export default function SettingsView({
                   />
                   <span className="activity-manage-row__name">{activity.name}</span>
                   <div className="activity-manage-row__actions">
-                    <button
-                      type="button"
-                      className="text-btn"
-                      onClick={() => onReorder(index, index - 1)}
-                      disabled={index === 0}
-                    >
-                      Su
-                    </button>
-                    <button
-                      type="button"
-                      className="text-btn"
-                      onClick={() => onReorder(index, index + 1)}
-                      disabled={index === activities.length - 1}
-                    >
-                      Giù
-                    </button>
                     <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
                       Modifica
                     </button>
