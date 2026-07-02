@@ -1,5 +1,7 @@
 import { endOfDay, nowISODateTime, parseISODateTime, startOfDay } from './date'
 
+export const DAY_MS = 24 * 60 * 60 * 1000
+
 export function makeEntryId() {
   return `e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
@@ -86,4 +88,28 @@ export function aggregateDuration(entries, rangeStart, rangeEnd, now = new Date(
     if (ms > 0) totals.set(entry.activityId, (totals.get(entry.activityId) || 0) + ms)
   }
   return totals
+}
+
+// Interprets a period as "what does an average 24h day look like": for each
+// activity, the total is expressed as ms/day (total divided by how many days
+// have actually elapsed so far), plus what fraction of a full day that is.
+// Always sorted with the biggest time-eaters first.
+export function activityStats(activities, entries, rangeStart, rangeEnd, now = new Date()) {
+  const totals = aggregateDuration(entries, rangeStart, rangeEnd, now)
+  const elapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
+  const elapsedDays = Math.max(elapsedMs / DAY_MS, 1 / 1440)
+
+  const stats = activities
+    .map((a) => {
+      const totalMs = totals.get(a.id) || 0
+      const avgMsPerDay = totalMs / elapsedDays
+      return { ...a, totalMs, avgMsPerDay, pctOfDay: avgMsPerDay / DAY_MS }
+    })
+    .sort((a, b) => b.totalMs - a.totalMs)
+
+  const trackedMs = stats.reduce((sum, s) => sum + s.totalMs, 0)
+  const untrackedMs = Math.max(0, elapsedMs - trackedMs)
+  const avgUntrackedMsPerDay = untrackedMs / elapsedDays
+
+  return { stats, elapsedDays, trackedMs, untrackedMs, avgUntrackedMsPerDay }
 }

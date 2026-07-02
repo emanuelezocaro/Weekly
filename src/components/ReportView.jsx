@@ -3,7 +3,6 @@ import {
   addDays,
   addMonths,
   endOfDay,
-  formatDuration,
   formatFullDate,
   formatMonthLabel,
   formatWeekRange,
@@ -13,8 +12,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from '../utils/date'
-import { aggregateDuration } from '../utils/entries'
-import { colorVar } from '../utils/palette'
+import ActivityStatsSummary from './ActivityStatsSummary'
 
 const PERIODS = [
   { id: 'day', label: 'Giorno' },
@@ -58,18 +56,8 @@ export default function ReportView({ activities, entries }) {
   const [cursor, setCursor] = useState(() => new Date())
 
   const [rangeStart, rangeEnd] = periodRange(period, cursor)
-  const now = new Date()
+  const [prevRangeStart, prevRangeEnd] = periodRange(period, shiftCursor(period, cursor, -1))
   const nextDisabled = isNextDisabled(period, cursor)
-
-  const totals = aggregateDuration(entries, rangeStart, rangeEnd, now)
-  const trackedMs = Array.from(totals.values()).reduce((sum, ms) => sum + ms, 0)
-  const elapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
-  const untrackedMs = Math.max(0, elapsedMs - trackedMs)
-
-  const ranked = activities
-    .map((a) => ({ ...a, ms: totals.get(a.id) || 0 }))
-    .sort((a, b) => b.ms - a.ms)
-  const maxMs = Math.max(1, ...ranked.map((a) => a.ms))
 
   return (
     <div className="view">
@@ -109,45 +97,14 @@ export default function ReportView({ activities, entries }) {
         </button>
       </div>
 
-      {activities.length === 0 ? (
-        <p className="empty-state">Aggiungi delle attività per vedere i report.</p>
-      ) : (
-        <>
-          <div className="report-summary">
-            <span>
-              Tracciato: <strong>{formatDuration(trackedMs)}</strong>
-            </span>
-            <span className="report-summary__muted">
-              Non registrato: {formatDuration(untrackedMs)}
-            </span>
-          </div>
-
-          <ul className="report-list">
-            {ranked.map((activity) => (
-              <li key={activity.id} className="report-card">
-                <div className="report-card__header">
-                  <span
-                    className="report-card__swatch"
-                    style={{ background: colorVar(activity.colorSlot) }}
-                  />
-                  <span aria-hidden="true">{activity.emoji}</span>
-                  <span className="report-card__name">{activity.name}</span>
-                  <span className="report-card__pct">{formatDuration(activity.ms)}</span>
-                </div>
-                <div className="report-card__bar">
-                  <div
-                    className="report-card__bar-fill"
-                    style={{
-                      width: `${(activity.ms / maxMs) * 100}%`,
-                      background: colorVar(activity.colorSlot),
-                    }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      <ActivityStatsSummary
+        activities={activities}
+        entries={entries}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        prevRangeStart={prevRangeStart}
+        prevRangeEnd={prevRangeEnd}
+      />
     </div>
   )
 }

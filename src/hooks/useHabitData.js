@@ -8,10 +8,10 @@ const ENTRIES_KEY = 'weekly:entriesMeta'
 const SETTINGS_KEY = 'weekly:settings'
 
 const DEFAULT_ACTIVITIES = [
-  { id: 'leggere', name: 'Leggere', emoji: '📖' },
-  { id: 'sport', name: 'Sport', emoji: '🏃' },
-  { id: 'lavoro', name: 'Lavoro', emoji: '💼' },
-  { id: 'sonno', name: 'Sonno', emoji: '😴' },
+  { id: 'leggere', name: 'Leggere' },
+  { id: 'sport', name: 'Sport' },
+  { id: 'lavoro', name: 'Lavoro' },
+  { id: 'sonno', name: 'Sonno' },
 ].map((a, i) => ({ ...a, colorSlot: i, order: i, updatedAt: 0, deleted: false }))
 
 const DEFAULT_SETTINGS = {
@@ -38,7 +38,7 @@ function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
     .sort((a, b) => a.order - b.order)
-    .map(({ id, name, emoji, colorSlot }) => ({ id, name, emoji, colorSlot }))
+    .map(({ id, name, colorSlot }) => ({ id, name, colorSlot }))
 }
 
 const AUTO_SYNC_INTERVAL_MS = 3 * 60 * 1000
@@ -153,7 +153,7 @@ export function useHabitData() {
   // --- Activities ---
 
   const addActivity = useCallback(
-    (name, emoji) => {
+    (name) => {
       const trimmed = name.trim()
       if (!trimmed) return
       setActivitiesMeta((prev) => {
@@ -163,7 +163,6 @@ export function useHabitData() {
           {
             id: makeActivityId(),
             name: trimmed,
-            emoji: emoji || '✅',
             colorSlot: prev.length,
             order: maxOrder + 1,
             updatedAt: Date.now(),
@@ -177,13 +176,9 @@ export function useHabitData() {
   )
 
   const renameActivity = useCallback(
-    (id, name, emoji) => {
+    (id, name) => {
       setActivitiesMeta((prev) =>
-        prev.map((a) =>
-          a.id === id
-            ? { ...a, name: name.trim() || a.name, emoji: emoji || a.emoji, updatedAt: Date.now() }
-            : a,
-        ),
+        prev.map((a) => (a.id === id ? { ...a, name: name.trim() || a.name, updatedAt: Date.now() } : a)),
       )
       scheduleSync()
     },

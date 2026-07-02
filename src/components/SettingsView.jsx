@@ -2,8 +2,6 @@ import { useRef, useState } from 'react'
 import { shareOrDownloadText } from '../utils/shareFile'
 import { colorVar } from '../utils/palette'
 
-const EMOJI_CHOICES = ['✅', '📖', '🏃', '🇬🇧', '💼', '🧘', '🎸', '💧', '🥗', '😴', '💻', '🎨']
-
 const SYNC_LABELS = {
   idle: 'Non ancora sincronizzato',
   syncing: 'Sincronizzazione…',
@@ -31,10 +29,8 @@ export default function SettingsView({
   notifications,
 }) {
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState(EMOJI_CHOICES[0])
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
-  const [editEmoji, setEditEmoji] = useState('')
   const [backupMessage, setBackupMessage] = useState('')
   const [sheetUrlDraft, setSheetUrlDraft] = useState(settings.sheetUrl)
   const [tokenDraft, setTokenDraft] = useState(settings.token)
@@ -43,19 +39,17 @@ export default function SettingsView({
   function handleAdd(e) {
     e.preventDefault()
     if (!name.trim()) return
-    onAdd(name, emoji)
+    onAdd(name)
     setName('')
-    setEmoji(EMOJI_CHOICES[0])
   }
 
   function startEdit(activity) {
     setEditingId(activity.id)
     setEditName(activity.name)
-    setEditEmoji(activity.emoji)
   }
 
   function saveEdit(id) {
-    onRename(id, editName, editEmoji)
+    onRename(id, editName)
     setEditingId(null)
   }
 
@@ -95,19 +89,6 @@ export default function SettingsView({
       <section className="settings-card">
         <h2 className="settings-card__title">Nuova attività</h2>
         <form className="add-activity" onSubmit={handleAdd}>
-          <div className="add-activity__emoji-picker">
-            {EMOJI_CHOICES.map((e) => (
-              <button
-                key={e}
-                type="button"
-                className={`emoji-choice ${emoji === e ? 'is-selected' : ''}`}
-                onClick={() => setEmoji(e)}
-                aria-label={`Scegli emoji ${e}`}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
           <div className="add-activity__row">
             <input
               type="text"
@@ -123,80 +104,54 @@ export default function SettingsView({
           {activities.map((activity, index) => (
             <li key={activity.id} className="activity-manage-row">
               {editingId === activity.id ? (
-                <>
-                  <div className="add-activity__emoji-picker">
-                    {EMOJI_CHOICES.map((e) => (
-                      <button
-                        key={e}
-                        type="button"
-                        className={`emoji-choice ${editEmoji === e ? 'is-selected' : ''}`}
-                        onClick={() => setEditEmoji(e)}
-                        aria-label={`Scegli emoji ${e}`}
-                      >
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="add-activity__row">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      autoFocus
-                    />
-                    <button type="button" onClick={() => saveEdit(activity.id)}>
-                      Salva
-                    </button>
-                  </div>
-                </>
+                <div className="add-activity__row">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    autoFocus
+                  />
+                  <button type="button" onClick={() => saveEdit(activity.id)}>
+                    Salva
+                  </button>
+                </div>
               ) : (
                 <>
                   <span
                     className="activity-manage-row__swatch"
                     style={{ background: colorVar(activity.colorSlot) }}
                   />
-                  <span className="activity-manage-row__emoji" aria-hidden="true">
-                    {activity.emoji}
-                  </span>
                   <span className="activity-manage-row__name">{activity.name}</span>
                   <div className="activity-manage-row__actions">
                     <button
                       type="button"
-                      className="icon-btn"
+                      className="text-btn"
                       onClick={() => onReorder(index, index - 1)}
                       disabled={index === 0}
-                      aria-label="Sposta su"
                     >
-                      ↑
+                      Su
                     </button>
                     <button
                       type="button"
-                      className="icon-btn"
+                      className="text-btn"
                       onClick={() => onReorder(index, index + 1)}
                       disabled={index === activities.length - 1}
-                      aria-label="Sposta giù"
                     >
-                      ↓
+                      Giù
+                    </button>
+                    <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
+                      Modifica
                     </button>
                     <button
                       type="button"
-                      className="icon-btn"
-                      onClick={() => startEdit(activity)}
-                      aria-label="Modifica"
-                    >
-                      ✎
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn icon-btn--danger"
+                      className="text-btn text-btn--danger"
                       onClick={() => {
                         if (confirm(`Eliminare "${activity.name}"? Verrà rimosso anche lo storico.`)) {
                           onDelete(activity.id)
                         }
                       }}
-                      aria-label="Elimina"
                     >
-                      🗑
+                      Elimina
                     </button>
                   </div>
                 </>

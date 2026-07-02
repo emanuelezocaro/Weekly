@@ -14,6 +14,24 @@ import {
 import { entriesForDay, getOpenEntry } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
+const QUARTER_HOUR_OPTIONS = Array.from({ length: 96 }, (_, i) => {
+  const h = String(Math.floor(i / 4)).padStart(2, '0')
+  const m = String((i % 4) * 15).padStart(2, '0')
+  return `${h}:${m}`
+})
+
+function QuarterHourSelect({ value, onChange }) {
+  return (
+    <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
+      {QUARTER_HOUR_OPTIONS.map((t) => (
+        <option key={t} value={t}>
+          {t}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 function activityFor(activities, id) {
   return activities.find((a) => a.id === id)
 }
@@ -29,9 +47,7 @@ function ActivityGrid({ activities, onPick }) {
           style={{ '--chip-color': colorVar(a.colorSlot) }}
           onClick={() => onPick(a.id)}
         >
-          <span className="activity-grid__emoji" aria-hidden="true">
-            {a.emoji}
-          </span>
+          <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
           <span className="activity-grid__name">{a.name}</span>
         </button>
       ))}
@@ -84,9 +100,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
             style={{ '--chip-color': colorVar(a.colorSlot) }}
             onClick={() => setActivityId(a.id)}
           >
-            <span className="activity-grid__emoji" aria-hidden="true">
-              {a.emoji}
-            </span>
+            <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
             <span className="activity-grid__name">{a.name}</span>
           </button>
         ))}
@@ -95,7 +109,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <input type="time" step="900" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <QuarterHourSelect value={startTime} onChange={setStartTime} />
         </label>
         {isOpen ? (
           <button type="button" className="backup-card__secondary" onClick={onCloseNow}>
@@ -104,7 +118,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         ) : (
           <label>
             <span>Fine</span>
-            <input type="time" step="900" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <QuarterHourSelect value={endTime} onChange={setEndTime} />
           </label>
         )}
       </div>
@@ -116,8 +130,8 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         <button type="button" className="backup-card__secondary" onClick={onCancel}>
           Annulla
         </button>
-        <button type="button" className="icon-btn icon-btn--danger" onClick={onDelete} aria-label="Elimina">
-          🗑
+        <button type="button" className="text-btn text-btn--danger" onClick={onDelete}>
+          Elimina
         </button>
       </div>
     </div>
@@ -210,7 +224,7 @@ export default function DayAgenda({
                           style={{ background: activity ? colorVar(activity.colorSlot) : undefined }}
                         />
                         <span className="now-card__text">
-                          Stai facendo <strong>{activity ? `${activity.emoji} ${activity.name}` : '—'}</strong>
+                          Stai facendo <strong>{activity ? activity.name : '—'}</strong>
                           {' · '}
                           da {formatTime(parseISODateTime(openEntry.start))} ({formatDuration(elapsed)})
                         </span>
@@ -254,7 +268,7 @@ export default function DayAgenda({
                     />
                     <span className="timeline__info">
                       <span className="timeline__name">
-                        {activity ? `${activity.emoji} ${activity.name}` : 'Attività eliminata'}
+                        {activity ? activity.name : 'Attività eliminata'}
                       </span>
                       <span className="timeline__time">
                         {formatTime(clippedStart)} – {isOpen ? 'ora' : formatTime(clippedEnd)}
@@ -326,9 +340,7 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel }) {
             style={{ '--chip-color': colorVar(a.colorSlot) }}
             onClick={() => setActivityId(a.id)}
           >
-            <span className="activity-grid__emoji" aria-hidden="true">
-              {a.emoji}
-            </span>
+            <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
             <span className="activity-grid__name">{a.name}</span>
           </button>
         ))}
@@ -336,11 +348,11 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel }) {
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <input type="time" step="900" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <QuarterHourSelect value={startTime} onChange={setStartTime} />
         </label>
         <label>
           <span>Fine</span>
-          <input type="time" step="900" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+          <QuarterHourSelect value={endTime} onChange={setEndTime} />
         </label>
       </div>
       <div className="entry-editor__actions">

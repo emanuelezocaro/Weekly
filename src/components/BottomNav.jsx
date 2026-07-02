@@ -1,7 +1,7 @@
 const TABS = [
-  { id: 'calendar', label: 'Calendario', icon: '📅' },
-  { id: 'report', label: 'Report', icon: '📊' },
-  { id: 'settings', label: 'Impostazioni', icon: '⚙️' },
+  { id: 'calendar', label: 'Calendario' },
+  { id: 'report', label: 'Report' },
+  { id: 'settings', label: 'Impostazioni' },
 ]
 
 export default function BottomNav({ active, onChange }) {
@@ -14,10 +14,7 @@ export default function BottomNav({ active, onChange }) {
           className={`bottom-nav__tab ${active === tab.id ? 'is-active' : ''}`}
           onClick={() => onChange(tab.id)}
         >
-          <span className="bottom-nav__icon" aria-hidden="true">
-            {tab.icon}
-          </span>
-          <span className="bottom-nav__label">{tab.label}</span>
+          {tab.label}
         </button>
       ))}
     </nav>
