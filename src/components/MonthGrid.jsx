@@ -1,46 +1,22 @@
-import {
-  addMonths,
-  formatMonthLabel,
-  getMonthMatrix,
-  isFuture,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  toISODate,
-} from '../utils/date'
-import { daySegments } from '../utils/entries'
+import { addMonths, formatDuration, formatMonthLabel, isFuture, startOfMonth } from '../utils/date'
+import { aggregateDuration } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
-const WEEKDAY_LABELS = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 const DAY_MS = 24 * 60 * 60 * 1000
 
-function activityFor(activities, id) {
-  return activities.find((a) => a.id === id)
-}
+export default function MonthGrid({ cursor, onCursorChange, activities, entries }) {
+  const monthStart = startOfMonth(cursor)
+  const monthEnd = startOfMonth(addMonths(cursor, 1))
+  const nextDisabled = isFuture(monthEnd)
 
-function MiniBar({ date, activities, entries }) {
-  const segments = daySegments(entries, date, new Date()).filter((s) => s.kind === 'entry')
-  if (segments.length === 0) return <span className="month-grid__bar month-grid__bar--empty" />
-  return (
-    <span className="month-grid__bar">
-      {segments.map((seg, i) => {
-        const widthPct = ((seg.end - seg.start) / DAY_MS) * 100
-        const activity = activityFor(activities, seg.activityId)
-        return (
-          <span
-            key={i}
-            style={{ width: `${widthPct}%`, background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-          />
-        )
-      })}
-    </span>
-  )
-}
+  const now = new Date()
+  const totals = aggregateDuration(entries, monthStart, monthEnd, now)
+  const elapsedMs = Math.max(0, Math.min(monthEnd, now) - monthStart)
+  const elapsedDays = Math.max(1, Math.round(elapsedMs / DAY_MS))
 
-export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activities, entries }) {
-  const monthDate = startOfMonth(cursor)
-  const weeks = getMonthMatrix(monthDate)
-  const nextDisabled = isFuture(startOfMonth(addMonths(monthDate, 1)))
+  const ranked = activities
+    .map((a) => ({ ...a, ms: totals.get(a.id) || 0 }))
+    .sort((a, b) => b.ms - a.ms)
 
   return (
     <div className="panel">
@@ -54,7 +30,7 @@ export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activit
           ‹
         </button>
         <div className="day-switcher__label">
-          <strong>{formatMonthLabel(monthDate)}</strong>
+          <strong>{formatMonthLabel(monthStart)}</strong>
         </div>
         <button
           type="button"
@@ -67,36 +43,23 @@ export default function MonthGrid({ cursor, onCursorChange, onSelectDay, activit
         </button>
       </div>
 
-      <div className="month-grid">
-        <div className="month-grid__weekdays">
-          {WEEKDAY_LABELS.map((label, i) => (
-            <span key={i}>{label}</span>
+      {activities.length === 0 ? (
+        <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+      ) : (
+        <ul className="report-list">
+          {ranked.map((activity) => (
+            <li key={activity.id} className="report-card">
+              <div className="report-card__header">
+                <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+                <span aria-hidden="true">{activity.emoji}</span>
+                <span className="report-card__name">{activity.name}</span>
+                <span className="report-card__pct">{formatDuration(activity.ms)}</span>
+              </div>
+              <p className="report-card__avg">media {formatDuration(activity.ms / elapsedDays)}/giorno</p>
+            </li>
           ))}
-        </div>
-        {weeks.map((week, wi) => (
-          <div className="month-grid__week" key={wi}>
-            {week.map((date) => {
-              const iso = toISODate(date)
-              const outside = !isSameMonth(date, monthDate)
-              const today = isSameDay(date, new Date())
-              const future = isFuture(date)
-              return (
-                <button
-                  key={iso}
-                  type="button"
-                  className={`month-grid__day ${outside ? 'is-outside' : ''} ${today ? 'is-today' : ''}`}
-                  onClick={() => onSelectDay(date)}
-                >
-                  <span className="month-grid__num">{date.getDate()}</span>
-                  {!outside && !future && activities.length > 0 && (
-                    <MiniBar date={date} activities={activities} entries={entries} />
-                  )}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-      </div>
+        </ul>
+      )}
     </div>
   )
 }

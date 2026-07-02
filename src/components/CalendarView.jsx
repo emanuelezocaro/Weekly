@@ -20,11 +20,6 @@ export default function CalendarView({
   const [mode, setMode] = useState('day')
   const [cursor, setCursor] = useState(() => new Date())
 
-  function selectDay(date) {
-    setCursor(date)
-    setMode('day')
-  }
-
   return (
     <div className="view">
       <div className="segmented">
@@ -53,22 +48,10 @@ export default function CalendarView({
         />
       )}
       {mode === 'week' && (
-        <WeekGrid
-          cursor={cursor}
-          onCursorChange={setCursor}
-          onSelectDay={selectDay}
-          activities={activities}
-          entries={entries}
-        />
+        <WeekGrid cursor={cursor} onCursorChange={setCursor} activities={activities} entries={entries} />
       )}
       {mode === 'month' && (
-        <MonthGrid
-          cursor={cursor}
-          onCursorChange={setCursor}
-          onSelectDay={selectDay}
-          activities={activities}
-          entries={entries}
-        />
+        <MonthGrid cursor={cursor} onCursorChange={setCursor} activities={activities} entries={entries} />
       )}
     </div>
   )

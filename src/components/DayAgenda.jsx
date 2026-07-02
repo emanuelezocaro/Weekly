@@ -4,6 +4,7 @@ import {
   formatDuration,
   formatFullDate,
   formatTime,
+  formatTimeRounded,
   isFuture,
   isSameDay,
   nowISODateTime,
@@ -46,8 +47,8 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
     !isSameDay(startDate, dayDate) || (endDate && !isSameDay(endDate, dayDate))
 
   const [activityId, setActivityId] = useState(entry.activityId)
-  const [startTime, setStartTime] = useState(formatTime(startDate))
-  const [endTime, setEndTime] = useState(endDate ? formatTime(endDate) : '')
+  const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
+  const [endTime, setEndTime] = useState(endDate ? formatTimeRounded(endDate) : '')
 
   if (crossesMidnight) {
     return (
@@ -94,7 +95,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <input type="time" step="900" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         </label>
         {isOpen ? (
           <button type="button" className="backup-card__secondary" onClick={onCloseNow}>
@@ -103,7 +104,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         ) : (
           <label>
             <span>Fine</span>
-            <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            <input type="time" step="900" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
           </label>
         )}
       </div>
@@ -335,11 +336,11 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel }) {
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <input type="time" step="900" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         </label>
         <label>
           <span>Fine</span>
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+          <input type="time" step="900" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </label>
       </div>
       <div className="entry-editor__actions">

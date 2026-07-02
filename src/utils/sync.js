@@ -3,6 +3,8 @@
 // each time entry carries its own `updatedAt` timestamp so two devices that
 // were offline can be merged with simple last-write-wins.
 
+import { closeStaleOpenEntries } from './entries'
+
 export function mergeActivities(localList, remoteList) {
   const byId = new Map()
   for (const a of remoteList) byId.set(a.id, a)
@@ -26,7 +28,7 @@ export function mergeEntries(localList, remoteList) {
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
-    entries: mergeEntries(localState.entries, remoteState?.entries || []),
+    entries: closeStaleOpenEntries(mergeEntries(localState.entries, remoteState?.entries || [])),
   }
 }
 

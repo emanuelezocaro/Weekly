@@ -1,52 +1,22 @@
-import {
-  addDays,
-  dayLabel,
-  formatWeekRange,
-  getWeekDates,
-  isFuture,
-  isSameDay,
-  startOfWeek,
-  toISODate,
-} from '../utils/date'
-import { daySegments } from '../utils/entries'
+import { addDays, formatDuration, formatWeekRange, isFuture, startOfWeek } from '../utils/date'
+import { aggregateDuration } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-function activityFor(activities, id) {
-  return activities.find((a) => a.id === id)
-}
-
-function DayBar({ date, activities, entries }) {
-  const segments = daySegments(entries, date, new Date())
-  return (
-    <div className="day-bar">
-      {segments.map((seg, i) => {
-        const widthPct = ((seg.end - seg.start) / DAY_MS) * 100
-        if (widthPct <= 0) return null
-        if (seg.kind === 'future') {
-          return <span key={i} className="day-bar__seg day-bar__seg--future" style={{ width: `${widthPct}%` }} />
-        }
-        if (seg.kind === 'gap') {
-          return <span key={i} className="day-bar__seg day-bar__seg--gap" style={{ width: `${widthPct}%` }} />
-        }
-        const activity = activityFor(activities, seg.activityId)
-        return (
-          <span
-            key={i}
-            className="day-bar__seg"
-            style={{ width: `${widthPct}%`, background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-          />
-        )
-      })}
-    </div>
-  )
-}
-
-export default function WeekGrid({ cursor, onCursorChange, onSelectDay, activities, entries }) {
+export default function WeekGrid({ cursor, onCursorChange, activities, entries }) {
   const weekStart = startOfWeek(cursor)
-  const dates = getWeekDates(weekStart)
+  const weekEnd = addDays(weekStart, 7)
   const nextWeekDisabled = isFuture(addDays(weekStart, 7))
+
+  const now = new Date()
+  const totals = aggregateDuration(entries, weekStart, weekEnd, now)
+  const elapsedMs = Math.max(0, Math.min(weekEnd, now) - weekStart)
+  const elapsedDays = Math.max(1, Math.round(elapsedMs / DAY_MS))
+
+  const ranked = activities
+    .map((a) => ({ ...a, ms: totals.get(a.id) || 0 }))
+    .sort((a, b) => b.ms - a.ms)
 
   return (
     <div className="panel">
@@ -76,14 +46,16 @@ export default function WeekGrid({ cursor, onCursorChange, onSelectDay, activiti
       {activities.length === 0 ? (
         <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
       ) : (
-        <ul className="week-bars">
-          {dates.map((date) => (
-            <li key={toISODate(date)} className={`week-bars__row ${isSameDay(date, new Date()) ? 'is-today' : ''}`}>
-              <button type="button" className="week-bars__day" onClick={() => onSelectDay(date)}>
-                <span className="week-bars__label">{dayLabel(date)}</span>
-                <span className="week-bars__date">{date.getDate()}</span>
-              </button>
-              <DayBar date={date} activities={activities} entries={entries} />
+        <ul className="report-list">
+          {ranked.map((activity) => (
+            <li key={activity.id} className="report-card">
+              <div className="report-card__header">
+                <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+                <span aria-hidden="true">{activity.emoji}</span>
+                <span className="report-card__name">{activity.name}</span>
+                <span className="report-card__pct">{formatDuration(activity.ms)}</span>
+              </div>
+              <p className="report-card__avg">media {formatDuration(activity.ms / elapsedDays)}/giorno</p>
             </li>
           ))}
         </ul>

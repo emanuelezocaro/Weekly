@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
-import { deleteEntry, makeEntryId, startEntry, updateEntry } from '../utils/entries'
+import { closeStaleOpenEntries, deleteEntry, makeEntryId, startEntry, updateEntry } from '../utils/entries'
 import { nowISODateTime } from '../utils/date'
 
 const ACTIVITIES_KEY = 'weekly:activitiesMeta'
@@ -48,7 +48,7 @@ export function useHabitData() {
   const [activitiesMeta, setActivitiesMeta] = useState(() =>
     loadJSON(ACTIVITIES_KEY, DEFAULT_ACTIVITIES),
   )
-  const [entriesMeta, setEntriesMeta] = useState(() => loadJSON(ENTRIES_KEY, []))
+  const [entriesMeta, setEntriesMeta] = useState(() => closeStaleOpenEntries(loadJSON(ENTRIES_KEY, [])))
   const [settings, setSettingsState] = useState(() => loadJSON(SETTINGS_KEY, DEFAULT_SETTINGS))
   const [syncStatus, setSyncStatus] = useState({ state: 'idle', lastSyncedAt: null, error: null })
 
@@ -243,7 +243,7 @@ export function useHabitData() {
       throw new Error('File di backup non valido')
     }
     setActivitiesMeta(parsed.activities)
-    setEntriesMeta(parsed.entries)
+    setEntriesMeta(closeStaleOpenEntries(parsed.entries))
   }, [])
 
   return {

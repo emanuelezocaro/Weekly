@@ -61,24 +61,18 @@ export function entriesForDay(entries, dayDate, now = new Date()) {
     .sort((a, b) => a.clippedStart - b.clippedStart)
 }
 
-// Full-day breakdown for a stacked timeline bar: tracked blocks, untracked
-// gaps (past time with nothing logged) and the not-yet-happened remainder of
-// today, all as contiguous segments spanning [00:00, 24:00).
-export function daySegments(entries, dayDate, now = new Date()) {
-  const dayStart = startOfDay(dayDate)
-  const dayEnd = endOfDay(dayDate)
-  const upperBound = now < dayEnd ? now : dayEnd
-  const items = entriesForDay(entries, dayDate, now)
-  const segments = []
-  let cursor = dayStart
-  for (const { entry, clippedStart, clippedEnd } of items) {
-    if (clippedStart > cursor) segments.push({ kind: 'gap', start: cursor, end: clippedStart })
-    segments.push({ kind: 'entry', activityId: entry.activityId, start: clippedStart, end: clippedEnd })
-    if (clippedEnd > cursor) cursor = clippedEnd
-  }
-  if (cursor < upperBound) segments.push({ kind: 'gap', start: cursor, end: upperBound })
-  if (upperBound < dayEnd) segments.push({ kind: 'future', start: upperBound, end: dayEnd })
-  return segments
+// Merging entries from two devices can leave more than one entry "open"
+// (end === null) if each device started a different activity while offline.
+// Only the most recently started one should stay open; earlier ones are
+// chained closed at the moment the later one began.
+export function closeStaleOpenEntries(entries) {
+  const open = entries.filter((e) => !e.deleted && e.end === null)
+  if (open.length <= 1) return entries
+  const latest = open.reduce((a, b) => (parseISODateTime(b.start) > parseISODateTime(a.start) ? b : a))
+  const now = Date.now()
+  return entries.map((e) =>
+    open.includes(e) && e.id !== latest.id ? { ...e, end: latest.start, updatedAt: now } : e,
+  )
 }
 
 // Total ms spent per activity within [rangeStart, rangeEnd).
