@@ -22,8 +22,6 @@ const PERIODS = [
   { id: 'month', label: 'Mese' },
 ]
 
-const PERIOD_PHRASE = { day: 'della giornata', week: 'della settimana', month: 'del mese' }
-
 function shiftCursor(period, cursor, direction) {
   if (period === 'day') return addDays(cursor, direction)
   if (period === 'week') return addDays(cursor, direction * 7)
@@ -115,7 +113,6 @@ export default function ReportView({ activities, entries }) {
         prevRangeStart={prevRangeStart}
         prevRangeEnd={prevRangeEnd}
         days={periodDays(period, cursor)}
-        periodLabel={PERIOD_PHRASE[period]}
       />
     </div>
   )

@@ -316,13 +316,8 @@ export default function DayAgenda({
                       style={{ background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
                     />
                     <span className="timeline__info">
-                      <span className="timeline__top">
-                        <span className="timeline__name">
-                          {activity ? activity.name : 'Attività eliminata'}
-                        </span>
-                        <span className="timeline__duration">
-                          {formatDuration(clippedEnd - clippedStart)}
-                        </span>
+                      <span className="timeline__name">
+                        {activity ? activity.name : 'Attività eliminata'}
                       </span>
                       <span className="timeline__pill-row">
                         <span
@@ -331,7 +326,10 @@ export default function DayAgenda({
                         >
                           {formatTime(clippedStart)} → {isOpen ? 'ora' : formatTime(clippedEnd)}
                         </span>
-                        <span className="timeline__pct">{pct}% della giornata</span>
+                        <span className="timeline__duration">
+                          {formatDuration(clippedEnd - clippedStart)}
+                        </span>
+                        <span className="timeline__pct">{pct}%</span>
                       </span>
                     </span>
                   </button>

@@ -16,7 +16,6 @@ export default function ActivityStatsSummary({
   prevRangeStart,
   prevRangeEnd,
   days,
-  periodLabel,
   now = new Date(),
 }) {
   const [expandedId, setExpandedId] = useState(null)
@@ -79,18 +78,18 @@ export default function ActivityStatsSummary({
               >
                 <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
                 <span className="report-card__name">{activity.name}</span>
-                <span className="report-card__pct">{formatDuration(activity.avgMsPerDay)}/giorno</span>
               </button>
-              <p className="report-card__avg">
-                {formatPct(activity.pctOfDay)} {periodLabel}
-                {delta !== null && (
-                  <span className="report-card__delta">
-                    {' · '}
-                    {delta > 0 ? '+' : ''}
-                    {delta}% rispetto al periodo precedente
-                  </span>
-                )}
-              </p>
+              <div className="report-card__line2">
+                <span className="report-card__total">{formatDuration(activity.totalMs)}</span>
+                <span className="report-card__avg">{formatDuration(activity.avgMsPerDay)}/giorno</span>
+                <span className="report-card__pct">{formatPct(activity.pctOfDay)}</span>
+              </div>
+              {delta !== null && (
+                <p className="report-card__delta">
+                  {delta > 0 ? '+' : ''}
+                  {delta}% rispetto al periodo precedente
+                </p>
+              )}
               {expanded && (
                 <ActivityTrendChart activity={activity} days={days} entries={entries} now={now} />
               )}
