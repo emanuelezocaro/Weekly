@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import BottomNav from './components/BottomNav'
 import DayAgenda from './components/DayAgenda'
 import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
+import TopNav from './components/TopNav'
 import { useHabitData } from './hooks/useHabitData'
 import { useNotifications } from './hooks/useNotifications'
 import './App.css'
@@ -41,8 +41,12 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Weekly</h1>
-        <p className="app-header__subtitle">{TITLES[tab]}</p>
+        <div className="app-header__left">
+          <h1>Weekly</h1>
+          <p className="app-header__subtitle">{TITLES[tab]}</p>
+        </div>
+        <div className="app-header__sep" />
+        <TopNav active={tab} onChange={setTab} />
       </header>
 
       <main className="app-main">
@@ -73,8 +77,6 @@ function App() {
           />
         )}
       </main>
-
-      <BottomNav active={tab} onChange={setTab} />
     </div>
   )
 }
