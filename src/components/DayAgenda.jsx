@@ -50,16 +50,24 @@ function activityFor(activities, id) {
   return activities.find((a) => a.id === id)
 }
 
-function ActivityGrid({ activities, onPick }) {
+function ActivityPicker({ activities, onPick }) {
   return (
-    <div className="activity-grid">
+    <select
+      className="quarter-select"
+      defaultValue=""
+      onChange={(e) => {
+        if (e.target.value) onPick(e.target.value)
+      }}
+    >
+      <option value="" disabled>
+        Scegli attività…
+      </option>
       {activities.map((a) => (
-        <button key={a.id} type="button" className="activity-grid__item" onClick={() => onPick(a.id)}>
-          <span className="activity-grid__swatch" style={{ background: colorVar(a.colorSlot) }} />
-          <span className="activity-grid__name">{a.name}</span>
-        </button>
+        <option key={a.id} value={a.id}>
+          {a.name}
+        </option>
       ))}
-    </div>
+    </select>
   )
 }
 
@@ -145,7 +153,7 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
         </span>
         <span className="timeline__gap-action">{expanded ? 'Chiudi' : 'Cosa hai fatto?'}</span>
       </button>
-      {expanded && <ActivityGrid activities={activities} onPick={onPick} />}
+      {expanded && <ActivityPicker activities={activities} onPick={onPick} />}
     </li>
   )
 }
@@ -269,7 +277,7 @@ export default function DayAgenda({
                   </button>
                 </>
               )}
-              {pickerOpen && <ActivityGrid activities={activities} onPick={handleStart} />}
+              {pickerOpen && <ActivityPicker activities={activities} onPick={handleStart} />}
             </div>
           )}
 
