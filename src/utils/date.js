@@ -1,3 +1,7 @@
+// Fresh-start boundary: entries before this date are ignored everywhere,
+// and navigation can't go further back than this day.
+export const APP_START_DATE = new Date(2026, 6, 1)
+
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 const DAY_LABELS_FULL = [
   'Lunedì',

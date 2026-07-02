@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   addDays,
+  APP_START_DATE,
   formatDuration,
   formatFullDate,
   formatTime,
@@ -169,6 +170,7 @@ export default function DayAgenda({
   const [cursor, onCursorChange] = useState(() => new Date())
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
+  const prevDisabled = toISODate(cursor) <= toISODate(APP_START_DATE)
 
   const [, forceTick] = useState(0)
   useEffect(() => {
@@ -220,6 +222,7 @@ export default function DayAgenda({
           type="button"
           className="day-switcher__arrow"
           onClick={() => onCursorChange(addDays(cursor, -1))}
+          disabled={prevDisabled}
           aria-label="Giorno precedente"
         >
           ‹

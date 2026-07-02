@@ -8,7 +8,7 @@ import {
   startEntry,
   updateEntry,
 } from '../utils/entries'
-import { nowISODateTime } from '../utils/date'
+import { APP_START_DATE, nowISODateTime, parseISODateTime } from '../utils/date'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -68,7 +68,10 @@ export function useHabitData() {
   }, [settings])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
-  const entries = useMemo(() => entriesMeta.filter((e) => !e.deleted), [entriesMeta])
+  const entries = useMemo(
+    () => entriesMeta.filter((e) => !e.deleted && parseISODateTime(e.start) >= APP_START_DATE),
+    [entriesMeta],
+  )
 
   const stateRef = useRef({ activitiesMeta, entriesMeta })
   stateRef.current = { activitiesMeta, entriesMeta }

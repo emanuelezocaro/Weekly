@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   addDays,
   addMonths,
+  APP_START_DATE,
   endOfDay,
   formatFullDate,
   formatMonthLabel,
@@ -13,6 +14,7 @@ import {
   startOfDay,
   startOfMonth,
   startOfWeek,
+  toISODate,
 } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
 
@@ -29,19 +31,25 @@ function shiftCursor(period, cursor, direction) {
 }
 
 function periodRange(period, cursor) {
-  if (period === 'day') return [startOfDay(cursor), endOfDay(cursor)]
-  if (period === 'week') {
-    const start = startOfWeek(cursor)
-    return [start, addDays(start, 7)]
+  let start, end
+  if (period === 'day') {
+    ;[start, end] = [startOfDay(cursor), endOfDay(cursor)]
+  } else if (period === 'week') {
+    start = startOfWeek(cursor)
+    end = addDays(start, 7)
+  } else {
+    start = startOfMonth(cursor)
+    end = startOfMonth(addMonths(cursor, 1))
   }
-  const start = startOfMonth(cursor)
-  return [start, startOfMonth(addMonths(cursor, 1))]
+  return [start < APP_START_DATE ? APP_START_DATE : start, end]
 }
 
 function periodDays(period, cursor) {
-  if (period === 'day') return [cursor]
-  if (period === 'week') return getWeekDates(startOfWeek(cursor))
-  return getDatesInMonth(startOfMonth(cursor))
+  let days
+  if (period === 'day') days = [cursor]
+  else if (period === 'week') days = getWeekDates(startOfWeek(cursor))
+  else days = getDatesInMonth(startOfMonth(cursor))
+  return days.filter((d) => toISODate(d) >= toISODate(APP_START_DATE))
 }
 
 function periodHeaderLabel(period, cursor) {
@@ -59,6 +67,12 @@ function isNextDisabled(period, cursor) {
   return isFuture(startOfMonth(next))
 }
 
+function isPrevDisabled(period, cursor) {
+  if (period === 'day') return toISODate(cursor) <= toISODate(APP_START_DATE)
+  if (period === 'week') return startOfWeek(cursor) <= startOfWeek(APP_START_DATE)
+  return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
+}
+
 export default function ReportView({ activities, entries }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
@@ -66,6 +80,7 @@ export default function ReportView({ activities, entries }) {
   const [rangeStart, rangeEnd] = periodRange(period, cursor)
   const [prevRangeStart, prevRangeEnd] = periodRange(period, shiftCursor(period, cursor, -1))
   const nextDisabled = isNextDisabled(period, cursor)
+  const prevDisabled = isPrevDisabled(period, cursor)
 
   return (
     <div className="view">
@@ -87,6 +102,7 @@ export default function ReportView({ activities, entries }) {
           type="button"
           className="day-switcher__arrow"
           onClick={() => setCursor((c) => shiftCursor(period, c, -1))}
+          disabled={prevDisabled}
           aria-label="Periodo precedente"
         >
           ‹
