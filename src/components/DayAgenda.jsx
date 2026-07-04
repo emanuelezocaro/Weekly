@@ -55,6 +55,11 @@ function activityFor(activities, id) {
   return activities.find((a) => a.id === id)
 }
 
+function timeToMinutes(t) {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
 // Default the manual "add block" form to continue right where the last
 // recorded block for that day left off, instead of always suggesting 09:00.
 const DAY_END_CAP_MS = 23 * 60 * 60 * 1000 + 45 * 60 * 1000
@@ -92,19 +97,17 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   const isOpen = entry.end === null
   const startDate = parseISODateTime(entry.start)
   const endDate = entry.end ? parseISODateTime(entry.end) : null
-  const crossesMidnight =
-    !isSameDay(startDate, dayDate) || (endDate && !isSameDay(endDate, dayDate))
+  const isStartDay = isSameDay(startDate, dayDate)
 
   const [activityId, setActivityId] = useState(entry.activityId)
   const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
   const [endTime, setEndTime] = useState(endDate ? formatTimeRounded(endDate) : '')
 
-  if (crossesMidnight) {
+  if (!isStartDay) {
     return (
       <div className="entry-editor">
         <p className="entry-editor__hint">
-          Questo blocco attraversa la mezzanotte: modificalo dal giorno in cui è iniziato (
-          {formatFullDate(startDate)}).
+          Questo blocco è iniziato il giorno prima: modificalo da {formatFullDate(startDate)}.
         </p>
         <div className="entry-editor__actions">
           <button type="button" className="backup-card__secondary" onClick={onCancel}>
@@ -115,10 +118,17 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
     )
   }
 
+  // An end time at or before the start time means the block runs past
+  // midnight into the next day (e.g. sleep 23:00 -> 07:00).
+  const endsNextDay = !isOpen && timeToMinutes(endTime) <= timeToMinutes(startTime)
+
   function handleSave() {
     const dateIso = toISODate(dayDate)
     const patch = { activityId, start: `${dateIso}T${startTime}:00` }
-    if (!isOpen) patch.end = `${dateIso}T${endTime}:00`
+    if (!isOpen) {
+      const endDateIso = endsNextDay ? toISODate(addDays(dayDate, 1)) : dateIso
+      patch.end = `${endDateIso}T${endTime}:00`
+    }
     onSave(patch)
   }
 
@@ -140,7 +150,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
           </button>
         ) : (
           <label>
-            <span>Fine</span>
+            <span>Fine{endsNextDay ? ' (giorno dopo)' : ''}</span>
             <QuarterHourSelect value={endTime} onChange={setEndTime} />
           </label>
         )}
