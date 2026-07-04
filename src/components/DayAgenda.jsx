@@ -98,12 +98,13 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   const startDate = parseISODateTime(entry.start)
   const endDate = entry.end ? parseISODateTime(entry.end) : null
   const isStartDay = isSameDay(startDate, dayDate)
+  const isEndDay = endDate ? isSameDay(endDate, dayDate) : false
 
   const [activityId, setActivityId] = useState(entry.activityId)
   const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
   const [endTime, setEndTime] = useState(endDate ? formatTimeRounded(endDate) : '')
 
-  if (!isStartDay) {
+  if (!isStartDay && !isEndDay) {
     return (
       <div className="entry-editor">
         <p className="entry-editor__hint">
@@ -118,13 +119,18 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
     )
   }
 
-  // An end time at or before the start time means the block runs past
-  // midnight into the next day (e.g. sleep 23:00 -> 07:00).
-  const endsNextDay = !isOpen && timeToMinutes(endTime) <= timeToMinutes(startTime)
+  // Whichever field belongs to the viewed day is anchored to it; the other
+  // field's calendar day is inferred from whether the times wrap around
+  // midnight (e.g. viewed from the start day, 23:00 -> 07:00 means the end
+  // is the next day; viewed from the end day, 07:00 <- 23:00 means the
+  // start is the day before).
+  const endsNextDay = !isOpen && isStartDay && timeToMinutes(endTime) <= timeToMinutes(startTime)
+  const startsPrevDay = !isStartDay && isEndDay && timeToMinutes(startTime) >= timeToMinutes(endTime)
 
   function handleSave() {
     const dateIso = toISODate(dayDate)
-    const patch = { activityId, start: `${dateIso}T${startTime}:00` }
+    const startDateIso = startsPrevDay ? toISODate(addDays(dayDate, -1)) : dateIso
+    const patch = { activityId, start: `${startDateIso}T${startTime}:00` }
     if (!isOpen) {
       const endDateIso = endsNextDay ? toISODate(addDays(dayDate, 1)) : dateIso
       patch.end = `${endDateIso}T${endTime}:00`
@@ -141,7 +147,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
 
       <div className="entry-editor__times">
         <label>
-          <span>Inizio</span>
+          <span>Inizio{startsPrevDay ? ' (giorno prima)' : ''}</span>
           <QuarterHourSelect value={startTime} onChange={setStartTime} />
         </label>
         {isOpen ? (
