@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
-import {
-  closeStaleOpenEntries,
-  deleteEntry,
-  makeEntryId,
-  resolveOverlaps,
-  startEntry,
-  updateEntry,
-} from '../utils/entries'
-import { APP_START_DATE, nowISODateTime, parseISODateTime } from '../utils/date'
+import { closeStaleOpenEntries, deleteEntry, makeEntryId, resolveOverlaps, updateEntry } from '../utils/entries'
+import { APP_START_DATE, parseISODateTime } from '../utils/date'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -118,14 +111,6 @@ export function useHabitData() {
   }, [settings.sheetUrl])
 
   // --- Entries (continuous time blocks) ---
-
-  const startActivity = useCallback(
-    (activityId, atISO = nowISODateTime()) => {
-      setEntriesMeta((prev) => startEntry(prev, activityId, atISO))
-      scheduleSync()
-    },
-    [scheduleSync],
-  )
 
   const editEntry = useCallback(
     (id, patch) => {
@@ -245,7 +230,6 @@ export function useHabitData() {
   return {
     activities,
     entries,
-    startActivity,
     editEntry,
     removeEntry,
     addManualEntry,

@@ -1,24 +1,9 @@
-import { endOfDay, nowISODateTime, parseISODateTime, startOfDay, toISODateTime } from './date'
+import { endOfDay, parseISODateTime, startOfDay, toISODateTime } from './date'
 
 export const DAY_MS = 24 * 60 * 60 * 1000
 
 export function makeEntryId() {
   return `e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
-export function getOpenEntry(entries) {
-  return entries.find((e) => !e.deleted && e.end === null) || null
-}
-
-// Closes whatever entry is currently open (chains it to `atISO`) and opens a
-// new one for `activityId` starting at the same instant, so the timeline
-// never has a gap.
-export function startEntry(entries, activityId, atISO = nowISODateTime()) {
-  const now = Date.now()
-  const closed = entries.map((e) =>
-    !e.deleted && e.end === null ? { ...e, end: atISO, updatedAt: now } : e,
-  )
-  return [...closed, { id: makeEntryId(), activityId, start: atISO, end: null, updatedAt: now, deleted: false }]
 }
 
 export function updateEntry(entries, id, patch) {

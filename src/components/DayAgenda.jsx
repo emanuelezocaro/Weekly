@@ -14,7 +14,7 @@ import {
   toISODate,
   toISODateTime,
 } from '../utils/date'
-import { DAY_MS, entriesForDay, findGapsForDay, getOpenEntry } from '../utils/entries'
+import { DAY_MS, entriesForDay, findGapsForDay } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
 const HALF_HOUR_OPTIONS = Array.from({ length: 48 }, (_, i) => {
@@ -191,14 +191,7 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
   )
 }
 
-export default function DayAgenda({
-  activities,
-  entries,
-  onStartActivity,
-  onEditEntry,
-  onRemoveEntry,
-  onAddManualEntry,
-}) {
+export default function DayAgenda({ activities, entries, onEditEntry, onRemoveEntry, onAddManualEntry }) {
   const [cursor, onCursorChange] = useState(() => new Date())
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
@@ -211,13 +204,11 @@ export default function DayAgenda({
     return () => clearInterval(id)
   }, [isToday])
 
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [expandedGap, setExpandedGap] = useState(null)
   const [addingManual, setAddingManual] = useState(false)
 
   const now = new Date()
-  const openEntry = getOpenEntry(entries)
   const items = entriesForDay(entries, cursor, now)
   const gaps = findGapsForDay(entries, cursor, now)
   const dayElapsedMs = isToday ? Math.max(1, now - startOfDay(cursor)) : DAY_MS
@@ -227,11 +218,6 @@ export default function DayAgenda({
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
     ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })),
   ].sort((a, b) => a.sortKey - b.sortKey)
-
-  function handleStart(activityId) {
-    onStartActivity(activityId)
-    setPickerOpen(false)
-  }
 
   function handleSaveEdit(id, patch) {
     onEditEntry(id, patch)
@@ -279,43 +265,6 @@ export default function DayAgenda({
         <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
       ) : (
         <>
-          {isToday && (
-            <div className="now-card">
-              {openEntry ? (
-                (() => {
-                  const activity = activityFor(activities, openEntry.activityId)
-                  const elapsed = Date.now() - parseISODateTime(openEntry.start).getTime()
-                  return (
-                    <>
-                      <div className="now-card__status">
-                        <span
-                          className="now-card__dot"
-                          style={{ background: activity ? colorVar(activity.colorSlot) : undefined }}
-                        />
-                        <span className="now-card__text">
-                          Stai facendo <strong>{activity ? activity.name : '—'}</strong>
-                          {' · '}
-                          da {formatTime(parseISODateTime(openEntry.start))} ({formatDuration(elapsed)})
-                        </span>
-                      </div>
-                      <button type="button" onClick={() => setPickerOpen((v) => !v)}>
-                        Cambia attività
-                      </button>
-                    </>
-                  )
-                })()
-              ) : (
-                <>
-                  <p className="now-card__prompt">Cosa stai facendo ora?</p>
-                  <button type="button" onClick={() => setPickerOpen((v) => !v)}>
-                    Scegli attività
-                  </button>
-                </>
-              )}
-              {pickerOpen && <ActivityPicker activities={activities} onPick={handleStart} />}
-            </div>
-          )}
-
           {rows.length === 0 && !isToday && (
             <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
           )}

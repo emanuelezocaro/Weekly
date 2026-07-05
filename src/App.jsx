@@ -18,7 +18,6 @@ function App() {
   const {
     activities,
     entries,
-    startActivity,
     editEntry,
     removeEntry,
     addManualEntry,
@@ -54,7 +53,6 @@ function App() {
           <DayAgenda
             activities={activities}
             entries={entries}
-            onStartActivity={startActivity}
             onEditEntry={editEntry}
             onRemoveEntry={removeEntry}
             onAddManualEntry={addManualEntry}
