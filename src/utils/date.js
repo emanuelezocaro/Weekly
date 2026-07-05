@@ -182,8 +182,8 @@ export function formatTime(date) {
   return `${h}:${mi}`
 }
 
-// "HH:MM" rounded to the nearest quarter-hour, for editable time inputs.
-export function formatTimeRounded(date, stepMinutes = 15) {
+// "HH:MM" rounded to the nearest half-hour, for editable time inputs.
+export function formatTimeRounded(date, stepMinutes = 30) {
   const totalMinutes = date.getHours() * 60 + date.getMinutes()
   const rounded = Math.round(totalMinutes / stepMinutes) * stepMinutes
   const wrapped = ((rounded % 1440) + 1440) % 1440

@@ -17,16 +17,16 @@ import {
 import { DAY_MS, entriesForDay, findGapsForDay, getOpenEntry } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
-const QUARTER_HOUR_OPTIONS = Array.from({ length: 96 }, (_, i) => {
-  const h = String(Math.floor(i / 4)).padStart(2, '0')
-  const m = String((i % 4) * 15).padStart(2, '0')
+const HALF_HOUR_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, '0')
+  const m = String((i % 2) * 30).padStart(2, '0')
   return `${h}:${m}`
 })
 
-function QuarterHourSelect({ value, onChange }) {
+function HalfHourSelect({ value, onChange }) {
   return (
     <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {QUARTER_HOUR_OPTIONS.map((t) => (
+      {HALF_HOUR_OPTIONS.map((t) => (
         <option key={t} value={t}>
           {t}
         </option>
@@ -148,7 +148,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
       <div className="entry-editor__times">
         <label>
           <span>Inizio{startsPrevDay ? ' (giorno prima)' : ''}</span>
-          <QuarterHourSelect value={startTime} onChange={setStartTime} />
+          <HalfHourSelect value={startTime} onChange={setStartTime} />
         </label>
         {isOpen ? (
           <button type="button" className="backup-card__secondary" onClick={onCloseNow}>
@@ -157,7 +157,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         ) : (
           <label>
             <span>Fine{endsNextDay ? ' (giorno dopo)' : ''}</span>
-            <QuarterHourSelect value={endTime} onChange={setEndTime} />
+            <HalfHourSelect value={endTime} onChange={setEndTime} />
           </label>
         )}
       </div>
@@ -389,7 +389,7 @@ export default function DayAgenda({
             <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
           )}
 
-          {!isToday && gaps.length > 0 && (
+          {gaps.length > 0 && (
             <div className="add-block">
               {addingManual ? (
                 <ManualAddForm
@@ -435,11 +435,11 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '0
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <QuarterHourSelect value={startTime} onChange={setStartTime} />
+          <HalfHourSelect value={startTime} onChange={setStartTime} />
         </label>
         <label>
           <span>Fine</span>
-          <QuarterHourSelect value={endTime} onChange={setEndTime} />
+          <HalfHourSelect value={endTime} onChange={setEndTime} />
         </label>
       </div>
       <div className="entry-editor__actions">
