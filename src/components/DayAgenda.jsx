@@ -338,27 +338,25 @@ export default function DayAgenda({ activities, entries, onEditEntry, onRemoveEn
             <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
           )}
 
-          {gaps.length > 0 && (
-            <div className="add-block">
-              {addingManual ? (
-                <ManualAddForm
-                  activities={activities}
-                  dayDate={cursor}
-                  initialStart={addBlockDefaults.start}
-                  initialEnd={addBlockDefaults.end}
-                  onAdd={(activityId, start, end) => {
-                    onAddManualEntry(activityId, start, end)
-                    setAddingManual(false)
-                  }}
-                  onCancel={() => setAddingManual(false)}
-                />
-              ) : (
-                <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
-                  + Aggiungi blocco
-                </button>
-              )}
-            </div>
-          )}
+          <div className="add-block">
+            {addingManual ? (
+              <ManualAddForm
+                activities={activities}
+                dayDate={cursor}
+                initialStart={addBlockDefaults.start}
+                initialEnd={addBlockDefaults.end}
+                onAdd={(activityId, start, end) => {
+                  onAddManualEntry(activityId, start, end)
+                  setAddingManual(false)
+                }}
+                onCancel={() => setAddingManual(false)}
+              />
+            ) : (
+              <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
+                + Aggiungi blocco
+              </button>
+            )}
+          </div>
         </>
       )}
     </div>
