@@ -60,7 +60,7 @@ export default function ActivityStatsSummary({
         ))}
         {untrackedMs > 0 && <span className="avg-day-bar__untracked" style={{ width: barWidth(untrackedMs) }} />}
       </div>
-      <p className="stats-summary__caption">Come si compone in media la tua giornata di 24 ore</p>
+      <p className="stats-summary__caption">Come si distribuiscono le ore totali di questo periodo</p>
       {canDrillDown && periodPhrase && (
         <p className="stats-summary__progress">
           {elapsedPct}% {periodPhrase} · {100 - elapsedPct}% rimanente
