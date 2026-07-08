@@ -132,6 +132,7 @@ export default function ReportView({ activities, entries }) {
         prevRangeStart={prevRangeStart}
         prevRangeEnd={prevRangeEnd}
         days={periodDays(period, cursor)}
+        period={period}
       />
     </div>
   )

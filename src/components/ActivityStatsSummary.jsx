@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { formatDuration } from '../utils/date'
-import { DAY_MS, activityStats } from '../utils/entries'
+import { activityStats } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 import ActivityTrendChart from './ActivityTrendChart'
 
 function formatPct(fraction) {
   return `${Math.round(fraction * 100)}%`
+}
+
+const PERIOD_PHRASE = {
+  week: 'della settimana trascorsa',
+  month: 'del mese trascorso',
 }
 
 export default function ActivityStatsSummary({
@@ -16,6 +21,7 @@ export default function ActivityStatsSummary({
   prevRangeStart,
   prevRangeEnd,
   days,
+  period,
   now = new Date(),
 }) {
   const [expandedId, setExpandedId] = useState(null)
@@ -24,13 +30,7 @@ export default function ActivityStatsSummary({
     return <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
   }
 
-  const { stats, trackedMs, untrackedMs, avgUntrackedMsPerDay } = activityStats(
-    activities,
-    entries,
-    rangeStart,
-    rangeEnd,
-    now,
-  )
+  const { stats, trackedMs, untrackedMs } = activityStats(activities, entries, rangeStart, rangeEnd, now)
 
   const prevStatsById = new Map()
   if (prevRangeStart && prevRangeEnd) {
@@ -38,20 +38,34 @@ export default function ActivityStatsSummary({
     for (const s of prev.stats) prevStatsById.set(s.id, s)
   }
 
-  const barSegments = stats.filter((s) => s.avgMsPerDay > 0)
+  const barSegments = stats.filter((s) => s.totalMs > 0)
   const canDrillDown = Array.isArray(days) && days.length > 1
+
+  // The bar always renders full: widths are proportions of what's actually
+  // elapsed so far (tracked + untracked), not of a fixed 24h/day denominator
+  // -- otherwise an in-progress week/month would show a bar that trails off
+  // partway, since the current day hasn't fully elapsed yet.
+  const accountedMs = trackedMs + untrackedMs
+  const barWidth = (ms) => (accountedMs > 0 ? formatPct(ms / accountedMs) : '0%')
+
+  const periodMs = rangeEnd - rangeStart
+  const elapsedPct = periodMs > 0 ? Math.round((accountedMs / periodMs) * 100) : 100
+  const periodPhrase = PERIOD_PHRASE[period]
 
   return (
     <div className="stats-summary">
       <div className="avg-day-bar">
         {barSegments.map((s) => (
-          <span key={s.id} style={{ width: formatPct(s.pctOfDay), background: colorVar(s.colorSlot) }} />
+          <span key={s.id} style={{ width: barWidth(s.totalMs), background: colorVar(s.colorSlot) }} />
         ))}
-        {avgUntrackedMsPerDay > 0 && (
-          <span className="avg-day-bar__untracked" style={{ width: formatPct(avgUntrackedMsPerDay / DAY_MS) }} />
-        )}
+        {untrackedMs > 0 && <span className="avg-day-bar__untracked" style={{ width: barWidth(untrackedMs) }} />}
       </div>
       <p className="stats-summary__caption">Come si compone in media la tua giornata di 24 ore</p>
+      {canDrillDown && periodPhrase && (
+        <p className="stats-summary__progress">
+          {elapsedPct}% {periodPhrase} · {100 - elapsedPct}% rimanente
+        </p>
+      )}
 
       <div className="report-summary">
         <span>
