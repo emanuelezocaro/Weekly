@@ -13,8 +13,6 @@ const DEFAULT_ACTIVITIES = []
 const DEFAULT_SETTINGS = {
   sheetUrl: '',
   token: '',
-  notifEnabled: false,
-  notifTime: '20:00',
 }
 
 function loadJSON(key, fallback) {

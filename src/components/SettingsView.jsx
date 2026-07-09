@@ -42,7 +42,6 @@ export default function SettingsView({
   setSettings,
   syncStatus,
   onSyncNow,
-  notifications,
 }) {
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
@@ -210,44 +209,6 @@ export default function SettingsView({
           </div>
         )}
         {syncStatus.state === 'error' && <p className="settings-card__error">{syncStatus.error}</p>}
-      </section>
-
-      <section className="settings-card">
-        <h2 className="settings-card__title">Notifiche</h2>
-        <p className="settings-card__hint">
-          Promemoria giornaliero mentre l'app è aperta o poco dopo. Su iPhone le notifiche in vero
-          background richiedono un server push dedicato: qui riceverai il promemoria quando apri
-          l'app intorno all'orario scelto.
-        </p>
-        {!notifications.supported ? (
-          <p className="settings-card__hint">Le notifiche non sono supportate su questo dispositivo/browser.</p>
-        ) : (
-          <div className="settings-form">
-            <label className="settings-form__field settings-form__field--row">
-              <span>Promemoria attivo</span>
-              <input
-                type="checkbox"
-                checked={settings.notifEnabled}
-                onChange={async (e) => {
-                  const checked = e.target.checked
-                  if (checked && notifications.permission !== 'granted') {
-                    const result = await notifications.requestPermission()
-                    if (result !== 'granted') return
-                  }
-                  setSettings({ notifEnabled: checked })
-                }}
-              />
-            </label>
-            <label className="settings-form__field">
-              <span>Orario</span>
-              <input
-                type="time"
-                value={settings.notifTime}
-                onChange={(e) => setSettings({ notifTime: e.target.value })}
-              />
-            </label>
-          </div>
-        )}
       </section>
 
       <section className="settings-card">

@@ -4,7 +4,6 @@ import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
 import TopNav from './components/TopNav'
 import { useHabitData } from './hooks/useHabitData'
-import { useNotifications } from './hooks/useNotifications'
 import './App.css'
 
 const TITLES = {
@@ -31,11 +30,6 @@ function App() {
     syncStatus,
     syncNow,
   } = useHabitData()
-
-  const notifications = useNotifications({
-    enabled: settings.notifEnabled,
-    time: settings.notifTime,
-  })
 
   return (
     <div className="app">
@@ -71,7 +65,6 @@ function App() {
             setSettings={setSettings}
             syncStatus={syncStatus}
             onSyncNow={syncNow}
-            notifications={notifications}
           />
         )}
       </main>
