@@ -32,9 +32,17 @@ export default function ActivityStatsSummary({
 
   const { stats, trackedMs, untrackedMs } = activityStats(activities, entries, rangeStart, rangeEnd, now)
 
+  // Compare like-for-like: if the current period is still in progress, only
+  // count the same elapsed duration from the previous period too, instead of
+  // its full (already complete) span -- otherwise a week that just started
+  // would always look far behind a previous week that had all 7 days to run.
+  const rawElapsedMs = Math.max(0, Math.min(rangeEnd, now) - rangeStart)
   const prevStatsById = new Map()
   if (prevRangeStart && prevRangeEnd) {
-    const prev = activityStats(activities, entries, prevRangeStart, prevRangeEnd, now)
+    const clippedPrevEnd = new Date(
+      Math.min(prevRangeStart.getTime() + rawElapsedMs, prevRangeEnd.getTime()),
+    )
+    const prev = activityStats(activities, entries, prevRangeStart, clippedPrevEnd, now)
     for (const s of prev.stats) prevStatsById.set(s.id, s)
   }
 
@@ -77,8 +85,8 @@ export default function ActivityStatsSummary({
         {stats.map((activity) => {
           const prev = prevStatsById.get(activity.id)
           const delta =
-            prev && prev.avgMsPerDay > 0
-              ? Math.round(((activity.avgMsPerDay - prev.avgMsPerDay) / prev.avgMsPerDay) * 100)
+            prev && prev.totalMs > 0
+              ? Math.round(((activity.totalMs - prev.totalMs) / prev.totalMs) * 100)
               : null
           const expanded = expandedId === activity.id
           return (
