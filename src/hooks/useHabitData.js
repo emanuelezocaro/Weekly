@@ -226,6 +226,16 @@ export function useHabitData() {
     [scheduleSync],
   )
 
+  const removeOutput = useCallback(
+    (id) => {
+      setOutputsMeta((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
+      )
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
   const setSettings = useCallback((patch) => {
     setSettingsState((prev) => ({ ...prev, ...patch }))
   }, [])
@@ -266,6 +276,7 @@ export function useHabitData() {
     deleteActivity,
     outputs,
     addOutput,
+    removeOutput,
     exportData,
     importData,
     settings,

@@ -549,6 +549,14 @@
   opacity: 1;
 }
 
+.outputs-chart__bar {
+  width: 100%;
+  max-width: 20px;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent);
+}
+
 .trend-chart__label {
   margin-top: 4px;
   font-size: 9.5px;
@@ -739,10 +747,19 @@
 }
 
 .outputs-list__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px;
   border-radius: 10px;
   background: var(--surface-2);
   font-size: 13.5px;
+}
+
+.outputs-list__text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .activity-manage-row {

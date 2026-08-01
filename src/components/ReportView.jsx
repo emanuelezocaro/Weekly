@@ -17,6 +17,7 @@ import {
   toISODate,
 } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
+import OutputsWeekCard from './OutputsWeekCard'
 
 const PERIODS = [
   { id: 'day', label: 'Giorno' },
@@ -85,9 +86,6 @@ export default function ReportView({ activities, entries, outputs }) {
   const nextDisabled = isNextDisabled(period, cursor)
   const prevDisabled = isPrevDisabled(period, cursor)
   const days = periodDays(period, cursor)
-  const daysWithOutputs = days.filter((d) =>
-    outputs.some((o) => o.date === toISODate(d)),
-  ).length
 
   return (
     <div className="view">
@@ -128,11 +126,7 @@ export default function ReportView({ activities, entries, outputs }) {
         </button>
       </div>
 
-      {period === 'week' && (
-        <p className="stats-summary__progress">
-          {daysWithOutputs}/{days.length} giorni con almeno un'uscita
-        </p>
-      )}
+      {period === 'week' && <OutputsWeekCard outputs={outputs} days={days} />}
 
       <ActivityStatsSummary
         activities={activities}

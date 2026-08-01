@@ -25,6 +25,7 @@ function App() {
     deleteActivity,
     outputs,
     addOutput,
+    removeOutput,
     exportData,
     importData,
     settings,
@@ -54,6 +55,7 @@ function App() {
             onRemoveEntry={removeEntry}
             onAddManualEntry={addManualEntry}
             onAddOutput={addOutput}
+            onRemoveOutput={removeOutput}
           />
         )}
         {tab === 'report' && (

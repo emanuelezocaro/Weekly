@@ -191,7 +191,7 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
   )
 }
 
-function OutputsCard({ dayOutputs, onAdd }) {
+function OutputsCard({ dayOutputs, onAdd, onRemove }) {
   const [text, setText] = useState('')
 
   function handleSubmit(e) {
@@ -217,7 +217,10 @@ function OutputsCard({ dayOutputs, onAdd }) {
         <ul className="outputs-list">
           {dayOutputs.map((o) => (
             <li key={o.id} className="outputs-list__item">
-              {o.text}
+              <span className="outputs-list__text">{o.text}</span>
+              <button type="button" className="text-btn text-btn--danger" onClick={() => onRemove(o.id)}>
+                Elimina
+              </button>
             </li>
           ))}
         </ul>
@@ -234,6 +237,7 @@ export default function DayAgenda({
   onRemoveEntry,
   onAddManualEntry,
   onAddOutput,
+  onRemoveOutput,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
   const isToday = isSameDay(cursor, new Date())
@@ -306,7 +310,11 @@ export default function DayAgenda({
         </button>
       </div>
 
-      <OutputsCard dayOutputs={dayOutputs} onAdd={(text) => onAddOutput(dayIso, text)} />
+      <OutputsCard
+        dayOutputs={dayOutputs}
+        onAdd={(text) => onAddOutput(dayIso, text)}
+        onRemove={onRemoveOutput}
+      />
 
       {activities.length === 0 ? (
         <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
