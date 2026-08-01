@@ -191,7 +191,50 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
   )
 }
 
-export default function DayAgenda({ activities, entries, onEditEntry, onRemoveEntry, onAddManualEntry }) {
+function OutputsCard({ dayOutputs, onAdd }) {
+  const [text, setText] = useState('')
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (!text.trim()) return
+    onAdd(text)
+    setText('')
+  }
+
+  return (
+    <section className="settings-card">
+      <h2 className="settings-card__title">Uscite</h2>
+      <form className="add-activity__row" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Es. Fattura inviata a..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button type="submit">Aggiungi</button>
+      </form>
+      {dayOutputs.length > 0 && (
+        <ul className="outputs-list">
+          {dayOutputs.map((o) => (
+            <li key={o.id} className="outputs-list__item">
+              {o.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+export default function DayAgenda({
+  activities,
+  entries,
+  outputs,
+  onEditEntry,
+  onRemoveEntry,
+  onAddManualEntry,
+  onAddOutput,
+}) {
   const [cursor, onCursorChange] = useState(() => new Date())
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
@@ -213,6 +256,8 @@ export default function DayAgenda({ activities, entries, onEditEntry, onRemoveEn
   const gaps = findGapsForDay(entries, cursor, now)
   const dayElapsedMs = isToday ? Math.max(1, now - startOfDay(cursor)) : DAY_MS
   const addBlockDefaults = defaultAddTimes(items, cursor)
+  const dayIso = toISODate(cursor)
+  const dayOutputs = outputs.filter((o) => o.date === dayIso)
 
   const rows = [
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
@@ -260,6 +305,8 @@ export default function DayAgenda({ activities, entries, onEditEntry, onRemoveEn
           ›
         </button>
       </div>
+
+      <OutputsCard dayOutputs={dayOutputs} onAdd={(text) => onAddOutput(dayIso, text)} />
 
       {activities.length === 0 ? (
         <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>

@@ -76,7 +76,7 @@ function isPrevDisabled(period, cursor) {
   return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries }) {
+export default function ReportView({ activities, entries, outputs }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
 
@@ -84,6 +84,10 @@ export default function ReportView({ activities, entries }) {
   const [prevRangeStart, prevRangeEnd] = periodRange(period, shiftCursor(period, cursor, -1))
   const nextDisabled = isNextDisabled(period, cursor)
   const prevDisabled = isPrevDisabled(period, cursor)
+  const days = periodDays(period, cursor)
+  const daysWithOutputs = days.filter((d) =>
+    outputs.some((o) => o.date === toISODate(d)),
+  ).length
 
   return (
     <div className="view">
@@ -124,6 +128,12 @@ export default function ReportView({ activities, entries }) {
         </button>
       </div>
 
+      {period === 'week' && (
+        <p className="stats-summary__progress">
+          {daysWithOutputs}/{days.length} giorni con almeno un'uscita
+        </p>
+      )}
+
       <ActivityStatsSummary
         activities={activities}
         entries={entries}
@@ -131,7 +141,7 @@ export default function ReportView({ activities, entries }) {
         rangeEnd={rangeEnd}
         prevRangeStart={prevRangeStart}
         prevRangeEnd={prevRangeEnd}
-        days={periodDays(period, cursor)}
+        days={days}
         period={period}
       />
     </div>

@@ -7,6 +7,7 @@ import { APP_START_DATE, parseISODateTime } from '../utils/date'
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
 const ENTRIES_KEY = 'weekly:v2:entriesMeta'
 const SETTINGS_KEY = 'weekly:v2:settings'
+const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 
 const DEFAULT_ACTIVITIES = []
 
@@ -28,6 +29,10 @@ function makeActivityId() {
   return `a_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
+function makeOutputId() {
+  return `o_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
 function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
@@ -44,6 +49,7 @@ export function useHabitData() {
   )
   const [entriesMeta, setEntriesMeta] = useState(() => closeStaleOpenEntries(loadJSON(ENTRIES_KEY, [])))
   const [settings, setSettingsState] = useState(() => loadJSON(SETTINGS_KEY, DEFAULT_SETTINGS))
+  const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
   const [syncStatus, setSyncStatus] = useState({ state: 'idle', lastSyncedAt: null, error: null })
 
   useEffect(() => {
@@ -58,14 +64,19 @@ export function useHabitData() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
   }, [settings])
 
+  useEffect(() => {
+    localStorage.setItem(OUTPUTS_KEY, JSON.stringify(outputsMeta))
+  }, [outputsMeta])
+
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const entries = useMemo(
     () => entriesMeta.filter((e) => !e.deleted && parseISODateTime(e.start) >= APP_START_DATE),
     [entriesMeta],
   )
+  const outputs = useMemo(() => outputsMeta.filter((o) => !o.deleted), [outputsMeta])
 
-  const stateRef = useRef({ activitiesMeta, entriesMeta })
-  stateRef.current = { activitiesMeta, entriesMeta }
+  const stateRef = useRef({ activitiesMeta, entriesMeta, outputsMeta })
+  stateRef.current = { activitiesMeta, entriesMeta, outputsMeta }
 
   const runSync = useCallback(async () => {
     const { sheetUrl, token } = settings
@@ -75,9 +86,11 @@ export function useHabitData() {
       const merged = await syncNow(sheetUrl, token, {
         activities: stateRef.current.activitiesMeta,
         entries: stateRef.current.entriesMeta,
+        outputs: stateRef.current.outputsMeta,
       })
       setActivitiesMeta(merged.activities)
       setEntriesMeta(merged.entries)
+      setOutputsMeta(merged.outputs)
       setSyncStatus({ state: 'synced', lastSyncedAt: Date.now(), error: null })
     } catch (err) {
       setSyncStatus((s) => ({ ...s, state: 'error', error: err.message || 'Sync fallita' }))
@@ -198,6 +211,21 @@ export function useHabitData() {
     [scheduleSync],
   )
 
+  // --- Outputs (per-day list of short "cosa e uscito oggi" strings) ---
+
+  const addOutput = useCallback(
+    (date, text) => {
+      const trimmed = text.trim()
+      if (!trimmed) return
+      setOutputsMeta((prev) => [
+        ...prev,
+        { id: makeOutputId(), date, text: trimmed, updatedAt: Date.now(), deleted: false },
+      ])
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
   const setSettings = useCallback((patch) => {
     setSettingsState((prev) => ({ ...prev, ...patch }))
   }, [])
@@ -210,11 +238,12 @@ export function useHabitData() {
         exportedAt: new Date().toISOString(),
         activities: activitiesMeta,
         entries: entriesMeta,
+        outputs: outputsMeta,
       },
       null,
       2,
     )
-  }, [activitiesMeta, entriesMeta])
+  }, [activitiesMeta, entriesMeta, outputsMeta])
 
   const importData = useCallback((json) => {
     const parsed = JSON.parse(json)
@@ -223,6 +252,7 @@ export function useHabitData() {
     }
     setActivitiesMeta(parsed.activities)
     setEntriesMeta(closeStaleOpenEntries(parsed.entries))
+    setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
   }, [])
 
   return {
@@ -234,6 +264,8 @@ export function useHabitData() {
     addActivity,
     renameActivity,
     deleteActivity,
+    outputs,
+    addOutput,
     exportData,
     importData,
     settings,

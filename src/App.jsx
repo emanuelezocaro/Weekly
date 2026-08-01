@@ -23,6 +23,8 @@ function App() {
     addActivity,
     renameActivity,
     deleteActivity,
+    outputs,
+    addOutput,
     exportData,
     importData,
     settings,
@@ -47,12 +49,16 @@ function App() {
           <DayAgenda
             activities={activities}
             entries={entries}
+            outputs={outputs}
             onEditEntry={editEntry}
             onRemoveEntry={removeEntry}
             onAddManualEntry={addManualEntry}
+            onAddOutput={addOutput}
           />
         )}
-        {tab === 'report' && <ReportView activities={activities} entries={entries} />}
+        {tab === 'report' && (
+          <ReportView activities={activities} entries={entries} outputs={outputs} />
+        )}
         {tab === 'settings' && (
           <SettingsView
             activities={activities}

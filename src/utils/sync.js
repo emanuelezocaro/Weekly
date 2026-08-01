@@ -25,10 +25,21 @@ export function mergeEntries(localList, remoteList) {
   return Array.from(byId.values())
 }
 
+export function mergeOutputs(localList, remoteList) {
+  const byId = new Map()
+  for (const o of remoteList) byId.set(o.id, o)
+  for (const o of localList) {
+    const r = byId.get(o.id)
+    if (!r || o.updatedAt >= r.updatedAt) byId.set(o.id, o)
+  }
+  return Array.from(byId.values())
+}
+
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
     entries: closeStaleOpenEntries(mergeEntries(localState.entries, remoteState?.entries || [])),
+    outputs: mergeOutputs(localState.outputs, remoteState?.outputs || []),
   }
 }
 
@@ -44,7 +55,7 @@ export async function fetchRemoteState(url, token) {
   const u = new URL(url)
   u.searchParams.set('token', token)
   const json = await request(u.toString(), token, { method: 'GET' })
-  return { activities: json.activities || [], entries: json.entries || [] }
+  return { activities: json.activities || [], entries: json.entries || [], outputs: json.outputs || [] }
 }
 
 export async function pushRemoteState(url, token, state) {
@@ -53,7 +64,12 @@ export async function pushRemoteState(url, token, state) {
   await request(url, token, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ token, activities: state.activities, entries: state.entries }),
+    body: JSON.stringify({
+      token,
+      activities: state.activities,
+      entries: state.entries,
+      outputs: state.outputs,
+    }),
   })
 }
 
