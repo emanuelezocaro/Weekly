@@ -5,8 +5,8 @@ const RATING_OPTIONS = [
 ]
 
 const EXTRA_OPTIONS = [
-  { value: 'no', label: 'No', cls: 'sel-no' },
   { value: 'yes', label: 'Sì', cls: 'sel-yes' },
+  { value: 'no', label: 'No', cls: 'sel-no' },
 ]
 
 function RatingRow({ label, value, options, onChange }) {

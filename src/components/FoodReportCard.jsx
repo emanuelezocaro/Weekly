@@ -3,6 +3,7 @@ import { goalForMonth } from '../utils/goals'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
+const RATING_SYMBOL = { bad: '‼', mid: '▲', good: '✓' }
 const EXTRA_LABELS = { yes: 'Sì', no: 'No' }
 const RATING_FIELDS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci']
 const FOOD_GOAL_KEYS = {
@@ -64,8 +65,11 @@ function RatingMiniRow({ label, values, goalBadge }) {
         {values.map((v, i) => (
           <span
             key={i}
+            className="mini-row__symbol"
             style={{ height: v ? '100%' : '4px', background: v ? RATING_COLOR[v] : 'var(--border)' }}
-          />
+          >
+            {v ? RATING_SYMBOL[v] : ''}
+          </span>
         ))}
       </div>
     </div>
@@ -83,11 +87,14 @@ function ExtraMiniRow({ values, goalBadge }) {
         {values.map((v, i) => (
           <span
             key={i}
+            className="mini-row__symbol"
             style={{
               height: v ? '100%' : '4px',
               background: v === 'yes' ? RATING_COLOR.bad : v === 'no' ? RATING_COLOR.good : 'var(--border)',
             }}
-          />
+          >
+            {v === 'yes' ? RATING_SYMBOL.bad : v === 'no' ? RATING_SYMBOL.good : ''}
+          </span>
         ))}
       </div>
     </div>
