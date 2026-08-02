@@ -30,18 +30,20 @@ function paceTarget(goal, elapsedDaysCount) {
   return goal.period === 'day' ? goal.value : (goal.value / 7) * elapsedDaysCount
 }
 
-function gapPhrase(direction, period, diffLabel) {
-  if (direction === 'lower_is_better') {
-    const periodPhrase = period === 'day' ? 'di oggi' : 'di questa settimana'
-    return `Hai già superato di ${diffLabel} il margine ${periodPhrase}`
-  }
-  return period === 'day'
-    ? `Mancano ${diffLabel} per raggiungere l'obiettivo di oggi`
-    : `Mancano ${diffLabel} per stare in pace con la settimana`
+function behindPhrase(direction, diffLabel, targetLabel) {
+  return direction === 'lower_is_better'
+    ? `Hai fatto ${diffLabel} in più rispetto al tuo obiettivo di ${targetLabel}`
+    : `Mancano ${diffLabel} per raggiungere il tuo obiettivo di ${targetLabel}`
 }
 
-function failedPhrase(diffLabel) {
-  return `Obiettivo della settimana ormai fallito: ne mancherebbero ancora ${diffLabel} e non c'è più tempo`
+function failedPhrase(actualLabel, goalLabel) {
+  return `Fallito perché hai fatto ${actualLabel} anziché ${goalLabel}`
+}
+
+function metPhrase(direction, diffLabel, targetLabel, actualLabel) {
+  return direction === 'lower_is_better'
+    ? `Hai fatto ${diffLabel} in meno di ${targetLabel} (obiettivo) per un totale di ${actualLabel}`
+    : `Hai fatto ${diffLabel} in più di ${targetLabel} (obiettivo) per un totale di ${actualLabel}`
 }
 
 // For goals where each day can only move the needle by so much (e.g. one
@@ -64,11 +66,12 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysCount, fa
   }
 
   const paceDiff = direction === 'lower_is_better' ? actual - target : target - actual
-  const fullGap = direction === 'lower_is_better' ? actual - goal.value : goal.value - actual
+  const metDiff = direction === 'lower_is_better' ? target - actual : actual - target
 
   let gapText = null
-  if (status === 'behind') gapText = gapPhrase(direction, goal.period, formatDiff(Math.max(0, paceDiff)))
-  if (status === 'failed') gapText = failedPhrase(formatDiff(Math.max(0, fullGap)))
+  if (status === 'behind') gapText = behindPhrase(direction, formatDiff(Math.max(0, paceDiff)), formatDiff(target))
+  if (status === 'failed') gapText = failedPhrase(formatDiff(actual), formatDiff(goal.value))
+  if (status === 'met') gapText = metPhrase(direction, formatDiff(Math.max(0, metDiff)), formatDiff(target), formatDiff(actual))
 
   return {
     key,

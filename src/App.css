@@ -140,6 +140,10 @@
   opacity: 0.7;
 }
 
+.dash-card--met {
+  border-color: color-mix(in srgb, var(--series-2) 35%, var(--border));
+}
+
 .dash-card__header {
   display: flex;
   align-items: center;
@@ -193,36 +197,6 @@
   background: var(--series-6);
 }
 
-.dash-good-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.dash-good-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 5px 10px 5px 8px;
-}
-
-.dash-good-pill .swatch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dash-good-pill .check {
-  color: var(--series-2);
-  font-weight: 800;
-}
 
 .day-status {
   margin: 0;

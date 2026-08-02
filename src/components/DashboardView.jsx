@@ -32,12 +32,16 @@ function FailedCard({ item }) {
   )
 }
 
-function OnTrackPill({ item }) {
+function MetCard({ item }) {
   return (
-    <span className="dash-good-pill">
-      <span className="swatch" style={{ background: item.swatchColor }} />
-      {item.label} <span className="check">✓</span>
-    </span>
+    <div className="dash-card dash-card--met">
+      <div className="dash-card__header">
+        <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
+        <span className="dash-card__name">{item.label}</span>
+        <span className="dash-card__period">{PERIOD_LABELS[item.period]}</span>
+      </div>
+      <p className="dash-card__gap">{item.gapText}</p>
+    </div>
   )
 }
 
@@ -89,11 +93,9 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
             <span className="dash-section-title__dot dash-section-title__dot--good" />
             In pace
           </div>
-          <div className="dash-good-list">
-            {onTrack.map((item) => (
-              <OnTrackPill key={item.key} item={item} />
-            ))}
-          </div>
+          {onTrack.map((item) => (
+            <MetCard key={item.key} item={item} />
+          ))}
         </>
       )}
     </div>
