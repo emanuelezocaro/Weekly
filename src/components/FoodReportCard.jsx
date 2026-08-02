@@ -2,7 +2,6 @@ import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth } from '../utils/goals'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
-const RATING_HEIGHT = { bad: '30%', mid: '60%', good: '100%' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
 const EXTRA_LABELS = { yes: 'Sì', no: 'No' }
 const RATING_FIELDS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci']
@@ -65,7 +64,7 @@ function RatingMiniRow({ label, values, goalBadge }) {
         {values.map((v, i) => (
           <span
             key={i}
-            style={{ height: v ? RATING_HEIGHT[v] : '4px', background: v ? RATING_COLOR[v] : 'var(--border)' }}
+            style={{ height: v ? '100%' : '4px', background: v ? RATING_COLOR[v] : 'var(--border)' }}
           />
         ))}
       </div>
