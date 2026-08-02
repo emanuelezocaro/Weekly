@@ -97,7 +97,7 @@
 }
 
 .dash-card {
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
   border-radius: var(--radius);
   background: var(--surface);
   padding: 14px 16px;
@@ -106,7 +106,7 @@
 }
 
 .dash-card--failed {
-  opacity: 0.7;
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
 }
 
 .dash-card--met {
@@ -143,11 +143,6 @@
   flex-shrink: 0;
 }
 
-.dash-card__period--failed {
-  color: var(--danger);
-  background: var(--danger-bg);
-}
-
 .dash-card__stats {
   display: flex;
   gap: 6px;
@@ -178,14 +173,6 @@
 .dash-card__stat-value {
   font-size: 14px;
   font-weight: 700;
-}
-
-.dash-card__stat-value--diff {
-  color: var(--series-6);
-}
-
-.dash-card--met .dash-card__stat-value--diff {
-  color: var(--series-2);
 }
 
 .dash-card__bar-track {

@@ -27,7 +27,7 @@ function StatsRow({ item }) {
       </div>
       <div className="dash-card__stat">
         <span className="dash-card__stat-label">Manca/Sforo</span>
-        <span className="dash-card__stat-value dash-card__stat-value--diff">{item.diffLabel}</span>
+        <span className="dash-card__stat-value">{item.diffLabel}</span>
       </div>
     </div>
   )
@@ -54,7 +54,7 @@ function FailedCard({ item }) {
       <div className="dash-card__header">
         <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
         <span className="dash-card__name">{item.label}</span>
-        <span className="dash-card__period dash-card__period--failed">Fallito</span>
+        <span className="dash-card__period">Fallito</span>
       </div>
       <StatsRow item={item} />
     </div>
