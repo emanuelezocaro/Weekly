@@ -52,9 +52,8 @@ function ExtraMiniRow({ values }) {
           <span
             key={i}
             style={{
-              height: '100%',
-              background: v === 'yes' ? 'var(--accent)' : 'var(--text-muted)',
-              opacity: v === 'yes' ? 1 : 0.3,
+              height: v ? '100%' : '4px',
+              background: v === 'yes' ? RATING_COLOR.bad : v === 'no' ? RATING_COLOR.good : 'var(--border)',
             }}
           />
         ))}
@@ -119,7 +118,7 @@ function ExtraMiniRowWeekly({ weeklyExtra }) {
               key={i}
               style={{
                 height: total > 0 ? `${Math.max(4, pct)}%` : '4px',
-                background: total > 0 ? 'var(--accent)' : 'var(--border)',
+                background: total > 0 ? RATING_COLOR.bad : 'var(--border)',
                 opacity: total > 0 ? 0.35 + (pct / 100) * 0.65 : 1,
               }}
             />

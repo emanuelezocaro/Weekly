@@ -994,12 +994,12 @@
 }
 
 .rating-seg button.sel-yes.is-selected {
-  background: var(--accent);
+  background: var(--series-6);
   color: #fff;
 }
 
 .rating-seg button.sel-no.is-selected {
-  background: var(--text-muted);
+  background: var(--series-2);
   color: #fff;
 }
 
