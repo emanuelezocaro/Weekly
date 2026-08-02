@@ -10,6 +10,7 @@ function formatPct(fraction) {
 const PERIOD_PHRASE = {
   week: 'della settimana trascorsa',
   month: 'del mese trascorso',
+  quarter: 'del trimestre trascorso',
 }
 
 export default function ActivityStatsSummary({

@@ -3,18 +3,11 @@ import {
   addDays,
   addMonths,
   APP_START_DATE,
-  endOfDay,
   formatDateRange,
-  formatFullDate,
   formatMonthLabel,
-  getDatesInMonth,
-  getWeekDates,
   isFuture,
-  isSameDay,
-  startOfDay,
   startOfMonth,
   startOfWeek,
-  toISODate,
 } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
 import OutputsWeekCard from './OutputsWeekCard'
@@ -22,61 +15,65 @@ import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
 
 const PERIODS = [
-  { id: 'day', label: 'Giorno' },
   { id: 'week', label: 'Settimana' },
   { id: 'month', label: 'Mese' },
+  { id: 'quarter', label: 'Trimestre' },
 ]
 
+function startOfQuarter(date) {
+  const qMonth = Math.floor(date.getMonth() / 3) * 3
+  return new Date(date.getFullYear(), qMonth, 1)
+}
+
 function shiftCursor(period, cursor, direction) {
-  if (period === 'day') return addDays(cursor, direction)
   if (period === 'week') return addDays(cursor, direction * 7)
-  return addMonths(cursor, direction)
+  if (period === 'month') return addMonths(cursor, direction)
+  return addMonths(cursor, direction * 3)
 }
 
 function periodRange(period, cursor) {
   let start, end
-  if (period === 'day') {
-    ;[start, end] = [startOfDay(cursor), endOfDay(cursor)]
-  } else if (period === 'week') {
+  if (period === 'week') {
     start = startOfWeek(cursor)
     end = addDays(start, 7)
-  } else {
+  } else if (period === 'month') {
     start = startOfMonth(cursor)
     end = startOfMonth(addMonths(cursor, 1))
+  } else {
+    start = startOfQuarter(cursor)
+    end = startOfQuarter(addMonths(cursor, 3))
   }
   return [start < APP_START_DATE ? APP_START_DATE : start, end]
 }
 
 function periodDays(period, cursor) {
-  let days
-  if (period === 'day') days = [cursor]
-  else if (period === 'week') days = getWeekDates(startOfWeek(cursor))
-  else days = getDatesInMonth(startOfMonth(cursor))
-  return days.filter((d) => toISODate(d) >= toISODate(APP_START_DATE))
+  const [start, end] = periodRange(period, cursor)
+  const days = []
+  let d = start
+  while (d < end) {
+    days.push(d)
+    d = addDays(d, 1)
+  }
+  return days
 }
 
 function periodHeaderLabel(period, cursor) {
-  if (period === 'day') {
-    return isSameDay(cursor, new Date()) ? 'Oggi' : formatFullDate(cursor)
-  }
-  if (period === 'week') {
-    const [start, end] = periodRange('week', cursor)
-    return formatDateRange(start, end)
-  }
-  return formatMonthLabel(startOfMonth(cursor))
+  if (period === 'month') return formatMonthLabel(startOfMonth(cursor))
+  const [start, end] = periodRange(period, cursor)
+  return formatDateRange(start, end)
 }
 
 function isNextDisabled(period, cursor) {
   const next = shiftCursor(period, cursor, 1)
-  if (period === 'day') return isFuture(next)
   if (period === 'week') return isFuture(startOfWeek(next))
-  return isFuture(startOfMonth(next))
+  if (period === 'month') return isFuture(startOfMonth(next))
+  return isFuture(startOfQuarter(next))
 }
 
 function isPrevDisabled(period, cursor) {
-  if (period === 'day') return toISODate(cursor) <= toISODate(APP_START_DATE)
   if (period === 'week') return startOfWeek(cursor) <= startOfWeek(APP_START_DATE)
-  return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
+  if (period === 'month') return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
+  return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
 }
 
 export default function ReportView({ activities, entries, outputs, cigarettes, food }) {
