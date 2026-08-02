@@ -337,10 +337,12 @@ export default function DayAgenda({
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
   }
 
+  // Gaps (things still needing attention) come first, then entries in
+  // reverse-chronological order so whatever was just logged is on top.
   const rows = [
-    ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
-    ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })),
-  ].sort((a, b) => a.sortKey - b.sortKey)
+    ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })).sort((a, b) => a.sortKey - b.sortKey),
+    ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })).sort((a, b) => b.sortKey - a.sortKey),
+  ]
 
   function handleSaveEdit(id, patch) {
     onEditEntry(id, patch)
@@ -437,10 +439,26 @@ export default function DayAgenda({
               </p>
             )}
 
-            {gaps.length > 0 && (
-              <p className="day-status day-status--incomplete">
-                Mancano {formatDuration(gaps.reduce((sum, g) => sum + (g.end - g.start), 0))} da questo giorno.
-              </p>
+            {!isLocked && (
+              <div className="add-block">
+                {addingManual ? (
+                  <ManualAddForm
+                    activities={activities}
+                    dayDate={cursor}
+                    initialStart={addBlockDefaults.start}
+                    initialEnd={addBlockDefaults.end}
+                    onAdd={(activityId, start, end) => {
+                      onAddManualEntry(activityId, start, end)
+                      setAddingManual(false)
+                    }}
+                    onCancel={() => setAddingManual(false)}
+                  />
+                ) : (
+                  <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
+                    + Aggiungi blocco
+                  </button>
+                )}
+              </div>
             )}
 
             <ul className="timeline">
@@ -508,28 +526,6 @@ export default function DayAgenda({
                 )
               })}
             </ul>
-
-            {!isLocked && (
-              <div className="add-block">
-                {addingManual ? (
-                  <ManualAddForm
-                    activities={activities}
-                    dayDate={cursor}
-                    initialStart={addBlockDefaults.start}
-                    initialEnd={addBlockDefaults.end}
-                    onAdd={(activityId, start, end) => {
-                      onAddManualEntry(activityId, start, end)
-                      setAddingManual(false)
-                    }}
-                    onCancel={() => setAddingManual(false)}
-                  />
-                ) : (
-                  <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
-                    + Aggiungi blocco
-                  </button>
-                )}
-              </div>
-            )}
           </>
         ))}
     </div>

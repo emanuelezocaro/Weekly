@@ -203,11 +203,6 @@
   color: var(--accent-strong);
 }
 
-.day-status--incomplete {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-
 /* Top nav */
 .top-nav {
   display: flex;
