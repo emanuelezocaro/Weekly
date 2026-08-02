@@ -1,5 +1,5 @@
 import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
+import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
@@ -41,13 +41,29 @@ function goalTarget(goal, daysCount) {
   return target === null ? null : Math.round(target)
 }
 
-function GoalBadge({ goal, target, count }) {
+// Each field can take at most one rating a day, so a day only still counts
+// as a chance to catch up if it's today-or-later AND not already rated --
+// a day already logged (good or not) has used its one slot. Once what's
+// missing exceeds how many such chances are left, that's not "short"
+// anymore, it's already lost for this period.
+function fieldStatus(goal, count, target, days, values, now) {
+  if (isGoalMet(goal, count, target)) return 'met'
+  if (goalDirection(goal) !== 'higher_is_better') return 'short'
+  const todayIso = toISODate(now)
+  let remainingDays = 0
+  days.forEach((d, i) => {
+    if (toISODate(d) >= todayIso && !values[i]) remainingDays += 1
+  })
+  return target - count > remainingDays ? 'failed' : 'short'
+}
+
+function GoalBadge({ goal, target, count, days, values, now }) {
   if (target === null) return null
-  const met = isGoalMet(goal, count, target)
+  const status = fieldStatus(goal, count, target, days, values, now)
   return (
-    <span className={`mini-row__goal ${met ? 'is-met' : 'is-short'}`}>
+    <span className={`mini-row__goal ${status === 'met' ? 'is-met' : status === 'failed' ? 'is-failed' : 'is-short'}`}>
       {count}/{target}
-      {met ? ' ✓' : ''}
+      {status === 'met' ? ' ✓' : ''}
     </span>
   )
 }
@@ -166,7 +182,7 @@ function ExtraMiniRowWeekly({ weeklyExtra, goalBadge }) {
   )
 }
 
-export default function FoodReportCard({ food, days, period, goals }) {
+export default function FoodReportCard({ food, days, period, goals, now = new Date() }) {
   const records = days.map((date) => {
     const iso = toISODate(date)
     return food.find((f) => f.date === iso) || null
@@ -217,14 +233,16 @@ export default function FoodReportCard({ food, days, period, goals }) {
   const fieldBadge = (field) => {
     const goal = goalForMonth(goals, FOOD_GOAL_KEYS[field], monthIso)
     const target = goalTarget(goal, days.length)
-    const count = records.filter((r) => r && r[field] === 'good').length
-    return <GoalBadge goal={goal} target={target} count={count} />
+    const values = records.map((r) => r?.[field] ?? null)
+    const count = values.filter((v) => v === 'good').length
+    return <GoalBadge goal={goal} target={target} count={count} days={days} values={values} now={now} />
   }
   const extraBadge = (() => {
     const goal = goalForMonth(goals, 'food_extra', monthIso)
     const target = goalTarget(goal, days.length)
-    const count = records.filter((r) => r && r.extra === 'no').length
-    return <GoalBadge goal={goal} target={target} count={count} />
+    const values = records.map((r) => r?.extra ?? null)
+    const count = values.filter((v) => v === 'no').length
+    return <GoalBadge goal={goal} target={target} count={count} days={days} values={values} now={now} />
   })()
 
   if (period === 'quarter') {
