@@ -313,6 +313,7 @@
 }
 
 .segmented__item {
+  position: relative;
   flex: 1;
   border: none;
   background: none;
@@ -332,6 +333,16 @@
   color: var(--text);
   font-weight: 600;
   box-shadow: var(--shadow);
+}
+
+.segmented__dot {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
 }
 
 /* Reusable dropdown (activity picker, quarter-hour picker) */

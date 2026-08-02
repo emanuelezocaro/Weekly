@@ -27,6 +27,8 @@ const DAY_TABS = [
   { id: 'food', label: 'Cibo' },
 ]
 
+const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
+
 const HALF_HOUR_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = String(Math.floor(i / 2)).padStart(2, '0')
   const m = String((i % 2) * 30).padStart(2, '0')
@@ -305,6 +307,15 @@ export default function DayAgenda({
   const dayFoodRecord = food.find((f) => f.date === dayIso)
   const isLocked = !isToday && gaps.length === 0 && now - endOfDay(cursor) >= LOCK_AFTER_MS
 
+  // Only today can be "missing" data -- past days are either filled in or
+  // already gone, and there's nothing to fill in for the future.
+  const missingByTab = {
+    calendar: isToday && gaps.length > 0,
+    outputs: isToday && dayOutputs.length === 0,
+    cigarettes: isToday && !dayCigaretteRecord,
+    food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
+  }
+
   const rows = [
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
     ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })),
@@ -361,6 +372,7 @@ export default function DayAgenda({
             onClick={() => setActiveTab(t.id)}
           >
             {t.label}
+            {missingByTab[t.id] && <span className="segmented__dot" aria-label="Dati mancanti" />}
           </button>
         ))}
       </div>
