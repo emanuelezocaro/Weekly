@@ -48,24 +48,6 @@ function openDaysThisWeek(records, field, now) {
   return count
 }
 
-function behindPhrase(diffLabel, targetLabel) {
-  return `Mancano ${diffLabel} per raggiungere il tuo obiettivo di ${targetLabel}`
-}
-
-function overPacePhrase(diffLabel, targetLabel) {
-  return `Hai fatto ${diffLabel} in più rispetto al tuo obiettivo di ${targetLabel}`
-}
-
-function failedPhrase(actualLabel, goalLabel) {
-  return `Fallito perché hai fatto ${actualLabel} anziché ${goalLabel}`
-}
-
-function metPhrase(direction, diffLabel, targetLabel, actualLabel) {
-  return direction === 'lower_is_better'
-    ? `Hai fatto ${diffLabel} in meno di ${targetLabel} (obiettivo) per un totale di ${actualLabel}`
-    : `Hai fatto ${diffLabel} in più di ${targetLabel} (obiettivo) per un totale di ${actualLabel}`
-}
-
 // `remainingCapacity` (precomputed by the caller, day-by-day data this
 // function doesn't have) caps how much a "higher is better" goal can still
 // close before the week ends -- past that, it's not "behind" anymore, it's
@@ -88,25 +70,20 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
     if (!met && remainingCapacity !== undefined && fullWeekQuota - actual > remainingCapacity) status = 'failed'
   }
 
-  let gapText = null
-  if (status === 'behind') {
-    gapText =
-      direction === 'lower_is_better'
-        ? overPacePhrase(formatDiff(actual - target), formatDiff(target))
-        : behindPhrase(formatDiff(target - actual), formatDiff(target))
-  }
-  if (status === 'failed') gapText = failedPhrase(formatDiff(actual), formatDiff(fullWeekQuota))
-  if (status === 'met') {
-    const metDiff = direction === 'lower_is_better' ? target - actual : actual - target
-    gapText = metPhrase(direction, formatDiff(Math.max(0, metDiff)), formatDiff(target), formatDiff(actual))
-  }
+  // The reference shown as "obiettivo" is the pace target while there's
+  // still time to close the gap, but the full weekly quota once it's
+  // already failed -- the pace target stops meaning anything at that point.
+  const referenceTarget = status === 'failed' ? fullWeekQuota : target
+  const diff = actual - referenceTarget
 
   return {
     key,
     label,
     swatchColor,
     status,
-    gapText,
+    targetLabel: formatDiff(referenceTarget),
+    actualLabel: formatDiff(actual),
+    diffLabel: `${diff >= 0 ? '+' : '−'}${formatDiff(Math.abs(diff))}`,
     progressPct: target > 0 ? Math.min(100, Math.max(0, (actual / target) * 100)) : 100,
   }
 }

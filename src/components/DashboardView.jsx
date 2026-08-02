@@ -14,6 +14,25 @@ const EMPTY_MESSAGES = {
   failed: 'Nessun obiettivo fallito questa settimana.',
 }
 
+function StatsRow({ item }) {
+  return (
+    <div className="dash-card__stats">
+      <div className="dash-card__stat">
+        <span className="dash-card__stat-label">Obiettivo</span>
+        <span className="dash-card__stat-value">{item.targetLabel}</span>
+      </div>
+      <div className="dash-card__stat">
+        <span className="dash-card__stat-label">Come sto</span>
+        <span className="dash-card__stat-value">{item.actualLabel}</span>
+      </div>
+      <div className="dash-card__stat">
+        <span className="dash-card__stat-label">Manca/Sforo</span>
+        <span className="dash-card__stat-value dash-card__stat-value--diff">{item.diffLabel}</span>
+      </div>
+    </div>
+  )
+}
+
 function BehindCard({ item }) {
   return (
     <div className="dash-card">
@@ -21,7 +40,7 @@ function BehindCard({ item }) {
         <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
         <span className="dash-card__name">{item.label}</span>
       </div>
-      <p className="dash-card__gap">{item.gapText}</p>
+      <StatsRow item={item} />
       <div className="dash-card__bar-track">
         <div className="dash-card__bar-fill" style={{ width: `${item.progressPct}%` }} />
       </div>
@@ -37,7 +56,7 @@ function FailedCard({ item }) {
         <span className="dash-card__name">{item.label}</span>
         <span className="dash-card__period dash-card__period--failed">Fallito</span>
       </div>
-      <p className="dash-card__gap">{item.gapText}</p>
+      <StatsRow item={item} />
     </div>
   )
 }
@@ -49,7 +68,7 @@ function MetCard({ item }) {
         <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
         <span className="dash-card__name">{item.label}</span>
       </div>
-      <p className="dash-card__gap">{item.gapText}</p>
+      <StatsRow item={item} />
     </div>
   )
 }
