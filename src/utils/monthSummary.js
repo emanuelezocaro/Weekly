@@ -3,6 +3,7 @@ import {
   addMonths,
   formatDateRange,
   formatDuration,
+  formatFullDate,
   formatMonthLabel,
   groupDaysByWeek,
   startOfMonth,
@@ -82,6 +83,12 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
       note = ` (obiettivo ${outputsGoal.value}/${goalPeriodLabel(outputsGoal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
     }
     lines.push(`Uscite: ${outputsTotal}${note}`)
+    for (const d of weekDays) {
+      const dayOutputs = outputs.filter((o) => o.date === toISODate(d))
+      if (dayOutputs.length === 0) continue
+      lines.push(formatFullDate(d))
+      for (const o of dayOutputs) lines.push(`- ${o.text}`)
+    }
   }
 
   const foodRecords = weekDays.map((d) => food.find((f) => f.date === toISODate(d)))
