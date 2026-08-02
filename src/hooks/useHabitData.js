@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
 import { closeStaleOpenEntries, deleteEntry, makeEntryId, resolveOverlaps, updateEntry } from '../utils/entries'
-import { APP_START_DATE, parseISODateTime } from '../utils/date'
+import { APP_START_DATE, parseISODateTime, toMonthISO } from '../utils/date'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -159,6 +159,45 @@ export function useHabitData() {
     clearTimeout(debounceTimer.current)
     debounceTimer.current = setTimeout(() => runSyncRef.current(), DEBOUNCE_SYNC_MS)
   }, [settings.sheetUrl])
+
+  // One-off migration: goals just introduced this month only apply "from now
+  // on" (the versioning model), so Luglio 2026 was left with none. Backfill
+  // it once with whatever's currently in effect, without touching the live
+  // configuration for the current month. Runs at most once -- skips itself
+  // the moment any Luglio 2026 record exists.
+  useEffect(() => {
+    const JULY_2026 = '2026-07'
+    const currentMonthIso = toMonthISO(new Date())
+    let didAdd = false
+    setGoalsMeta((prev) => {
+      if (prev.some((g) => !g.deleted && g.month === JULY_2026)) return prev
+      const itemKeys = new Set(prev.filter((g) => !g.deleted && g.month <= currentMonthIso).map((g) => g.itemKey))
+      const additions = []
+      for (const itemKey of itemKeys) {
+        let best = null
+        for (const g of prev) {
+          if (g.deleted || g.itemKey !== itemKey || g.month > currentMonthIso) continue
+          if (!best || g.month > best.month) best = g
+        }
+        if (best) {
+          additions.push({
+            id: makeGoalId(),
+            itemKey,
+            month: JULY_2026,
+            period: best.period,
+            value: best.value,
+            direction: best.direction,
+            updatedAt: Date.now(),
+            deleted: false,
+          })
+        }
+      }
+      if (additions.length === 0) return prev
+      didAdd = true
+      return [...prev, ...additions]
+    })
+    if (didAdd) scheduleSync()
+  }, [scheduleSync])
 
   // --- Entries (continuous time blocks) ---
 
