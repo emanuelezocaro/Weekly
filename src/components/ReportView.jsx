@@ -125,7 +125,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </button>
       </div>
 
-      {period === 'week' && <OutputsWeekCard outputs={outputs} days={days} />}
+      <OutputsWeekCard outputs={outputs} days={days} period={period} />
       <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} />
       <FoodReportCard food={food} days={days} period={period} />
 
