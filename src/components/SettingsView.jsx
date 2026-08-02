@@ -109,6 +109,8 @@ export default function SettingsView({
 
   return (
     <div className="view">
+      <GoalsCard activities={activities} goals={goals} monthIso={toMonthISO(new Date())} onSetGoal={onSetGoal} />
+
       <section className="settings-card">
         <h2 className="settings-card__title">Nuova attività</h2>
         <form className="add-activity" onSubmit={handleAdd}>
@@ -171,8 +173,6 @@ export default function SettingsView({
           ))}
         </ul>
       </section>
-
-      <GoalsCard activities={activities} goals={goals} monthIso={toMonthISO(new Date())} onSetGoal={onSetGoal} />
 
       <section className="settings-card">
         <h2 className="settings-card__title">Sincronizzazione Google Sheet</h2>

@@ -382,6 +382,10 @@ export default function DayAgenda({
               <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
             )}
 
+            {!isToday && gaps.length === 0 && (
+              <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
+            )}
+
             <ul className="timeline">
               {rows.map((row) => {
                 if (row.type === 'gap') {
@@ -446,10 +450,6 @@ export default function DayAgenda({
                 )
               })}
             </ul>
-
-            {!isToday && gaps.length === 0 && (
-              <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
-            )}
 
             <div className="add-block">
               {addingManual ? (
