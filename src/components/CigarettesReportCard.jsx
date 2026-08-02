@@ -1,4 +1,4 @@
-import { dayLabel, toISODate } from '../utils/date'
+import { dayLabel, formatShortDate, groupDaysByWeek, toISODate } from '../utils/date'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
@@ -20,7 +20,7 @@ function countsForDays(cigarettes, days) {
   })
 }
 
-export default function CigarettesReportCard({ cigarettes, days }) {
+export default function CigarettesReportCard({ cigarettes, days, period }) {
   const counts = countsForDays(cigarettes, days)
 
   if (days.length === 1) {
@@ -42,7 +42,24 @@ export default function CigarettesReportCard({ cigarettes, days }) {
   const tracked = counts.filter((c) => c.count !== null)
   const total = tracked.reduce((sum, c) => sum + c.count, 0)
   const avg = tracked.length > 0 ? Math.round(total / tracked.length) : 0
-  const maxCount = Math.max(1, ...counts.map((c) => c.count || 0))
+
+  // Trimestre: troppi giorni per una barra a testa, si aggrega per settimana.
+  const bars =
+    period === 'quarter'
+      ? groupDaysByWeek(days).map((w, i, weeks) => {
+          const weekTotal = countsForDays(cigarettes, w.days).reduce((sum, c) => sum + (c.count || 0), 0)
+          return {
+            key: toISODate(w.weekStart),
+            label: shouldLabel(i, weeks.length) ? formatShortDate(w.weekStart) : '',
+            value: weekTotal,
+          }
+        })
+      : counts.map((c, i) => ({
+          key: toISODate(c.date),
+          label: shouldLabel(i, counts.length) ? axisLabel(c.date, days) : '',
+          value: c.count || 0,
+        }))
+  const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
   return (
     <section className="settings-card">
@@ -51,14 +68,14 @@ export default function CigarettesReportCard({ cigarettes, days }) {
         {total} in totale · {avg}/giorno in media
       </p>
       <div className="trend-chart__bars">
-        {counts.map((c, i) => {
-          const heightPct = c.count ? Math.max(2, (c.count / maxCount) * 100) : 2
+        {bars.map((b) => {
+          const heightPct = Math.max(2, (b.value / maxValue) * 100)
           return (
-            <div key={toISODate(c.date)} className="trend-chart__col">
+            <div key={b.key} className="trend-chart__col">
               <span className="trend-chart__bar-track">
                 <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
               </span>
-              <span className="trend-chart__label">{shouldLabel(i, counts.length) ? axisLabel(c.date, days) : ''}</span>
+              <span className="trend-chart__label">{b.label}</span>
             </div>
           )
         })}

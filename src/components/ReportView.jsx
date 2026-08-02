@@ -126,8 +126,8 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
       </div>
 
       {period === 'week' && <OutputsWeekCard outputs={outputs} days={days} />}
-      <CigarettesReportCard cigarettes={cigarettes} days={days} />
-      <FoodReportCard food={food} days={days} />
+      <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} />
+      <FoodReportCard food={food} days={days} period={period} />
 
       <hr className="report-divider" />
 

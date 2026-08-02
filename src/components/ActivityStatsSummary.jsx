@@ -103,7 +103,9 @@ export default function ActivityStatsSummary({
                   {delta}% rispetto al periodo precedente
                 </p>
               )}
-              {canDrillDown && <ActivityTrendChart activity={activity} days={days} entries={entries} now={now} />}
+              {canDrillDown && (
+                <ActivityTrendChart activity={activity} days={days} entries={entries} period={period} now={now} />
+              )}
             </li>
           )
         })}

@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { dayLabel, formatDuration, formatFullDate, isSameDay, toISODate } from '../utils/date'
+import {
+  addDays,
+  dayLabel,
+  formatDateRange,
+  formatDuration,
+  formatFullDate,
+  formatShortDate,
+  groupDaysByWeek,
+  isSameDay,
+  toISODate,
+} from '../utils/date'
 import { dailyTotalsForActivity } from '../utils/entries'
 import { colorVar } from '../utils/palette'
 
@@ -15,23 +25,34 @@ function axisLabel(date, days) {
   return days.length <= 7 ? dayLabel(date) : String(date.getDate())
 }
 
-export default function ActivityTrendChart({ activity, days, entries, now = new Date() }) {
-  const totals = dailyTotalsForActivity(entries, activity.id, days, now)
+// Trimestre: troppi giorni per una barra a testa, si aggrega per settimana
+// sommando le durate.
+function weeklyTotals(dailyTotals, days) {
+  const msByDate = new Map(dailyTotals.map((t) => [toISODate(t.date), t.ms]))
+  return groupDaysByWeek(days).map((w) => ({
+    date: w.weekStart,
+    ms: w.days.reduce((sum, d) => sum + (msByDate.get(toISODate(d)) || 0), 0),
+  }))
+}
+
+export default function ActivityTrendChart({ activity, days, entries, period, now = new Date() }) {
+  const dailyTotals = dailyTotalsForActivity(entries, activity.id, days, now)
+  const isWeekly = period === 'quarter'
+  const totals = isWeekly ? weeklyTotals(dailyTotals, days) : dailyTotals
   const maxMs = Math.max(1, ...totals.map((t) => t.ms))
   const [selected, setSelected] = useState(() => {
     const maxEntry = totals.reduce((best, t) => (t.ms > best.ms ? t : best), totals[0])
     return maxEntry
   })
 
+  function captionFor(t) {
+    const label = isWeekly ? formatDateRange(t.date, addDays(t.date, 7)) : formatFullDate(t.date)
+    return t.ms > 0 ? `${label} · ${formatDuration(t.ms)}` : `${label} · nessun dato`
+  }
+
   return (
     <div className="trend-chart">
-      <p className="trend-chart__caption">
-        {selected && selected.ms > 0
-          ? `${formatFullDate(selected.date)} · ${formatDuration(selected.ms)}`
-          : selected
-            ? `${formatFullDate(selected.date)} · nessun dato`
-            : 'Nessun dato in questo periodo'}
-      </p>
+      <p className="trend-chart__caption">{selected ? captionFor(selected) : 'Nessun dato in questo periodo'}</p>
       <div className="trend-chart__bars">
         {totals.map((t, i) => {
           const heightPct = Math.max(2, (t.ms / maxMs) * 100)
@@ -42,7 +63,7 @@ export default function ActivityTrendChart({ activity, days, entries, now = new 
               type="button"
               className={`trend-chart__col ${isSelected ? 'is-selected' : ''}`}
               onClick={() => setSelected(t)}
-              aria-label={`${formatFullDate(t.date)}: ${formatDuration(t.ms)}`}
+              aria-label={captionFor(t)}
             >
               <span className="trend-chart__bar-track">
                 <span
@@ -51,7 +72,7 @@ export default function ActivityTrendChart({ activity, days, entries, now = new 
                 />
               </span>
               <span className="trend-chart__label">
-                {shouldLabel(i, totals.length) ? axisLabel(t.date, days) : ''}
+                {shouldLabel(i, totals.length) ? (isWeekly ? formatShortDate(t.date) : axisLabel(t.date, days)) : ''}
               </span>
             </button>
           )

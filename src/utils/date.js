@@ -120,6 +120,27 @@ export function formatMonthLabel(date) {
   return `${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`
 }
 
+export function formatShortDate(date) {
+  return `${date.getDate()} ${MONTH_LABELS[date.getMonth()].slice(0, 3)}`
+}
+
+// Buckets a (possibly irregular, e.g. quarter-clamped) list of days into
+// Mon-Sun weeks, for aggregating daily charts into weekly bars.
+export function groupDaysByWeek(days) {
+  const weeks = []
+  const indexByKey = new Map()
+  for (const d of days) {
+    const weekStart = startOfWeek(d)
+    const key = toISODate(weekStart)
+    if (!indexByKey.has(key)) {
+      indexByKey.set(key, weeks.length)
+      weeks.push({ weekStart, days: [] })
+    }
+    weeks[indexByKey.get(key)].days.push(d)
+  }
+  return weeks
+}
+
 export function getDatesInMonth(monthDate) {
   const start = startOfMonth(monthDate)
   const end = endOfMonth(monthDate)
