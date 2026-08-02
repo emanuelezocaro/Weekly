@@ -16,7 +16,6 @@ import {
   toISODateTime,
 } from '../utils/date'
 import { DAY_MS, entriesForDay, findGapsForDay } from '../utils/entries'
-import { DEFAULT_OUTPUT_TYPE, OUTPUT_TYPES, outputType } from '../utils/outputTypes'
 import { colorVar } from '../utils/palette'
 import CigarettesCard from './CigarettesCard'
 import FoodCard from './FoodCard'
@@ -215,14 +214,12 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
 
 function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs }) {
   const [text, setText] = useState('')
-  const [type, setType] = useState(DEFAULT_OUTPUT_TYPE)
 
   function handleSubmit(e) {
     e.preventDefault()
     if (!text.trim()) return
-    onAdd(text, type)
+    onAdd(text)
     setText('')
-    setType(DEFAULT_OUTPUT_TYPE)
   }
 
   return (
@@ -235,18 +232,6 @@ function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfir
           onChange={(e) => setText(e.target.value)}
           rows={3}
         />
-        <div className="rating-seg">
-          {OUTPUT_TYPES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={type === t.id ? 'is-selected' : ''}
-              onClick={() => setType(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
         <button type="submit">Aggiungi</button>
       </form>
       {isToday && dayOutputs.length === 0 && (
@@ -284,12 +269,7 @@ function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfir
         <ul className="outputs-list">
           {dayOutputs.map((o) => (
             <li key={o.id} className="outputs-list__item">
-              <span className="outputs-list__text">
-                <span className="outputs-list__type">
-                  {OUTPUT_TYPES.find((t) => t.id === outputType(o))?.label}
-                </span>
-                {o.text}
-              </span>
+              <span className="outputs-list__text">{o.text}</span>
               <button type="button" className="text-btn text-btn--danger" onClick={() => onRemove(o.id)}>
                 Elimina
               </button>
@@ -423,7 +403,7 @@ export default function DayAgenda({
       {activeTab === 'outputs' && (
         <OutputsCard
           dayOutputs={dayOutputs}
-          onAdd={(text, type) => onAddOutput(dayIso, text, type)}
+          onAdd={(text) => onAddOutput(dayIso, text)}
           onRemove={onRemoveOutput}
           isToday={isToday}
           isSkipped={dayOutputsSkipped}

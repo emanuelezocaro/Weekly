@@ -1,7 +1,6 @@
 import { addDays, formatDuration, startOfWeek, toISODate, toMonthISO } from './date'
 import { aggregateDuration } from './entries'
 import { goalDirection, goalForMonth, isGoalMet } from './goals'
-import { outputType } from './outputTypes'
 import { colorVar } from './palette'
 
 const FOOD_FIELDS = [
@@ -145,8 +144,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
 
   const outputsGoal = goalForMonth(goals, 'outputs', monthIso)
   if (outputsGoal) {
-    // The 5-uscite/week goal only counts "consegna" outputs.
-    const actual = outputs.filter((o) => isoWeekDays.has(o.date) && outputType(o) === 'consegna').length
+    const actual = outputs.filter((o) => isoWeekDays.has(o.date)).length
     items.push(
       buildItem({
         key: 'outputs',
