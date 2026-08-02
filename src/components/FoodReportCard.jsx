@@ -11,6 +11,21 @@ function axisLegend(days) {
   return `${String(days[0].getDate())} – ${String(days[days.length - 1].getDate())}`
 }
 
+// Aggregate counts across all rating rows, so the reader doesn't have to
+// count colored bars by eye.
+function ratingSummary(records) {
+  const counts = { good: 0, mid: 0, bad: 0 }
+  let extraYes = 0
+  for (const r of records) {
+    if (!r) continue
+    for (const field of ['colazione', 'pranzo', 'cena', 'alcol', 'dolci']) {
+      if (r[field]) counts[r[field]] += 1
+    }
+    if (r.extra === 'yes') extraYes += 1
+  }
+  return { ...counts, extraYes }
+}
+
 function RatingMiniRow({ label, values }) {
   return (
     <div className="mini-row">
@@ -86,9 +101,15 @@ export default function FoodReportCard({ food, days }) {
     )
   }
 
+  const summary = ratingSummary(records)
+
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Alimentazione</h2>
+      <p className="trend-chart__caption">
+        {summary.good} buono · {summary.mid} medio · {summary.bad} male · Extra {summary.extraYes}/{days.length}{' '}
+        giorni
+      </p>
       <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} />
       <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} />
       <RatingMiniRow label="Cena" values={records.map((r) => r?.cena ?? null)} />
