@@ -127,7 +127,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
 
       <OutputsWeekCard outputs={outputs} days={days} period={period} goals={goals} />
       <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} goals={goals} />
-      <FoodReportCard food={food} days={days} period={period} />
+      <FoodReportCard food={food} days={days} period={period} goals={goals} />
 
       <hr className="report-divider" />
 

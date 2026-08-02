@@ -64,8 +64,8 @@ function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
   )
 }
 
-function CountGoalRow({ itemKey, label, goal, onSave }) {
-  const [period, setPeriod] = useState(goal?.period || 'day')
+function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
+  const [period, setPeriod] = useState(goal?.period || defaultPeriod)
   const [value, setValue] = useState(goal ? String(goal.value) : '')
 
   function commit(nextPeriod, nextValue) {
@@ -98,14 +98,24 @@ function CountGoalRow({ itemKey, label, goal, onSave }) {
   )
 }
 
+const FOOD_GOALS = [
+  { itemKey: 'food_colazione', label: 'Colazione buona' },
+  { itemKey: 'food_pranzo', label: 'Pranzo buono' },
+  { itemKey: 'food_cena', label: 'Cena buona' },
+  { itemKey: 'food_alcol', label: 'Alcol buono' },
+  { itemKey: 'food_dolci', label: 'Dolci buono' },
+  { itemKey: 'food_extra', label: 'Extra evitato' },
+]
+
 export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Obiettivi</h2>
       <p className="settings-card__hint">
-        Imposta un valore di riferimento per attività, sigarette e uscite: lo vedrai come linea nei
-        grafici del Report. Le modifiche valgono da questo mese in poi; i mesi passati mantengono
-        l'obiettivo che avevano allora.
+        Imposta un valore di riferimento per attività, sigarette, uscite e alimentazione: per le
+        prime tre lo vedrai come linea nei grafici del Report, per l'alimentazione come conteggio
+        "X/obiettivo" accanto a ogni riga. Le modifiche valgono da questo mese in poi; i mesi
+        passati mantengono l'obiettivo che avevano allora.
       </p>
       {activities.map((a) => (
         <DurationGoalRow
@@ -129,6 +139,16 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
         goal={goalForMonth(goals, 'outputs', monthIso)}
         onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
       />
+      {FOOD_GOALS.map((f) => (
+        <CountGoalRow
+          key={f.itemKey}
+          itemKey={f.itemKey}
+          label={f.label}
+          defaultPeriod="week"
+          goal={goalForMonth(goals, f.itemKey, monthIso)}
+          onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
+        />
+      ))}
     </section>
   )
 }
