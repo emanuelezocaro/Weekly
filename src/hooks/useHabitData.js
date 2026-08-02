@@ -292,7 +292,9 @@ export function useHabitData() {
             {
               id: makeFoodId(),
               date,
-              pasti: null,
+              colazione: null,
+              pranzo: null,
+              cena: null,
               alcol: null,
               dolci: null,
               extra: null,

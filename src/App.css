@@ -576,9 +576,9 @@
 }
 
 .mini-row__label {
-  width: 46px;
+  width: 62px;
   flex-shrink: 0;
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--text-muted);
   font-weight: 600;
 }

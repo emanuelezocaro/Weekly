@@ -63,7 +63,13 @@ export default function FoodReportCard({ food, days }) {
         ) : (
           <>
             <p className="field-readout">
-              Pasti: <strong>{RATING_LABELS[rec.pasti] ?? '—'}</strong>
+              Colazione: <strong>{RATING_LABELS[rec.colazione] ?? '—'}</strong>
+            </p>
+            <p className="field-readout">
+              Pranzo: <strong>{RATING_LABELS[rec.pranzo] ?? '—'}</strong>
+            </p>
+            <p className="field-readout">
+              Cena: <strong>{RATING_LABELS[rec.cena] ?? '—'}</strong>
             </p>
             <p className="field-readout">
               Alcol: <strong>{RATING_LABELS[rec.alcol] ?? '—'}</strong>
@@ -83,7 +89,9 @@ export default function FoodReportCard({ food, days }) {
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Alimentazione</h2>
-      <RatingMiniRow label="Pasti" values={records.map((r) => r?.pasti ?? null)} />
+      <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} />
+      <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} />
+      <RatingMiniRow label="Cena" values={records.map((r) => r?.cena ?? null)} />
       <RatingMiniRow label="Alcol" values={records.map((r) => r?.alcol ?? null)} />
       <RatingMiniRow label="Dolci" values={records.map((r) => r?.dolci ?? null)} />
       <ExtraMiniRow values={records.map((r) => r?.extra ?? null)} />

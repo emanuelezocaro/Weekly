@@ -30,11 +30,25 @@ function RatingRow({ label, value, options, onChange }) {
 }
 
 export default function FoodCard({ food, onChange }) {
-  const { pasti = null, alcol = null, dolci = null, extra = null } = food || {}
+  const {
+    colazione = null,
+    pranzo = null,
+    cena = null,
+    alcol = null,
+    dolci = null,
+    extra = null,
+  } = food || {}
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Alimentazione</h2>
-      <RatingRow label="Pasti" value={pasti} options={RATING_OPTIONS} onChange={(v) => onChange('pasti', v)} />
+      <RatingRow
+        label="Colazione"
+        value={colazione}
+        options={RATING_OPTIONS}
+        onChange={(v) => onChange('colazione', v)}
+      />
+      <RatingRow label="Pranzo" value={pranzo} options={RATING_OPTIONS} onChange={(v) => onChange('pranzo', v)} />
+      <RatingRow label="Cena" value={cena} options={RATING_OPTIONS} onChange={(v) => onChange('cena', v)} />
       <RatingRow label="Alcol" value={alcol} options={RATING_OPTIONS} onChange={(v) => onChange('alcol', v)} />
       <RatingRow label="Dolci" value={dolci} options={RATING_OPTIONS} onChange={(v) => onChange('dolci', v)} />
       <RatingRow label="Extra" value={extra} options={EXTRA_OPTIONS} onChange={(v) => onChange('extra', v)} />
