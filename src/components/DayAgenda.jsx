@@ -32,11 +32,14 @@ const HALF_HOUR_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const m = String((i % 2) * 30).padStart(2, '0')
   return `${h}:${m}`
 })
+// End-time pickers also offer midnight as the very last option, so closing
+// out the day doesn't mean scrolling all the way back up to "00:00".
+const END_TIME_OPTIONS = [...HALF_HOUR_OPTIONS, '24:00']
 
-function HalfHourSelect({ value, onChange }) {
+function HalfHourSelect({ value, onChange, options = HALF_HOUR_OPTIONS }) {
   return (
     <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {HALF_HOUR_OPTIONS.map((t) => (
+      {options.map((t) => (
         <option key={t} value={t}>
           {t}
         </option>
@@ -138,7 +141,8 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   // midnight (e.g. viewed from the start day, 23:00 -> 07:00 means the end
   // is the next day; viewed from the end day, 07:00 <- 23:00 means the
   // start is the day before).
-  const endsNextDay = !isOpen && isStartDay && timeToMinutes(endTime) <= timeToMinutes(startTime)
+  const endsNextDay =
+    !isOpen && isStartDay && (endTime === '24:00' || timeToMinutes(endTime) <= timeToMinutes(startTime))
   const startsPrevDay = !isStartDay && isEndDay && timeToMinutes(startTime) >= timeToMinutes(endTime)
 
   function handleSave() {
@@ -147,7 +151,8 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
     const patch = { activityId, start: `${startDateIso}T${startTime}:00` }
     if (!isOpen) {
       const endDateIso = endsNextDay ? toISODate(addDays(dayDate, 1)) : dateIso
-      patch.end = `${endDateIso}T${endTime}:00`
+      const normalizedEndTime = endTime === '24:00' ? '00:00' : endTime
+      patch.end = `${endDateIso}T${normalizedEndTime}:00`
     }
     onSave(patch)
   }
@@ -171,7 +176,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         ) : (
           <label>
             <span>Fine{endsNextDay ? ' (giorno dopo)' : ''}</span>
-            <HalfHourSelect value={endTime} onChange={setEndTime} />
+            <HalfHourSelect value={endTime} onChange={setEndTime} options={END_TIME_OPTIONS} />
           </label>
         )}
       </div>
@@ -501,7 +506,9 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '0
 
   function handleAdd() {
     const dateIso = toISODate(dayDate)
-    onAdd(activityId, `${dateIso}T${startTime}:00`, `${dateIso}T${endTime}:00`)
+    const endDateIso = endTime === '24:00' ? toISODate(addDays(dayDate, 1)) : dateIso
+    const normalizedEndTime = endTime === '24:00' ? '00:00' : endTime
+    onAdd(activityId, `${dateIso}T${startTime}:00`, `${endDateIso}T${normalizedEndTime}:00`)
   }
 
   return (
@@ -517,7 +524,7 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '0
         </label>
         <label>
           <span>Fine</span>
-          <HalfHourSelect value={endTime} onChange={setEndTime} />
+          <HalfHourSelect value={endTime} onChange={setEndTime} options={END_TIME_OPTIONS} />
         </label>
       </div>
       <div className="entry-editor__actions">
