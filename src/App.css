@@ -251,6 +251,11 @@
   text-align: left;
 }
 
+.timeline__row:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 .timeline__swatch {
   width: 8px;
   align-self: stretch;

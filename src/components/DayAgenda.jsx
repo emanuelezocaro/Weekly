@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   addDays,
   APP_START_DATE,
+  endOfDay,
   formatDuration,
   formatFullDate,
   formatTime,
@@ -68,6 +69,10 @@ function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number)
   return h * 60 + m
 }
+
+// A day that's fully accounted for (no gaps) is locked 48h after it ends,
+// so old history can't be edited by accident.
+const LOCK_AFTER_MS = 48 * 60 * 60 * 1000
 
 // Default the manual "add block" form to continue right where the last
 // recorded block for that day left off, instead of always suggesting 09:00.
@@ -293,6 +298,7 @@ export default function DayAgenda({
   const dayOutputs = outputs.filter((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
+  const isLocked = !isToday && gaps.length === 0 && now - endOfDay(cursor) >= LOCK_AFTER_MS
 
   const rows = [
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
@@ -385,6 +391,7 @@ export default function DayAgenda({
             {!isToday && gaps.length === 0 && (
               <p className="day-status day-status--complete">
                 Giornata già completa, dalle 00:00 alle 24:00.
+                {isLocked && ' Non più modificabile.'}
               </p>
             )}
 
@@ -419,6 +426,7 @@ export default function DayAgenda({
                     <button
                       type="button"
                       className="timeline__row"
+                      disabled={isLocked}
                       onClick={() => setExpandedId(expanded ? null : entry.id)}
                     >
                       <span
@@ -459,25 +467,27 @@ export default function DayAgenda({
               })}
             </ul>
 
-            <div className="add-block">
-              {addingManual ? (
-                <ManualAddForm
-                  activities={activities}
-                  dayDate={cursor}
-                  initialStart={addBlockDefaults.start}
-                  initialEnd={addBlockDefaults.end}
-                  onAdd={(activityId, start, end) => {
-                    onAddManualEntry(activityId, start, end)
-                    setAddingManual(false)
-                  }}
-                  onCancel={() => setAddingManual(false)}
-                />
-              ) : (
-                <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
-                  + Aggiungi blocco
-                </button>
-              )}
-            </div>
+            {!isLocked && (
+              <div className="add-block">
+                {addingManual ? (
+                  <ManualAddForm
+                    activities={activities}
+                    dayDate={cursor}
+                    initialStart={addBlockDefaults.start}
+                    initialEnd={addBlockDefaults.end}
+                    onAdd={(activityId, start, end) => {
+                      onAddManualEntry(activityId, start, end)
+                      setAddingManual(false)
+                    }}
+                    onCancel={() => setAddingManual(false)}
+                  />
+                ) : (
+                  <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
+                    + Aggiungi blocco
+                  </button>
+                )}
+              </div>
+            )}
           </>
         ))}
     </div>
