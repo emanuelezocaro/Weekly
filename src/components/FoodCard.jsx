@@ -9,7 +9,7 @@ const EXTRA_OPTIONS = [
   { value: 'no', label: 'No', cls: 'sel-no' },
 ]
 
-function RatingRow({ label, value, options, onChange }) {
+function RatingRow({ label, value, options, onChange, locked }) {
   return (
     <div className="rating-field">
       <span className="rating-field__label">{label}</span>
@@ -20,6 +20,7 @@ function RatingRow({ label, value, options, onChange }) {
             type="button"
             className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
             onClick={() => onChange(opt.value)}
+            disabled={locked}
           >
             {opt.label}
           </button>
@@ -29,7 +30,7 @@ function RatingRow({ label, value, options, onChange }) {
   )
 }
 
-export default function FoodCard({ food, onChange }) {
+export default function FoodCard({ food, onChange, locked }) {
   const {
     colazione = null,
     pranzo = null,
@@ -46,12 +47,44 @@ export default function FoodCard({ food, onChange }) {
         value={colazione}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('colazione', v)}
+        locked={locked}
       />
-      <RatingRow label="Pranzo" value={pranzo} options={RATING_OPTIONS} onChange={(v) => onChange('pranzo', v)} />
-      <RatingRow label="Cena" value={cena} options={RATING_OPTIONS} onChange={(v) => onChange('cena', v)} />
-      <RatingRow label="Alcol" value={alcol} options={RATING_OPTIONS} onChange={(v) => onChange('alcol', v)} />
-      <RatingRow label="Dolci" value={dolci} options={RATING_OPTIONS} onChange={(v) => onChange('dolci', v)} />
-      <RatingRow label="Extra" value={extra} options={EXTRA_OPTIONS} onChange={(v) => onChange('extra', v)} />
+      <RatingRow
+        label="Pranzo"
+        value={pranzo}
+        options={RATING_OPTIONS}
+        onChange={(v) => onChange('pranzo', v)}
+        locked={locked}
+      />
+      <RatingRow
+        label="Cena"
+        value={cena}
+        options={RATING_OPTIONS}
+        onChange={(v) => onChange('cena', v)}
+        locked={locked}
+      />
+      <RatingRow
+        label="Alcol"
+        value={alcol}
+        options={RATING_OPTIONS}
+        onChange={(v) => onChange('alcol', v)}
+        locked={locked}
+      />
+      <RatingRow
+        label="Dolci"
+        value={dolci}
+        options={RATING_OPTIONS}
+        onChange={(v) => onChange('dolci', v)}
+        locked={locked}
+      />
+      <RatingRow
+        label="Extra"
+        value={extra}
+        options={EXTRA_OPTIONS}
+        onChange={(v) => onChange('extra', v)}
+        locked={locked}
+      />
+      {locked && <p className="settings-card__hint">Non più modificabile.</p>}
     </section>
   )
 }

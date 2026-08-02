@@ -75,9 +75,15 @@ function timeToMinutes(t) {
   return h * 60 + m
 }
 
-// A day that's fully accounted for (no gaps) is locked 48h after it ends,
-// so old history can't be edited by accident.
+// A day that's "done" is locked 48h after it ends, so old history can't be
+// edited by accident. What counts as "done" depends on the tab: no gaps for
+// Calendario, a record for Sigarette, all fields for Cibo, at least one
+// output (or a confirmed "niente") for Uscite.
 const LOCK_AFTER_MS = 48 * 60 * 60 * 1000
+
+function isDayLocked(isToday, complete, cursor, now) {
+  return !isToday && complete && now - endOfDay(cursor) >= LOCK_AFTER_MS
+}
 
 // Default the manual "add block" form to continue right where the last
 // recorded block for that day left off, instead of always suggesting 09:00.
@@ -212,7 +218,7 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
   )
 }
 
-function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs }) {
+function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs, locked }) {
   const [text, setText] = useState('')
 
   function handleSubmit(e) {
@@ -225,15 +231,18 @@ function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfir
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Uscite</h2>
-      <form className="outputs-add-form" onSubmit={handleSubmit}>
-        <textarea
-          placeholder="Es. Fattura inviata a..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={3}
-        />
-        <button type="submit">Aggiungi</button>
-      </form>
+      {!locked && (
+        <form className="outputs-add-form" onSubmit={handleSubmit}>
+          <textarea
+            placeholder="Es. Fattura inviata a..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={3}
+          />
+          <button type="submit">Aggiungi</button>
+        </form>
+      )}
+      {locked && <p className="settings-card__hint">Non più modificabile.</p>}
       {isToday && dayOutputs.length === 0 && (
         <p className="outputs-skip">
           {isSkipped ? (
@@ -270,7 +279,12 @@ function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfir
           {dayOutputs.map((o) => (
             <li key={o.id} className="outputs-list__item">
               <span className="outputs-list__text">{o.text}</span>
-              <button type="button" className="text-btn text-btn--danger" onClick={() => onRemove(o.id)}>
+              <button
+                type="button"
+                className="text-btn text-btn--danger"
+                onClick={() => onRemove(o.id)}
+                disabled={locked}
+              >
                 Elimina
               </button>
             </li>
@@ -325,7 +339,10 @@ export default function DayAgenda({
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
-  const isLocked = !isToday && gaps.length === 0 && now - endOfDay(cursor) >= LOCK_AFTER_MS
+  const isLocked = isDayLocked(isToday, gaps.length === 0, cursor, now)
+  const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now)
+  const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now)
+  const foodLocked = isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now)
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
@@ -409,6 +426,7 @@ export default function DayAgenda({
           isSkipped={dayOutputsSkipped}
           onConfirmNoOutputs={() => onConfirmNoOutputs(dayIso)}
           onUndoNoOutputs={() => onUndoNoOutputs(dayIso)}
+          locked={outputsLocked}
         />
       )}
 
@@ -416,11 +434,16 @@ export default function DayAgenda({
         <CigarettesCard
           count={dayCigaretteRecord ? dayCigaretteRecord.count : null}
           onSet={(count) => onSetCigarettes(dayIso, count)}
+          locked={cigarettesLocked}
         />
       )}
 
       {activeTab === 'food' && (
-        <FoodCard food={dayFoodRecord} onChange={(field, value) => onSetFoodField(dayIso, field, value)} />
+        <FoodCard
+          food={dayFoodRecord}
+          onChange={(field, value) => onSetFoodField(dayIso, field, value)}
+          locked={foodLocked}
+        />
       )}
 
       {activeTab === 'calendar' &&
