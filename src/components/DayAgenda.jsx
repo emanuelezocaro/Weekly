@@ -439,7 +439,7 @@ export default function DayAgenda({
               </p>
             )}
 
-            {!isLocked && (
+            {!isLocked && (isToday || gaps.length > 0) && (
               <div className="add-block">
                 {addingManual ? (
                   <ManualAddForm
