@@ -1,5 +1,5 @@
 import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth } from '../utils/goals'
+import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
@@ -37,14 +37,13 @@ function ratingSummary(records) {
 // A "3 colazioni buone" goal is set per day or per week; scale it to a
 // target for however many days the report is currently showing.
 function goalTarget(goal, daysCount) {
-  if (!goal) return null
-  const perDay = goal.period === 'day' ? goal.value : goal.value / 7
-  return Math.round(perDay * daysCount)
+  const target = goalTargetForDays(goal, daysCount)
+  return target === null ? null : Math.round(target)
 }
 
-function GoalBadge({ target, count }) {
+function GoalBadge({ goal, target, count }) {
   if (target === null) return null
-  const met = count >= target
+  const met = isGoalMet(goal, count, target)
   return (
     <span className={`mini-row__goal ${met ? 'is-met' : 'is-short'}`}>
       {count}/{target}
@@ -216,14 +215,16 @@ export default function FoodReportCard({ food, days, period, goals }) {
   )
 
   const fieldBadge = (field) => {
-    const target = goalTarget(goalForMonth(goals, FOOD_GOAL_KEYS[field], monthIso), days.length)
+    const goal = goalForMonth(goals, FOOD_GOAL_KEYS[field], monthIso)
+    const target = goalTarget(goal, days.length)
     const count = records.filter((r) => r && r[field] === 'good').length
-    return <GoalBadge target={target} count={count} />
+    return <GoalBadge goal={goal} target={target} count={count} />
   }
   const extraBadge = (() => {
-    const target = goalTarget(goalForMonth(goals, 'food_extra', monthIso), days.length)
+    const goal = goalForMonth(goals, 'food_extra', monthIso)
+    const target = goalTarget(goal, days.length)
     const count = records.filter((r) => r && r.extra === 'no').length
-    return <GoalBadge target={target} count={count} />
+    return <GoalBadge goal={goal} target={target} count={count} />
   })()
 
   if (period === 'quarter') {

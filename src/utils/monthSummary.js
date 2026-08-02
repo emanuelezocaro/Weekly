@@ -96,7 +96,7 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
       let note = ''
       if (goal) {
         const weeklyTarget = Math.round(goalPerBar(goal, 'week'))
-        const met = counts.good >= weeklyTarget
+        const met = isGoalMet(goal, counts.good, weeklyTarget)
         note = ` (obiettivo ${weeklyTarget}: ${met ? 'raggiunto' : 'non raggiunto'})`
       }
       lines.push(`${field.label}: ${counts.good} buono, ${counts.mid} medio, ${counts.bad} male${note}`)
@@ -108,7 +108,7 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
       let note = ''
       if (goal) {
         const weeklyTarget = Math.round(goalPerBar(goal, 'week'))
-        const met = extraNo >= weeklyTarget
+        const met = isGoalMet(goal, extraNo, weeklyTarget)
         note = ` (obiettivo ${weeklyTarget}: ${met ? 'raggiunto' : 'non raggiunto'})`
       }
       lines.push(`Extra: evitato ${extraNo}, capitato ${extraYes}${note}`)

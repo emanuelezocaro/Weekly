@@ -185,8 +185,10 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
           itemKey={f.itemKey}
           label={f.label}
           defaultPeriod="week"
+          withDirection
+          defaultDirection="higher_is_better"
           goal={goalForMonth(goals, f.itemKey, monthIso)}
-          onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
+          onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
         />
       ))}
     </section>
