@@ -132,6 +132,8 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
       <CigarettesReportCard cigarettes={cigarettes} days={days} />
       <FoodReportCard food={food} days={days} />
 
+      <hr className="report-divider" />
+
       <ActivityStatsSummary
         activities={activities}
         entries={entries}
