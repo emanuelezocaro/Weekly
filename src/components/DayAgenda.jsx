@@ -204,6 +204,21 @@ function OutputsCard({ dayOutputs, onAdd, onRemove }) {
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Uscite</h2>
+      <p className="settings-card__hint">
+        Cose uscite dalle mie mani oggi.
+        <br />
+        <br />
+        Vale solo se è arrivato a qualcun altro ed è irreversibile: fattura inviata, preventivo
+        mandato, lavoro consegnato, data comunicata, decisione detta al cliente, sollecito
+        partito.
+        <br />
+        <br />
+        Non vale: averci lavorato, averci pensato, "quasi pronto", aver parlato con qualcuno senza
+        che ne sia uscito un documento o una data.
+        <br />
+        <br />
+        Test: qualcun altro sa che è successo? Se no, non è un'uscita.
+      </p>
       <form className="add-activity__row" onSubmit={handleSubmit}>
         <input
           type="text"
