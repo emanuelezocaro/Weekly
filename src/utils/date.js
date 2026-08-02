@@ -34,6 +34,17 @@ export function toISODate(date) {
   return `${y}-${m}-${d}`
 }
 
+// "YYYY-MM", used to version goals month by month.
+export function toMonthISO(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+}
+
+// "Lug" from "2026-07", to tag a goal line with the month it belonged to.
+export function formatMonthShort(monthIso) {
+  const m = Number(monthIso.split('-')[1])
+  return MONTH_LABELS[m - 1].slice(0, 3)
+}
+
 export function todayISO() {
   return toISODate(new Date())
 }

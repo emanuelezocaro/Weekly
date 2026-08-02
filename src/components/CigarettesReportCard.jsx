@@ -1,4 +1,5 @@
-import { dayLabel, formatShortDate, groupDaysByWeek, toISODate } from '../utils/date'
+import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import GoalLine from './GoalLine'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
@@ -20,7 +21,7 @@ function countsForDays(cigarettes, days) {
   })
 }
 
-export default function CigarettesReportCard({ cigarettes, days, period }) {
+export default function CigarettesReportCard({ cigarettes, days, period, goals }) {
   const counts = countsForDays(cigarettes, days)
 
   if (days.length === 1) {
@@ -67,18 +68,28 @@ export default function CigarettesReportCard({ cigarettes, days, period }) {
       <p className="trend-chart__caption">
         {total} in totale · {avg}/giorno in media
       </p>
-      <div className="trend-chart__bars">
-        {bars.map((b) => {
-          const heightPct = Math.max(2, (b.value / maxValue) * 100)
-          return (
-            <div key={b.key} className="trend-chart__col">
-              <span className="trend-chart__bar-track">
-                <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
-              </span>
-              <span className="trend-chart__label">{b.label}</span>
-            </div>
-          )
-        })}
+      <div className="trend-chart__bars-wrap">
+        <GoalLine
+          goals={goals}
+          itemKey="cigarettes"
+          monthIso={toMonthISO(days[days.length - 1])}
+          barGranularity={period === 'quarter' ? 'week' : 'day'}
+          maxValue={maxValue}
+          formatValue={(v) => String(v)}
+        />
+        <div className="trend-chart__bars">
+          {bars.map((b) => {
+            const heightPct = Math.max(2, (b.value / maxValue) * 100)
+            return (
+              <div key={b.key} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
+                </span>
+                <span className="trend-chart__label">{b.label}</span>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )

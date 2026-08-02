@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { shareOrDownloadText } from '../utils/shareFile'
 import { colorVar, PALETTE_SIZE } from '../utils/palette'
+import { toMonthISO } from '../utils/date'
+import GoalsCard from './GoalsCard'
 
 function ColorPicker({ value, onChange }) {
   return (
@@ -42,6 +44,8 @@ export default function SettingsView({
   setSettings,
   syncStatus,
   onSyncNow,
+  goals,
+  onSetGoal,
 }) {
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
@@ -167,6 +171,8 @@ export default function SettingsView({
           ))}
         </ul>
       </section>
+
+      <GoalsCard activities={activities} goals={goals} monthIso={toMonthISO(new Date())} onSetGoal={onSetGoal} />
 
       <section className="settings-card">
         <h2 className="settings-card__title">Sincronizzazione Google Sheet</h2>

@@ -76,7 +76,7 @@ function isPrevDisabled(period, cursor) {
   return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries, outputs, cigarettes, food }) {
+export default function ReportView({ activities, entries, outputs, cigarettes, food, goals }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
 
@@ -125,8 +125,8 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </button>
       </div>
 
-      <OutputsWeekCard outputs={outputs} days={days} period={period} />
-      <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} />
+      <OutputsWeekCard outputs={outputs} days={days} period={period} goals={goals} />
+      <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} goals={goals} />
       <FoodReportCard food={food} days={days} period={period} />
 
       <hr className="report-divider" />
@@ -140,6 +140,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         prevRangeEnd={prevRangeEnd}
         days={days}
         period={period}
+        goals={goals}
       />
     </div>
   )

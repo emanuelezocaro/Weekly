@@ -55,6 +55,16 @@ export function mergeFood(localList, remoteList) {
   return Array.from(byId.values())
 }
 
+export function mergeGoals(localList, remoteList) {
+  const byId = new Map()
+  for (const g of remoteList) byId.set(g.id, g)
+  for (const g of localList) {
+    const r = byId.get(g.id)
+    if (!r || g.updatedAt >= r.updatedAt) byId.set(g.id, g)
+  }
+  return Array.from(byId.values())
+}
+
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
@@ -62,6 +72,7 @@ export function mergeState(localState, remoteState) {
     outputs: mergeOutputs(localState.outputs, remoteState?.outputs || []),
     cigarettes: mergeCigarettes(localState.cigarettes, remoteState?.cigarettes || []),
     food: mergeFood(localState.food, remoteState?.food || []),
+    goals: mergeGoals(localState.goals, remoteState?.goals || []),
   }
 }
 
@@ -83,6 +94,7 @@ export async function fetchRemoteState(url, token) {
     outputs: json.outputs || [],
     cigarettes: json.cigarettes || [],
     food: json.food || [],
+    goals: json.goals || [],
   }
 }
 
@@ -99,6 +111,7 @@ export async function pushRemoteState(url, token, state) {
       outputs: state.outputs,
       cigarettes: state.cigarettes,
       food: state.food,
+      goals: state.goals,
     }),
   })
 }

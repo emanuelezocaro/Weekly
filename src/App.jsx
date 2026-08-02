@@ -30,6 +30,8 @@ function App() {
     setCigarettes,
     food,
     setFoodField,
+    goals,
+    setGoal,
     exportData,
     importData,
     settings,
@@ -73,6 +75,7 @@ function App() {
             outputs={outputs}
             cigarettes={cigarettes}
             food={food}
+            goals={goals}
           />
         )}
         {tab === 'settings' && (
@@ -87,6 +90,8 @@ function App() {
             setSettings={setSettings}
             syncStatus={syncStatus}
             onSyncNow={syncNow}
+            goals={goals}
+            onSetGoal={setGoal}
           />
         )}
       </main>

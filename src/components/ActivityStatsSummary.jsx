@@ -22,6 +22,7 @@ export default function ActivityStatsSummary({
   prevRangeEnd,
   days,
   period,
+  goals,
   now = new Date(),
 }) {
   if (activities.length === 0) {
@@ -104,7 +105,14 @@ export default function ActivityStatsSummary({
                 </p>
               )}
               {canDrillDown && (
-                <ActivityTrendChart activity={activity} days={days} entries={entries} period={period} now={now} />
+                <ActivityTrendChart
+                  activity={activity}
+                  days={days}
+                  entries={entries}
+                  period={period}
+                  goals={goals}
+                  now={now}
+                />
               )}
             </li>
           )

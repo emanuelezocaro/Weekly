@@ -10,6 +10,7 @@ const SETTINGS_KEY = 'weekly:v2:settings'
 const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
+const GOALS_KEY = 'weekly:v2:goalsMeta'
 
 const DEFAULT_ACTIVITIES = []
 
@@ -43,6 +44,10 @@ function makeFoodId() {
   return `f_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
+function makeGoalId() {
+  return `g_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
 function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
@@ -62,6 +67,7 @@ export function useHabitData() {
   const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
   const [foodMeta, setFoodMeta] = useState(() => loadJSON(FOOD_KEY, []))
+  const [goalsMeta, setGoalsMeta] = useState(() => loadJSON(GOALS_KEY, []))
   const [syncStatus, setSyncStatus] = useState({ state: 'idle', lastSyncedAt: null, error: null })
 
   useEffect(() => {
@@ -88,6 +94,10 @@ export function useHabitData() {
     localStorage.setItem(FOOD_KEY, JSON.stringify(foodMeta))
   }, [foodMeta])
 
+  useEffect(() => {
+    localStorage.setItem(GOALS_KEY, JSON.stringify(goalsMeta))
+  }, [goalsMeta])
+
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const entries = useMemo(
     () => entriesMeta.filter((e) => !e.deleted && parseISODateTime(e.start) >= APP_START_DATE),
@@ -96,9 +106,10 @@ export function useHabitData() {
   const outputs = useMemo(() => outputsMeta.filter((o) => !o.deleted), [outputsMeta])
   const cigarettes = useMemo(() => cigarettesMeta.filter((c) => !c.deleted), [cigarettesMeta])
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
+  const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
 
-  const stateRef = useRef({ activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta })
-  stateRef.current = { activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta }
+  const stateRef = useRef({ activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta })
+  stateRef.current = { activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta }
 
   const runSync = useCallback(async () => {
     const { sheetUrl, token } = settings
@@ -111,12 +122,14 @@ export function useHabitData() {
         outputs: stateRef.current.outputsMeta,
         cigarettes: stateRef.current.cigarettesMeta,
         food: stateRef.current.foodMeta,
+        goals: stateRef.current.goalsMeta,
       })
       setActivitiesMeta(merged.activities)
       setEntriesMeta(merged.entries)
       setOutputsMeta(merged.outputs)
       setCigarettesMeta(merged.cigarettes)
       setFoodMeta(merged.food)
+      setGoalsMeta(merged.goals)
       setSyncStatus({ state: 'synced', lastSyncedAt: Date.now(), error: null })
     } catch (err) {
       setSyncStatus((s) => ({ ...s, state: 'error', error: err.message || 'Sync fallita' }))
@@ -313,6 +326,24 @@ export function useHabitData() {
     [scheduleSync],
   )
 
+  // --- Goals (per item, versioned month by month) ---
+
+  const setGoal = useCallback(
+    (itemKey, month, period, value) => {
+      setGoalsMeta((prev) => {
+        const idx = prev.findIndex((g) => !g.deleted && g.itemKey === itemKey && g.month === month)
+        if (idx === -1) {
+          return [...prev, { id: makeGoalId(), itemKey, month, period, value, updatedAt: Date.now(), deleted: false }]
+        }
+        const next = [...prev]
+        next[idx] = { ...next[idx], period, value, updatedAt: Date.now() }
+        return next
+      })
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
   const setSettings = useCallback((patch) => {
     setSettingsState((prev) => ({ ...prev, ...patch }))
   }, [])
@@ -328,11 +359,12 @@ export function useHabitData() {
         outputs: outputsMeta,
         cigarettes: cigarettesMeta,
         food: foodMeta,
+        goals: goalsMeta,
       },
       null,
       2,
     )
-  }, [activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta])
+  }, [activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta])
 
   const importData = useCallback((json) => {
     const parsed = JSON.parse(json)
@@ -344,6 +376,7 @@ export function useHabitData() {
     setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
     setFoodMeta(Array.isArray(parsed.food) ? parsed.food : [])
+    setGoalsMeta(Array.isArray(parsed.goals) ? parsed.goals : [])
   }, [])
 
   return {
@@ -362,6 +395,8 @@ export function useHabitData() {
     setCigarettes,
     food,
     setFoodField,
+    goals,
+    setGoal,
     exportData,
     importData,
     settings,
