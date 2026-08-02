@@ -212,7 +212,7 @@ function GapRow({ gap, activities, expanded, onToggle, onPick }) {
   )
 }
 
-function OutputsCard({ dayOutputs, onAdd, onRemove }) {
+function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs }) {
   const [text, setText] = useState('')
 
   function handleSubmit(e) {
@@ -234,6 +234,22 @@ function OutputsCard({ dayOutputs, onAdd, onRemove }) {
         />
         <button type="submit">Aggiungi</button>
       </form>
+      {isToday && dayOutputs.length === 0 && (
+        <p className="outputs-skip">
+          {isSkipped ? (
+            <>
+              Segnato: nessuna uscita oggi.{' '}
+              <button type="button" className="text-btn" onClick={onUndoNoOutputs}>
+                Annulla
+              </button>
+            </>
+          ) : (
+            <button type="button" className="backup-card__secondary" onClick={onConfirmNoOutputs}>
+              Niente da segnalare oggi
+            </button>
+          )}
+        </p>
+      )}
       <p className="settings-card__hint">
         Cose uscite dalle mie mani oggi.
         <br />
@@ -269,6 +285,7 @@ export default function DayAgenda({
   activities,
   entries,
   outputs,
+  outputsSkipped,
   cigarettes,
   food,
   onEditEntry,
@@ -276,6 +293,8 @@ export default function DayAgenda({
   onAddManualEntry,
   onAddOutput,
   onRemoveOutput,
+  onConfirmNoOutputs,
+  onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
 }) {
@@ -303,15 +322,17 @@ export default function DayAgenda({
   const addBlockDefaults = defaultAddTimes(items, cursor)
   const dayIso = toISODate(cursor)
   const dayOutputs = outputs.filter((o) => o.date === dayIso)
+  const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
   const isLocked = !isToday && gaps.length === 0 && now - endOfDay(cursor) >= LOCK_AFTER_MS
 
   // Only today can be "missing" data -- past days are either filled in or
-  // already gone, and there's nothing to fill in for the future.
+  // already gone, and there's nothing to fill in for the future. Uscite also
+  // clears once the day is confirmed to have had none.
   const missingByTab = {
     calendar: isToday && gaps.length > 0,
-    outputs: isToday && dayOutputs.length === 0,
+    outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
     cigarettes: isToday && !dayCigaretteRecord,
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
   }
@@ -382,6 +403,10 @@ export default function DayAgenda({
           dayOutputs={dayOutputs}
           onAdd={(text) => onAddOutput(dayIso, text)}
           onRemove={onRemoveOutput}
+          isToday={isToday}
+          isSkipped={dayOutputsSkipped}
+          onConfirmNoOutputs={() => onConfirmNoOutputs(dayIso)}
+          onUndoNoOutputs={() => onUndoNoOutputs(dayIso)}
         />
       )}
 

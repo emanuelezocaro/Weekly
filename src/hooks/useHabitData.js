@@ -8,6 +8,7 @@ const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
 const ENTRIES_KEY = 'weekly:v2:entriesMeta'
 const SETTINGS_KEY = 'weekly:v2:settings'
 const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
+const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
 const GOALS_KEY = 'weekly:v2:goalsMeta'
@@ -34,6 +35,10 @@ function makeActivityId() {
 
 function makeOutputId() {
   return `o_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+function makeOutputsSkippedId() {
+  return `os_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
 function makeCigaretteId() {
@@ -65,6 +70,7 @@ export function useHabitData() {
   const [entriesMeta, setEntriesMeta] = useState(() => closeStaleOpenEntries(loadJSON(ENTRIES_KEY, [])))
   const [settings, setSettingsState] = useState(() => loadJSON(SETTINGS_KEY, DEFAULT_SETTINGS))
   const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
+  const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
   const [foodMeta, setFoodMeta] = useState(() => loadJSON(FOOD_KEY, []))
   const [goalsMeta, setGoalsMeta] = useState(() => loadJSON(GOALS_KEY, []))
@@ -87,6 +93,10 @@ export function useHabitData() {
   }, [outputsMeta])
 
   useEffect(() => {
+    localStorage.setItem(OUTPUTS_SKIPPED_KEY, JSON.stringify(outputsSkippedMeta))
+  }, [outputsSkippedMeta])
+
+  useEffect(() => {
     localStorage.setItem(CIGARETTES_KEY, JSON.stringify(cigarettesMeta))
   }, [cigarettesMeta])
 
@@ -104,12 +114,32 @@ export function useHabitData() {
     [entriesMeta],
   )
   const outputs = useMemo(() => outputsMeta.filter((o) => !o.deleted), [outputsMeta])
+  const outputsSkipped = useMemo(
+    () => outputsSkippedMeta.filter((o) => !o.deleted),
+    [outputsSkippedMeta],
+  )
   const cigarettes = useMemo(() => cigarettesMeta.filter((c) => !c.deleted), [cigarettesMeta])
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
 
-  const stateRef = useRef({ activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta })
-  stateRef.current = { activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta }
+  const stateRef = useRef({
+    activitiesMeta,
+    entriesMeta,
+    outputsMeta,
+    outputsSkippedMeta,
+    cigarettesMeta,
+    foodMeta,
+    goalsMeta,
+  })
+  stateRef.current = {
+    activitiesMeta,
+    entriesMeta,
+    outputsMeta,
+    outputsSkippedMeta,
+    cigarettesMeta,
+    foodMeta,
+    goalsMeta,
+  }
 
   const runSync = useCallback(async () => {
     const { sheetUrl, token } = settings
@@ -120,6 +150,7 @@ export function useHabitData() {
         activities: stateRef.current.activitiesMeta,
         entries: stateRef.current.entriesMeta,
         outputs: stateRef.current.outputsMeta,
+        outputsSkipped: stateRef.current.outputsSkippedMeta,
         cigarettes: stateRef.current.cigarettesMeta,
         food: stateRef.current.foodMeta,
         goals: stateRef.current.goalsMeta,
@@ -127,6 +158,7 @@ export function useHabitData() {
       setActivitiesMeta(merged.activities)
       setEntriesMeta(merged.entries)
       setOutputsMeta(merged.outputs)
+      setOutputsSkippedMeta(merged.outputsSkipped)
       setCigarettesMeta(merged.cigarettes)
       setFoodMeta(merged.food)
       setGoalsMeta(merged.goals)
@@ -299,6 +331,10 @@ export function useHabitData() {
         ...prev,
         { id: makeOutputId(), date, text: trimmed, updatedAt: Date.now(), deleted: false },
       ])
+      // A real output beats an earlier "niente da segnalare" for the same day.
+      setOutputsSkippedMeta((prev) =>
+        prev.map((o) => (!o.deleted && o.date === date ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
+      )
       scheduleSync()
     },
     [scheduleSync],
@@ -308,6 +344,30 @@ export function useHabitData() {
     (id) => {
       setOutputsMeta((prev) =>
         prev.map((o) => (o.id === id ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
+      )
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
+  // --- Outputs skipped (per-day "niente da segnalare oggi" confirmation) ---
+
+  const confirmNoOutputs = useCallback(
+    (date) => {
+      setOutputsSkippedMeta((prev) => {
+        const idx = prev.findIndex((o) => !o.deleted && o.date === date)
+        if (idx !== -1) return prev
+        return [...prev, { id: makeOutputsSkippedId(), date, updatedAt: Date.now(), deleted: false }]
+      })
+      scheduleSync()
+    },
+    [scheduleSync],
+  )
+
+  const undoNoOutputs = useCallback(
+    (date) => {
+      setOutputsSkippedMeta((prev) =>
+        prev.map((o) => (!o.deleted && o.date === date ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
       )
       scheduleSync()
     },
@@ -399,6 +459,7 @@ export function useHabitData() {
         activities: activitiesMeta,
         entries: entriesMeta,
         outputs: outputsMeta,
+        outputsSkipped: outputsSkippedMeta,
         cigarettes: cigarettesMeta,
         food: foodMeta,
         goals: goalsMeta,
@@ -406,7 +467,7 @@ export function useHabitData() {
       null,
       2,
     )
-  }, [activitiesMeta, entriesMeta, outputsMeta, cigarettesMeta, foodMeta, goalsMeta])
+  }, [activitiesMeta, entriesMeta, outputsMeta, outputsSkippedMeta, cigarettesMeta, foodMeta, goalsMeta])
 
   const importData = useCallback((json) => {
     const parsed = JSON.parse(json)
@@ -416,6 +477,7 @@ export function useHabitData() {
     setActivitiesMeta(parsed.activities)
     setEntriesMeta(closeStaleOpenEntries(parsed.entries))
     setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
+    setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
     setFoodMeta(Array.isArray(parsed.food) ? parsed.food : [])
     setGoalsMeta(Array.isArray(parsed.goals) ? parsed.goals : [])
@@ -433,6 +495,9 @@ export function useHabitData() {
     outputs,
     addOutput,
     removeOutput,
+    outputsSkipped,
+    confirmNoOutputs,
+    undoNoOutputs,
     cigarettes,
     setCigarettes,
     food,

@@ -28,6 +28,9 @@ function App() {
     outputs,
     addOutput,
     removeOutput,
+    outputsSkipped,
+    confirmNoOutputs,
+    undoNoOutputs,
     cigarettes,
     setCigarettes,
     food,
@@ -69,6 +72,7 @@ function App() {
             activities={activities}
             entries={entries}
             outputs={outputs}
+            outputsSkipped={outputsSkipped}
             cigarettes={cigarettes}
             food={food}
             onEditEntry={editEntry}
@@ -76,6 +80,8 @@ function App() {
             onAddManualEntry={addManualEntry}
             onAddOutput={addOutput}
             onRemoveOutput={removeOutput}
+            onConfirmNoOutputs={confirmNoOutputs}
+            onUndoNoOutputs={undoNoOutputs}
             onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
           />

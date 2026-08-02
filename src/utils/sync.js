@@ -65,11 +65,22 @@ export function mergeGoals(localList, remoteList) {
   return Array.from(byId.values())
 }
 
+export function mergeOutputsSkipped(localList, remoteList) {
+  const byId = new Map()
+  for (const s of remoteList) byId.set(s.id, s)
+  for (const s of localList) {
+    const r = byId.get(s.id)
+    if (!r || s.updatedAt >= r.updatedAt) byId.set(s.id, s)
+  }
+  return Array.from(byId.values())
+}
+
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
     entries: closeStaleOpenEntries(mergeEntries(localState.entries, remoteState?.entries || [])),
     outputs: mergeOutputs(localState.outputs, remoteState?.outputs || []),
+    outputsSkipped: mergeOutputsSkipped(localState.outputsSkipped, remoteState?.outputsSkipped || []),
     cigarettes: mergeCigarettes(localState.cigarettes, remoteState?.cigarettes || []),
     food: mergeFood(localState.food, remoteState?.food || []),
     goals: mergeGoals(localState.goals, remoteState?.goals || []),
@@ -92,6 +103,7 @@ export async function fetchRemoteState(url, token) {
     activities: json.activities || [],
     entries: json.entries || [],
     outputs: json.outputs || [],
+    outputsSkipped: json.outputsSkipped || [],
     cigarettes: json.cigarettes || [],
     food: json.food || [],
     goals: json.goals || [],
@@ -109,6 +121,7 @@ export async function pushRemoteState(url, token, state) {
       activities: state.activities,
       entries: state.entries,
       outputs: state.outputs,
+      outputsSkipped: state.outputsSkipped,
       cigarettes: state.cigarettes,
       food: state.food,
       goals: state.goals,
