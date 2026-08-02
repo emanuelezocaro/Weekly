@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { formatFullDate } from '../utils/date'
 import { buildDashboardItems } from '../utils/dashboard'
 
-const PERIOD_LABELS = { day: 'Oggi', week: 'Settimana' }
-
 const TABS = [
   { id: 'behind', label: 'Recuperare' },
   { id: 'met', label: 'Successi' },
@@ -22,7 +20,6 @@ function BehindCard({ item }) {
       <div className="dash-card__header">
         <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
         <span className="dash-card__name">{item.label}</span>
-        <span className="dash-card__period">{PERIOD_LABELS[item.period]}</span>
       </div>
       <p className="dash-card__gap">{item.gapText}</p>
       <div className="dash-card__bar-track">
@@ -51,7 +48,6 @@ function MetCard({ item }) {
       <div className="dash-card__header">
         <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
         <span className="dash-card__name">{item.label}</span>
-        <span className="dash-card__period">{PERIOD_LABELS[item.period]}</span>
       </div>
       <p className="dash-card__gap">{item.gapText}</p>
     </div>
@@ -69,7 +65,7 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
       <div className="view">
         <p className="dash-date">{formatFullDate(now)}</p>
         <p className="empty-state">
-          Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento del giorno.
+          Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento della settimana.
         </p>
       </div>
     )
