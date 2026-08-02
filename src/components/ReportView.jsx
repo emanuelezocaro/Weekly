@@ -88,17 +88,19 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
 
   return (
     <div className="view">
-      <div className="segmented">
-        {PERIODS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={`segmented__item ${period === p.id ? 'is-active' : ''}`}
-            onClick={() => setPeriod(p.id)}
-          >
-            {p.label}
-          </button>
-        ))}
+      <div className="segmented-sticky-wrap">
+        <div className="segmented">
+          {PERIODS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`segmented__item ${period === p.id ? 'is-active' : ''}`}
+              onClick={() => setPeriod(p.id)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="day-switcher">
