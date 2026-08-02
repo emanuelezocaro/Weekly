@@ -123,6 +123,10 @@
   background: var(--series-2);
 }
 
+.dash-section-title__dot--muted {
+  background: var(--text-muted);
+}
+
 .dash-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -130,6 +134,10 @@
   padding: 14px 16px;
   box-shadow: var(--shadow);
   margin-bottom: 10px;
+}
+
+.dash-card--failed {
+  opacity: 0.7;
 }
 
 .dash-card__header {
@@ -160,6 +168,11 @@
   padding: 2px 7px;
   border-radius: 20px;
   flex-shrink: 0;
+}
+
+.dash-card__period--failed {
+  color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .dash-card__gap {

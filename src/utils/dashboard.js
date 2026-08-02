@@ -40,18 +40,43 @@ function gapPhrase(direction, period, diffLabel) {
     : `Mancano ${diffLabel} per stare in pace con la settimana`
 }
 
-function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysCount, fallbackDirection, formatDiff }) {
+function failedPhrase(diffLabel) {
+  return `Obiettivo della settimana ormai fallito: ne mancherebbero ancora ${diffLabel} e non c'è più tempo`
+}
+
+// For goals where each day can only move the needle by so much (e.g. one
+// "colazione buona" per day), catching up stops being possible once what's
+// still missing exceeds what the remaining days could even provide -- at
+// that point it's not "behind", it's already lost for this week, and no
+// amount of "recupera" framing is honest. `maxPerDay` is omitted for items
+// without a meaningful per-day ceiling (hours, Uscite), which skips this
+// check entirely.
+function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysCount, fallbackDirection, formatDiff, maxPerDay }) {
   const target = paceTarget(goal, elapsedDaysCount)
   const direction = goalDirection(goal, fallbackDirection)
   const met = isGoalMet(goal, actual, target, fallbackDirection)
-  const diff = direction === 'lower_is_better' ? actual - target : target - actual
+
+  let status = met ? 'met' : 'behind'
+  if (!met && direction === 'higher_is_better' && goal.period === 'week' && maxPerDay !== undefined) {
+    const remainingDays = 7 - elapsedDaysCount + 1
+    const stillMissing = goal.value - actual
+    if (stillMissing > remainingDays * maxPerDay) status = 'failed'
+  }
+
+  const paceDiff = direction === 'lower_is_better' ? actual - target : target - actual
+  const fullGap = direction === 'lower_is_better' ? actual - goal.value : goal.value - actual
+
+  let gapText = null
+  if (status === 'behind') gapText = gapPhrase(direction, goal.period, formatDiff(Math.max(0, paceDiff)))
+  if (status === 'failed') gapText = failedPhrase(formatDiff(Math.max(0, fullGap)))
+
   return {
     key,
     label,
     swatchColor,
     period: goal.period,
-    met,
-    gapText: met ? null : gapPhrase(direction, goal.period, formatDiff(Math.max(0, diff))),
+    status,
+    gapText,
     progressPct: target > 0 ? Math.min(100, Math.max(0, (actual / target) * 100)) : 100,
   }
 }
@@ -60,10 +85,11 @@ const formatCount = (n) => String(Math.ceil(n))
 const formatHours = (minutes) => formatDuration(minutes * 60000)
 
 // Builds the "sei in pace?" list for the Dashboard: every item with a goal,
-// split into what needs attention right now vs what's on track. Unlike the
-// Report cards (which judge a whole, often-still-open period against its
-// full target), this compares actual-so-far against a target scaled to how
-// much of the period has elapsed -- so day 1 of a week doesn't read as
+// split into what needs attention right now, what's already lost for this
+// period (too little time left to catch up), and what's on track. Unlike
+// the Report cards (which judge a whole, often-still-open period against
+// its full target), this compares actual-so-far against a target scaled to
+// how much of the period has elapsed -- so day 1 of a week doesn't read as
 // "behind" just because the week has barely started.
 export function buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now = new Date() }) {
   const monthIso = toMonthISO(now)
@@ -143,6 +169,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         elapsedDaysCount: days.length,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
+        maxPerDay: 1,
       }),
     )
   }
@@ -162,14 +189,16 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         elapsedDaysCount: days.length,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
+        maxPerDay: 1,
       }),
     )
   }
 
   const behind = items
-    .filter((i) => !i.met)
+    .filter((i) => i.status === 'behind')
     .sort((a, b) => (a.period === b.period ? 0 : a.period === 'day' ? -1 : 1))
-  const onTrack = items.filter((i) => i.met)
+  const failed = items.filter((i) => i.status === 'failed')
+  const onTrack = items.filter((i) => i.status === 'met')
 
-  return { behind, onTrack }
+  return { behind, failed, onTrack }
 }
