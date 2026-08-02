@@ -652,16 +652,6 @@
   border-radius: 3px 3px 0 0;
 }
 
-.mini-row__symbol {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-}
-
 .mini-row__stack {
   flex: 1;
   height: 100%;
@@ -1186,6 +1176,12 @@
 .text-btn--danger {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+.month-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* Backup */

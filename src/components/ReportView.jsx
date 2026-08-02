@@ -9,10 +9,19 @@ import {
   startOfMonth,
   startOfWeek,
 } from '../utils/date'
+import { buildMonthSummaryText } from '../utils/monthSummary'
+import { copyOrShareText } from '../utils/shareFile'
 import ActivityStatsSummary from './ActivityStatsSummary'
 import OutputsWeekCard from './OutputsWeekCard'
 import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
+
+const SUMMARY_MESSAGES = {
+  copied: 'Riepilogo copiato ✓',
+  shared: 'Riepilogo condiviso ✓',
+  downloaded: 'Riepilogo scaricato ✓',
+  cancelled: '',
+}
 
 const PERIODS = [
   { id: 'week', label: 'Settimana' },
@@ -79,12 +88,20 @@ function isPrevDisabled(period, cursor) {
 export default function ReportView({ activities, entries, outputs, cigarettes, food, goals }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
+  const [summaryMessage, setSummaryMessage] = useState('')
 
   const [rangeStart, rangeEnd] = periodRange(period, cursor)
   const [prevRangeStart, prevRangeEnd] = periodRange(period, shiftCursor(period, cursor, -1))
   const nextDisabled = isNextDisabled(period, cursor)
   const prevDisabled = isPrevDisabled(period, cursor)
   const days = periodDays(period, cursor)
+
+  async function handleCopySummary() {
+    const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
+    const result = await copyOrShareText(text, `riepilogo-${formatMonthLabel(cursor)}.txt`)
+    setSummaryMessage(SUMMARY_MESSAGES[result] ?? '')
+    if (result !== 'failed') setTimeout(() => setSummaryMessage(''), 2500)
+  }
 
   return (
     <div className="view">
@@ -126,6 +143,17 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
           ›
         </button>
       </div>
+
+      {period === 'month' && (
+        <div className="month-summary">
+          <div className="backup-card__actions">
+            <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
+              Copia riepilogo del mese
+            </button>
+          </div>
+          {summaryMessage && <p className="backup-card__message">{summaryMessage}</p>}
+        </div>
+      )}
 
       <OutputsWeekCard outputs={outputs} days={days} period={period} goals={goals} />
       <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} goals={goals} />
