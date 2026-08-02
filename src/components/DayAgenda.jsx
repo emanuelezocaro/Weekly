@@ -213,12 +213,12 @@ function OutputsCard({ dayOutputs, onAdd, onRemove }) {
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Uscite</h2>
-      <form className="outputs-add-row" onSubmit={handleSubmit}>
-        <input
-          type="text"
+      <form className="outputs-add-form" onSubmit={handleSubmit}>
+        <textarea
           placeholder="Es. Fattura inviata a..."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          rows={3}
         />
         <button type="submit">Aggiungi</button>
       </form>

@@ -783,23 +783,27 @@
   cursor: pointer;
 }
 
-.outputs-add-row {
+.outputs-add-form {
   display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-.outputs-add-row input {
-  flex: 1;
+.outputs-add-form textarea {
   padding: 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
   font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 84px;
 }
 
-.outputs-add-row button {
-  padding: 14px 18px;
+.outputs-add-form button {
+  align-self: flex-end;
+  padding: 12px 20px;
   border-radius: 10px;
   border: none;
   background: var(--accent);
