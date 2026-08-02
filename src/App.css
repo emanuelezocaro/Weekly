@@ -960,6 +960,57 @@
   font-weight: 700;
 }
 
+/* Clickable chart wrapper that expands into a day-by-day detail list */
+.trend-chart__toggle {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: inherit;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.trend-chart__toggle:disabled {
+  cursor: default;
+}
+
+.trend-chart__toggle-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.outputs-detail {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.outputs-detail__day {
+  margin-top: 12px;
+}
+
+.outputs-detail__date {
+  margin: 0 0 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.outputs-detail__list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 /* Settings cards */
 .settings-card {
   border: 1px solid var(--border);
