@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { formatDuration } from '../utils/date'
 import { activityStats } from '../utils/entries'
 import { colorVar } from '../utils/palette'
@@ -24,8 +23,6 @@ export default function ActivityStatsSummary({
   period,
   now = new Date(),
 }) {
-  const [expandedId, setExpandedId] = useState(null)
-
   if (activities.length === 0) {
     return <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
   }
@@ -88,18 +85,12 @@ export default function ActivityStatsSummary({
             prev && prev.totalMs > 0
               ? Math.round(((activity.totalMs - prev.totalMs) / prev.totalMs) * 100)
               : null
-          const expanded = expandedId === activity.id
           return (
             <li key={activity.id} className="report-card">
-              <button
-                type="button"
-                className="report-card__header report-card__header--btn"
-                disabled={!canDrillDown}
-                onClick={() => setExpandedId(expanded ? null : activity.id)}
-              >
+              <div className="report-card__header">
                 <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
                 <span className="report-card__name">{activity.name}</span>
-              </button>
+              </div>
               <div className="report-card__line2">
                 <span className="report-card__total">{formatDuration(activity.totalMs)}</span>
                 <span className="report-card__avg">{formatDuration(activity.avgMsPerDay)}/giorno</span>
@@ -111,9 +102,7 @@ export default function ActivityStatsSummary({
                   {delta}% rispetto al periodo precedente
                 </p>
               )}
-              {expanded && (
-                <ActivityTrendChart activity={activity} days={days} entries={entries} now={now} />
-              )}
+              {canDrillDown && <ActivityTrendChart activity={activity} days={days} entries={entries} now={now} />}
             </li>
           )
         })}

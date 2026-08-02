@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { dayLabel, toISODate } from '../utils/date'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
@@ -22,7 +21,6 @@ function countsForDays(cigarettes, days) {
 }
 
 export default function CigarettesReportCard({ cigarettes, days }) {
-  const [expanded, setExpanded] = useState(false)
   const counts = countsForDays(cigarettes, days)
 
   if (days.length === 1) {
@@ -48,33 +46,23 @@ export default function CigarettesReportCard({ cigarettes, days }) {
 
   return (
     <section className="settings-card">
-      <button type="button" className="report-card__header--btn" onClick={() => setExpanded((e) => !e)}>
-        <h2 className="settings-card__title" style={{ marginBottom: 4 }}>
-          Sigarette
-        </h2>
-        <p className="trend-chart__caption" style={{ margin: 0 }}>
-          {total} in totale · {avg}/giorno in media
-        </p>
-      </button>
-      {expanded && (
-        <div className="trend-chart">
-          <div className="trend-chart__bars">
-            {counts.map((c, i) => {
-              const heightPct = c.count ? Math.max(2, (c.count / maxCount) * 100) : 2
-              return (
-                <div key={toISODate(c.date)} className="trend-chart__col">
-                  <span className="trend-chart__bar-track">
-                    <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
-                  </span>
-                  <span className="trend-chart__label">
-                    {shouldLabel(i, counts.length) ? axisLabel(c.date, days) : ''}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      <h2 className="settings-card__title">Sigarette</h2>
+      <p className="trend-chart__caption">
+        {total} in totale · {avg}/giorno in media
+      </p>
+      <div className="trend-chart__bars">
+        {counts.map((c, i) => {
+          const heightPct = c.count ? Math.max(2, (c.count / maxCount) * 100) : 2
+          return (
+            <div key={toISODate(c.date)} className="trend-chart__col">
+              <span className="trend-chart__bar-track">
+                <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
+              </span>
+              <span className="trend-chart__label">{shouldLabel(i, counts.length) ? axisLabel(c.date, days) : ''}</span>
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }
