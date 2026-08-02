@@ -96,7 +96,12 @@ export default function ActivityStatsSummary({
               <div className="report-card__header">
                 <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
                 <span className="report-card__name">{activity.name}</span>
-                <GoalTrendIndicator goal={goal} actual={activity.totalMs / 60000} target={target} />
+                <GoalTrendIndicator
+                  goal={goal}
+                  actual={activity.totalMs / 60000}
+                  target={target}
+                  formatDiff={(minutes) => formatDuration(minutes * 60000)}
+                />
               </div>
               <div className="report-card__line2">
                 <span className="report-card__total">{formatDuration(activity.totalMs)}</span>
