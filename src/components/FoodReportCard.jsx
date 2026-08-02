@@ -1,5 +1,6 @@
 import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
+import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
@@ -182,7 +183,7 @@ function ExtraMiniRowWeekly({ weeklyExtra, goalBadge }) {
   )
 }
 
-export default function FoodReportCard({ food, days, period, goals, now = new Date() }) {
+export default function FoodReportCard({ food, days, prevDays, period, goals, now = new Date() }) {
   const records = days.map((date) => {
     const iso = toISODate(date)
     return food.find((f) => f.date === iso) || null
@@ -224,10 +225,25 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
   const summary = ratingSummary(records)
   const monthIso = toMonthISO(days[days.length - 1])
 
+  const prevRecords = clipPrevDays(days, prevDays).map((date) => {
+    const iso = toISODate(date)
+    return food.find((f) => f.date === iso) || null
+  })
+  const prevSummary = ratingSummary(prevRecords)
+  const delta = deltaPct(summary.good, prevSummary.good)
+
   const caption = (
-    <p className="trend-chart__caption">
-      {summary.good} buono · {summary.mid} medio · {summary.bad} male · Extra {summary.extraYes}/{days.length} giorni
-    </p>
+    <>
+      <p className="trend-chart__caption">
+        {summary.good} buono · {summary.mid} medio · {summary.bad} male · Extra {summary.extraYes}/{days.length} giorni
+      </p>
+      {delta !== null && (
+        <p className="report-card__delta" style={{ textAlign: 'center' }}>
+          {delta > 0 ? '+' : ''}
+          {delta}% buono rispetto al periodo precedente
+        </p>
+      )}
+    </>
   )
 
   const fieldBadge = (field) => {

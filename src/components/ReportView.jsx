@@ -95,6 +95,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   const nextDisabled = isNextDisabled(period, cursor)
   const prevDisabled = isPrevDisabled(period, cursor)
   const days = periodDays(period, cursor)
+  const prevDays = periodDays(period, shiftCursor(period, cursor, -1))
 
   async function handleCopySummary() {
     const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
@@ -155,9 +156,9 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </div>
       )}
 
-      <OutputsWeekCard outputs={outputs} days={days} period={period} goals={goals} />
-      <CigarettesReportCard cigarettes={cigarettes} days={days} period={period} goals={goals} />
-      <FoodReportCard food={food} days={days} period={period} goals={goals} />
+      <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
+      <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
+      <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
 
       <hr className="report-divider" />
 

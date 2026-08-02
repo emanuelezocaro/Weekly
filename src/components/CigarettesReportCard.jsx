@@ -1,5 +1,6 @@
 import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
+import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
@@ -24,7 +25,7 @@ function countsForDays(cigarettes, days) {
   })
 }
 
-export default function CigarettesReportCard({ cigarettes, days, period, goals }) {
+export default function CigarettesReportCard({ cigarettes, days, prevDays, period, goals }) {
   const counts = countsForDays(cigarettes, days)
 
   if (days.length === 1) {
@@ -67,6 +68,12 @@ export default function CigarettesReportCard({ cigarettes, days, period, goals }
   const goal = goalForMonth(goals, 'cigarettes', toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
 
+  const prevTotal = countsForDays(cigarettes, clipPrevDays(days, prevDays)).reduce(
+    (sum, c) => sum + (c.count || 0),
+    0,
+  )
+  const delta = deltaPct(total, prevTotal)
+
   return (
     <section className="settings-card">
       <div className="settings-card__title-row">
@@ -76,6 +83,12 @@ export default function CigarettesReportCard({ cigarettes, days, period, goals }
       <p className="trend-chart__caption">
         {total} in totale · {avg}/giorno in media
       </p>
+      {delta !== null && (
+        <p className="report-card__delta" style={{ textAlign: 'center' }}>
+          {delta > 0 ? '+' : ''}
+          {delta}% rispetto al periodo precedente
+        </p>
+      )}
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
         <div className="trend-chart__bars-wrap">

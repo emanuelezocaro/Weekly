@@ -1,5 +1,6 @@
 import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
+import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
@@ -23,7 +24,7 @@ function outputCountsForDays(outputs, days) {
   })
 }
 
-export default function OutputsWeekCard({ outputs, days, period, goals }) {
+export default function OutputsWeekCard({ outputs, days, prevDays, period, goals }) {
   const counts = outputCountsForDays(outputs, days)
   const daysWithOutputs = counts.filter((c) => c.count > 0).length
 
@@ -48,6 +49,12 @@ export default function OutputsWeekCard({ outputs, days, period, goals }) {
   const goal = goalForMonth(goals, 'outputs', toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
 
+  const prevTotal = outputCountsForDays(outputs, clipPrevDays(days, prevDays)).reduce(
+    (sum, c) => sum + c.count,
+    0,
+  )
+  const delta = deltaPct(total, prevTotal)
+
   return (
     <section className="settings-card">
       <div className="settings-card__title-row">
@@ -57,6 +64,12 @@ export default function OutputsWeekCard({ outputs, days, period, goals }) {
       <p className="trend-chart__caption">
         {daysWithOutputs}/{days.length} giorni con almeno un'uscita
       </p>
+      {delta !== null && (
+        <p className="report-card__delta" style={{ textAlign: 'center' }}>
+          {delta > 0 ? '+' : ''}
+          {delta}% rispetto al periodo precedente
+        </p>
+      )}
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
         <div className="trend-chart__bars-wrap">
