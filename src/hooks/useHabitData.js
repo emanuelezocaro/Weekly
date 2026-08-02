@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { syncNow } from '../utils/sync'
 import { closeStaleOpenEntries, deleteEntry, makeEntryId, resolveOverlaps, updateEntry } from '../utils/entries'
 import { APP_START_DATE, parseISODateTime, toMonthISO } from '../utils/date'
+import { DEFAULT_OUTPUT_TYPE } from '../utils/outputTypes'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -324,12 +325,12 @@ export function useHabitData() {
   // --- Outputs (per-day list of short "cosa e uscito oggi" strings) ---
 
   const addOutput = useCallback(
-    (date, text) => {
+    (date, text, type = DEFAULT_OUTPUT_TYPE) => {
       const trimmed = text.trim()
       if (!trimmed) return
       setOutputsMeta((prev) => [
         ...prev,
-        { id: makeOutputId(), date, text: trimmed, updatedAt: Date.now(), deleted: false },
+        { id: makeOutputId(), date, text: trimmed, type, updatedAt: Date.now(), deleted: false },
       ])
       // A real output beats an earlier "niente da segnalare" for the same day.
       setOutputsSkippedMeta((prev) =>

@@ -12,6 +12,7 @@ import {
 } from './date'
 import { activityStats } from './entries'
 import { goalForMonth, goalPerBar, isGoalMet, minutesToHours } from './goals'
+import { outputType } from './outputTypes'
 
 const FOOD_FIELDS = [
   { key: 'colazione', label: 'Colazione', goalKey: 'food_colazione' },
@@ -78,9 +79,14 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
   if (outputsTotal > 0 || outputsGoal) {
     let note = ''
     if (outputsGoal) {
+      // The goal only counts "consegna" outputs, not the total shown above.
+      const consegnaTotal = weekDays.reduce(
+        (sum, d) => sum + outputs.filter((o) => o.date === toISODate(d) && outputType(o) === 'consegna').length,
+        0,
+      )
       const weeklyTarget = Math.round(goalPerBar(outputsGoal, 'week'))
-      const met = isGoalMet(outputsGoal, outputsTotal, weeklyTarget)
-      note = ` (obiettivo ${outputsGoal.value}/${goalPeriodLabel(outputsGoal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
+      const met = isGoalMet(outputsGoal, consegnaTotal, weeklyTarget)
+      note = ` (obiettivo ${outputsGoal.value} consegne/${goalPeriodLabel(outputsGoal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
     }
     lines.push(`Uscite: ${outputsTotal}${note}`)
     for (const d of weekDays) {

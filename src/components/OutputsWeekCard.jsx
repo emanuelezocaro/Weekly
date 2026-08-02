@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { dayLabel, formatFullDate, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
+import { OUTPUT_TYPES, outputType } from '../utils/outputTypes'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { copyOrShareText } from '../utils/shareFile'
 import GoalLine from './GoalLine'
@@ -26,11 +27,25 @@ function axisLabel(date, days) {
   return days.length <= 7 ? dayLabel(date) : String(date.getDate())
 }
 
-function outputCountsForDays(outputs, days) {
+// The weekly goal (and the trend chart tied to it) only counts "consegna" --
+// contatto/commerciale outputs don't count towards it.
+function outputCountsForDays(outputs, days, type) {
   return days.map((date) => {
     const iso = toISODate(date)
-    return { date, count: outputs.filter((o) => o.date === iso).length }
+    const dayOutputs = outputs.filter((o) => o.date === iso)
+    const count = type ? dayOutputs.filter((o) => outputType(o) === type).length : dayOutputs.length
+    return { date, count }
   })
+}
+
+function countsByType(outputs, days) {
+  const isoDays = new Set(days.map(toISODate))
+  const counts = { contatto: 0, commerciale: 0, consegna: 0 }
+  for (const o of outputs) {
+    if (!isoDays.has(o.date)) continue
+    counts[outputType(o)] += 1
+  }
+  return counts
 }
 
 function outputsByDay(outputs, days) {
@@ -48,14 +63,15 @@ function buildOutputsListText(grouped) {
 export default function OutputsWeekCard({ outputs, days, prevDays, period, goals }) {
   const [expanded, setExpanded] = useState(false)
   const [copyMessage, setCopyMessage] = useState('')
-  const counts = outputCountsForDays(outputs, days)
+  const counts = outputCountsForDays(outputs, days, 'consegna')
   const daysWithOutputs = counts.filter((c) => c.count > 0).length
+  const typeCounts = countsByType(outputs, days)
 
   // Trimestre: troppi giorni per una barra a testa, si aggrega per settimana.
   const bars =
     period === 'quarter'
       ? groupDaysByWeek(days).map((w, i, weeks) => {
-          const weekTotal = outputCountsForDays(outputs, w.days).reduce((sum, c) => sum + c.count, 0)
+          const weekTotal = outputCountsForDays(outputs, w.days, 'consegna').reduce((sum, c) => sum + c.count, 0)
           return {
             key: toISODate(w.weekStart),
             label: shouldLabel(i, weeks.length) ? formatShortDate(w.weekStart) : '',
@@ -72,7 +88,7 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
   const goal = goalForMonth(goals, 'outputs', toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
 
-  const prevTotal = outputCountsForDays(outputs, clipPrevDays(days, prevDays)).reduce(
+  const prevTotal = outputCountsForDays(outputs, clipPrevDays(days, prevDays), 'consegna').reduce(
     (sum, c) => sum + c.count,
     0,
   )
@@ -92,7 +108,10 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
         <GoalTrendIndicator goal={goal} actual={total} target={target} />
       </div>
       <p className="trend-chart__caption">
-        {daysWithOutputs}/{days.length} giorni con almeno un'uscita
+        {OUTPUT_TYPES.map((t) => `${t.label}: ${typeCounts[t.id]}`).join(' · ')}
+      </p>
+      <p className="trend-chart__caption">
+        {daysWithOutputs}/{days.length} giorni con almeno una consegna
       </p>
       {delta !== null && (
         <p className="report-card__delta" style={{ textAlign: 'center' }}>
