@@ -1,7 +1,20 @@
+import { useState } from 'react'
 import { formatFullDate } from '../utils/date'
 import { buildDashboardItems } from '../utils/dashboard'
 
 const PERIOD_LABELS = { day: 'Oggi', week: 'Settimana' }
+
+const TABS = [
+  { id: 'behind', label: 'Recuperare' },
+  { id: 'met', label: 'Successi' },
+  { id: 'failed', label: 'Falliti' },
+]
+
+const EMPTY_MESSAGES = {
+  behind: 'Niente da recuperare: sei in pace su tutta la linea.',
+  met: 'Ancora nessun obiettivo raggiunto per ora.',
+  failed: 'Nessun obiettivo fallito questa settimana.',
+}
 
 function BehindCard({ item }) {
   return (
@@ -45,8 +58,11 @@ function MetCard({ item }) {
   )
 }
 
+const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
+
 export default function DashboardView({ activities, entries, cigarettes, outputs, food, goals, now = new Date() }) {
   const { behind, failed, onTrack } = buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now })
+  const [tab, setTab] = useState('behind')
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
@@ -59,44 +75,31 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
     )
   }
 
+  const itemsByTab = { behind, met: onTrack, failed }
+  const activeItems = itemsByTab[tab]
+  const Card = CARD_BY_TAB[tab]
+
   return (
     <div className="view">
       <p className="dash-date">{formatFullDate(now)}</p>
 
-      {behind.length > 0 && (
-        <>
-          <div className="dash-section-title">
-            <span className="dash-section-title__dot dash-section-title__dot--bad" />
-            Da recuperare
-          </div>
-          {behind.map((item) => (
-            <BehindCard key={item.key} item={item} />
-          ))}
-        </>
-      )}
+      <div className="segmented">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`segmented__item ${tab === t.id ? 'is-active' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {failed.length > 0 && (
-        <>
-          <div className="dash-section-title">
-            <span className="dash-section-title__dot dash-section-title__dot--muted" />
-            Falliti questa settimana
-          </div>
-          {failed.map((item) => (
-            <FailedCard key={item.key} item={item} />
-          ))}
-        </>
-      )}
-
-      {onTrack.length > 0 && (
-        <>
-          <div className="dash-section-title">
-            <span className="dash-section-title__dot dash-section-title__dot--good" />
-            In pace
-          </div>
-          {onTrack.map((item) => (
-            <MetCard key={item.key} item={item} />
-          ))}
-        </>
+      {activeItems.length === 0 ? (
+        <p className="empty-state">{EMPTY_MESSAGES[tab]}</p>
+      ) : (
+        activeItems.map((item) => <Card key={item.key} item={item} />)
       )}
     </div>
   )

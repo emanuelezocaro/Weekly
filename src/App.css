@@ -96,37 +96,6 @@
   text-transform: capitalize;
 }
 
-.dash-section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  margin: 0 0 10px;
-}
-
-.dash-section-title:not(:first-of-type) {
-  margin-top: 20px;
-}
-
-.dash-section-title__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.dash-section-title__dot--bad {
-  background: var(--series-6);
-}
-
-.dash-section-title__dot--good {
-  background: var(--series-2);
-}
-
-.dash-section-title__dot--muted {
-  background: var(--text-muted);
-}
-
 .dash-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
