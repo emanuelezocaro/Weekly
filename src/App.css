@@ -676,9 +676,31 @@
   color: var(--text-muted);
 }
 
+/* Y-axis (max value + zero) next to the bar area */
+.trend-chart__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.trend-chart__yaxis {
+  flex-shrink: 0;
+  height: 84px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
 /* Goal reference line overlaid on a bar chart */
 .trend-chart__bars-wrap {
   position: relative;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Background tint showing which side of the goal line is good vs bad;

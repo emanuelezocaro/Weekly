@@ -2,6 +2,7 @@ import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } fro
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
+import TrendChartYAxis from './TrendChartYAxis'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
@@ -56,27 +57,30 @@ export default function OutputsWeekCard({ outputs, days, period, goals }) {
       <p className="trend-chart__caption">
         {daysWithOutputs}/{days.length} giorni con almeno un'uscita
       </p>
-      <div className="trend-chart__bars-wrap">
-        <GoalLine
-          goals={goals}
-          itemKey="outputs"
-          monthIso={toMonthISO(days[days.length - 1])}
-          barGranularity={period === 'quarter' ? 'week' : 'day'}
-          maxValue={maxValue}
-          formatValue={(v) => String(v)}
-        />
-        <div className="trend-chart__bars">
-          {bars.map((b) => {
-            const heightPct = Math.max(2, (b.value / maxValue) * 100)
-            return (
-              <div key={b.key} className="trend-chart__col">
-                <span className="trend-chart__bar-track">
-                  <span className="outputs-chart__bar" style={{ height: `${heightPct}%` }} />
-                </span>
-                <span className="trend-chart__label">{b.label}</span>
-              </div>
-            )
-          })}
+      <div className="trend-chart__row">
+        <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
+        <div className="trend-chart__bars-wrap">
+          <GoalLine
+            goals={goals}
+            itemKey="outputs"
+            monthIso={toMonthISO(days[days.length - 1])}
+            barGranularity={period === 'quarter' ? 'week' : 'day'}
+            maxValue={maxValue}
+            formatValue={(v) => String(v)}
+          />
+          <div className="trend-chart__bars">
+            {bars.map((b) => {
+              const heightPct = Math.max(2, (b.value / maxValue) * 100)
+              return (
+                <div key={b.key} className="trend-chart__col">
+                  <span className="trend-chart__bar-track">
+                    <span className="outputs-chart__bar" style={{ height: `${heightPct}%` }} />
+                  </span>
+                  <span className="trend-chart__label">{b.label}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </section>
