@@ -35,11 +35,33 @@ export function mergeOutputs(localList, remoteList) {
   return Array.from(byId.values())
 }
 
+export function mergeCigarettes(localList, remoteList) {
+  const byId = new Map()
+  for (const c of remoteList) byId.set(c.id, c)
+  for (const c of localList) {
+    const r = byId.get(c.id)
+    if (!r || c.updatedAt >= r.updatedAt) byId.set(c.id, c)
+  }
+  return Array.from(byId.values())
+}
+
+export function mergeFood(localList, remoteList) {
+  const byId = new Map()
+  for (const f of remoteList) byId.set(f.id, f)
+  for (const f of localList) {
+    const r = byId.get(f.id)
+    if (!r || f.updatedAt >= r.updatedAt) byId.set(f.id, f)
+  }
+  return Array.from(byId.values())
+}
+
 export function mergeState(localState, remoteState) {
   return {
     activities: mergeActivities(localState.activities, remoteState?.activities || []),
     entries: closeStaleOpenEntries(mergeEntries(localState.entries, remoteState?.entries || [])),
     outputs: mergeOutputs(localState.outputs, remoteState?.outputs || []),
+    cigarettes: mergeCigarettes(localState.cigarettes, remoteState?.cigarettes || []),
+    food: mergeFood(localState.food, remoteState?.food || []),
   }
 }
 
@@ -55,7 +77,13 @@ export async function fetchRemoteState(url, token) {
   const u = new URL(url)
   u.searchParams.set('token', token)
   const json = await request(u.toString(), token, { method: 'GET' })
-  return { activities: json.activities || [], entries: json.entries || [], outputs: json.outputs || [] }
+  return {
+    activities: json.activities || [],
+    entries: json.entries || [],
+    outputs: json.outputs || [],
+    cigarettes: json.cigarettes || [],
+    food: json.food || [],
+  }
 }
 
 export async function pushRemoteState(url, token, state) {
@@ -69,6 +97,8 @@ export async function pushRemoteState(url, token, state) {
       activities: state.activities,
       entries: state.entries,
       outputs: state.outputs,
+      cigarettes: state.cigarettes,
+      food: state.food,
     }),
   })
 }

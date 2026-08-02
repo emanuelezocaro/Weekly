@@ -18,6 +18,8 @@ import {
 } from '../utils/date'
 import ActivityStatsSummary from './ActivityStatsSummary'
 import OutputsWeekCard from './OutputsWeekCard'
+import CigarettesReportCard from './CigarettesReportCard'
+import FoodReportCard from './FoodReportCard'
 
 const PERIODS = [
   { id: 'day', label: 'Giorno' },
@@ -77,7 +79,7 @@ function isPrevDisabled(period, cursor) {
   return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries, outputs }) {
+export default function ReportView({ activities, entries, outputs, cigarettes, food }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
 
@@ -127,6 +129,8 @@ export default function ReportView({ activities, entries, outputs }) {
       </div>
 
       {period === 'week' && <OutputsWeekCard outputs={outputs} days={days} />}
+      <CigarettesReportCard cigarettes={cigarettes} days={days} />
+      <FoodReportCard food={food} days={days} />
 
       <ActivityStatsSummary
         activities={activities}

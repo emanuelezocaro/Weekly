@@ -26,6 +26,10 @@ function App() {
     outputs,
     addOutput,
     removeOutput,
+    cigarettes,
+    setCigarettes,
+    food,
+    setFoodField,
     exportData,
     importData,
     settings,
@@ -51,15 +55,25 @@ function App() {
             activities={activities}
             entries={entries}
             outputs={outputs}
+            cigarettes={cigarettes}
+            food={food}
             onEditEntry={editEntry}
             onRemoveEntry={removeEntry}
             onAddManualEntry={addManualEntry}
             onAddOutput={addOutput}
             onRemoveOutput={removeOutput}
+            onSetCigarettes={setCigarettes}
+            onSetFoodField={setFoodField}
           />
         )}
         {tab === 'report' && (
-          <ReportView activities={activities} entries={entries} outputs={outputs} />
+          <ReportView
+            activities={activities}
+            entries={entries}
+            outputs={outputs}
+            cigarettes={cigarettes}
+            food={food}
+          />
         )}
         {tab === 'settings' && (
           <SettingsView

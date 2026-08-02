@@ -16,6 +16,15 @@ import {
 } from '../utils/date'
 import { DAY_MS, entriesForDay, findGapsForDay } from '../utils/entries'
 import { colorVar } from '../utils/palette'
+import CigarettesCard from './CigarettesCard'
+import FoodCard from './FoodCard'
+
+const DAY_TABS = [
+  { id: 'calendar', label: 'Calendario' },
+  { id: 'outputs', label: 'Uscite' },
+  { id: 'cigarettes', label: 'Sigarette' },
+  { id: 'food', label: 'Cibo' },
+]
 
 const HALF_HOUR_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = String(Math.floor(i / 2)).padStart(2, '0')
@@ -248,13 +257,18 @@ export default function DayAgenda({
   activities,
   entries,
   outputs,
+  cigarettes,
+  food,
   onEditEntry,
   onRemoveEntry,
   onAddManualEntry,
   onAddOutput,
   onRemoveOutput,
+  onSetCigarettes,
+  onSetFoodField,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
+  const [activeTab, setActiveTab] = useState('calendar')
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
   const prevDisabled = toISODate(cursor) <= toISODate(APP_START_DATE)
@@ -277,6 +291,8 @@ export default function DayAgenda({
   const addBlockDefaults = defaultAddTimes(items, cursor)
   const dayIso = toISODate(cursor)
   const dayOutputs = outputs.filter((o) => o.date === dayIso)
+  const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
+  const dayFoodRecord = food.find((f) => f.date === dayIso)
 
   const rows = [
     ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })),
@@ -325,110 +341,137 @@ export default function DayAgenda({
         </button>
       </div>
 
-      <OutputsCard
-        dayOutputs={dayOutputs}
-        onAdd={(text) => onAddOutput(dayIso, text)}
-        onRemove={onRemoveOutput}
-      />
+      <div className="segmented">
+        {DAY_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`segmented__item ${activeTab === t.id ? 'is-active' : ''}`}
+            onClick={() => setActiveTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {activities.length === 0 ? (
-        <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
-      ) : (
-        <>
-          {rows.length === 0 && !isToday && (
-            <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
-          )}
-
-          <ul className="timeline">
-            {rows.map((row) => {
-              if (row.type === 'gap') {
-                const key = toISODateTime(row.gap.start)
-                return (
-                  <GapRow
-                    key={key}
-                    gap={row.gap}
-                    activities={activities}
-                    expanded={expandedGap === key}
-                    onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
-                    onPick={(activityId) => handleFillGap(row.gap, activityId)}
-                  />
-                )
-              }
-
-              const { entry, clippedStart, clippedEnd, isOpen } = row
-              const activity = activityFor(activities, entry.activityId)
-              const expanded = expandedId === entry.id
-              const pct = Math.round(((clippedEnd - clippedStart) / dayElapsedMs) * 100)
-              return (
-                <li key={entry.id} className="timeline__item">
-                  <button
-                    type="button"
-                    className="timeline__row"
-                    onClick={() => setExpandedId(expanded ? null : entry.id)}
-                  >
-                    <span
-                      className="timeline__swatch"
-                      style={{ background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-                    />
-                    <span className="timeline__info">
-                      <span className="timeline__name">
-                        {activity ? activity.name : 'Attività eliminata'}
-                      </span>
-                      <span className="timeline__pill-row">
-                        <span
-                          className="timeline__pill"
-                          style={{ '--pill-color': activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-                        >
-                          {formatTime(clippedStart)} → {isOpen ? 'ora' : formatTime(clippedEnd)}
-                        </span>
-                        <span className="timeline__duration">
-                          {formatDuration(clippedEnd - clippedStart)}
-                        </span>
-                        <span className="timeline__pct">{pct}%</span>
-                      </span>
-                    </span>
-                  </button>
-                  {expanded && (
-                    <EntryEditor
-                      entry={entry}
-                      activities={activities}
-                      dayDate={cursor}
-                      onSave={(patch) => handleSaveEdit(entry.id, patch)}
-                      onDelete={() => handleDelete(entry.id)}
-                      onCancel={() => setExpandedId(null)}
-                      onCloseNow={() => handleSaveEdit(entry.id, { end: nowISODateTime() })}
-                    />
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-
-          {!isToday && gaps.length === 0 && (
-            <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
-          )}
-
-          <div className="add-block">
-            {addingManual ? (
-              <ManualAddForm
-                activities={activities}
-                dayDate={cursor}
-                initialStart={addBlockDefaults.start}
-                initialEnd={addBlockDefaults.end}
-                onAdd={(activityId, start, end) => {
-                  onAddManualEntry(activityId, start, end)
-                  setAddingManual(false)
-                }}
-                onCancel={() => setAddingManual(false)}
-              />
-            ) : (
-              <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
-                + Aggiungi blocco
-              </button>
-            )}
-          </div>
-        </>
+      {activeTab === 'outputs' && (
+        <OutputsCard
+          dayOutputs={dayOutputs}
+          onAdd={(text) => onAddOutput(dayIso, text)}
+          onRemove={onRemoveOutput}
+        />
       )}
+
+      {activeTab === 'cigarettes' && (
+        <CigarettesCard
+          count={dayCigaretteRecord ? dayCigaretteRecord.count : null}
+          onSet={(count) => onSetCigarettes(dayIso, count)}
+        />
+      )}
+
+      {activeTab === 'food' && (
+        <FoodCard food={dayFoodRecord} onChange={(field, value) => onSetFoodField(dayIso, field, value)} />
+      )}
+
+      {activeTab === 'calendar' &&
+        (activities.length === 0 ? (
+          <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+        ) : (
+          <>
+            {rows.length === 0 && !isToday && (
+              <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
+            )}
+
+            <ul className="timeline">
+              {rows.map((row) => {
+                if (row.type === 'gap') {
+                  const key = toISODateTime(row.gap.start)
+                  return (
+                    <GapRow
+                      key={key}
+                      gap={row.gap}
+                      activities={activities}
+                      expanded={expandedGap === key}
+                      onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
+                      onPick={(activityId) => handleFillGap(row.gap, activityId)}
+                    />
+                  )
+                }
+
+                const { entry, clippedStart, clippedEnd, isOpen } = row
+                const activity = activityFor(activities, entry.activityId)
+                const expanded = expandedId === entry.id
+                const pct = Math.round(((clippedEnd - clippedStart) / dayElapsedMs) * 100)
+                return (
+                  <li key={entry.id} className="timeline__item">
+                    <button
+                      type="button"
+                      className="timeline__row"
+                      onClick={() => setExpandedId(expanded ? null : entry.id)}
+                    >
+                      <span
+                        className="timeline__swatch"
+                        style={{ background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
+                      />
+                      <span className="timeline__info">
+                        <span className="timeline__name">
+                          {activity ? activity.name : 'Attività eliminata'}
+                        </span>
+                        <span className="timeline__pill-row">
+                          <span
+                            className="timeline__pill"
+                            style={{ '--pill-color': activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
+                          >
+                            {formatTime(clippedStart)} → {isOpen ? 'ora' : formatTime(clippedEnd)}
+                          </span>
+                          <span className="timeline__duration">
+                            {formatDuration(clippedEnd - clippedStart)}
+                          </span>
+                          <span className="timeline__pct">{pct}%</span>
+                        </span>
+                      </span>
+                    </button>
+                    {expanded && (
+                      <EntryEditor
+                        entry={entry}
+                        activities={activities}
+                        dayDate={cursor}
+                        onSave={(patch) => handleSaveEdit(entry.id, patch)}
+                        onDelete={() => handleDelete(entry.id)}
+                        onCancel={() => setExpandedId(null)}
+                        onCloseNow={() => handleSaveEdit(entry.id, { end: nowISODateTime() })}
+                      />
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+
+            {!isToday && gaps.length === 0 && (
+              <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
+            )}
+
+            <div className="add-block">
+              {addingManual ? (
+                <ManualAddForm
+                  activities={activities}
+                  dayDate={cursor}
+                  initialStart={addBlockDefaults.start}
+                  initialEnd={addBlockDefaults.end}
+                  onAdd={(activityId, start, end) => {
+                    onAddManualEntry(activityId, start, end)
+                    setAddingManual(false)
+                  }}
+                  onCancel={() => setAddingManual(false)}
+                />
+              ) : (
+                <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
+                  + Aggiungi blocco
+                </button>
+              )}
+            </div>
+          </>
+        ))}
     </div>
   )
 }
