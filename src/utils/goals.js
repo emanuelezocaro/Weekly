@@ -11,6 +11,16 @@ export function goalForMonth(goals, itemKey, monthIso) {
   return best
 }
 
+// Duration goals are stored in minutes internally (for precision) but edited
+// and displayed as plain hours (e.g. 7.5 instead of 7h 30m).
+export function minutesToHours(minutes) {
+  return Number((minutes / 60).toFixed(2))
+}
+
+export function hoursToMinutes(hours) {
+  return Math.round((Number(hours) || 0) * 60)
+}
+
 // Converts a goal (expressed in its own period) into a reference value for a
 // chart whose bars represent `barGranularity` ('day' | 'week'), so the same
 // goal can be drawn as a line regardless of whether the chart shows daily or

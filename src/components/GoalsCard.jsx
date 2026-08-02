@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { goalForMonth } from '../utils/goals'
+import { goalForMonth, hoursToMinutes, minutesToHours } from '../utils/goals'
 import { colorVar } from '../utils/palette'
 
 const GOAL_PERIODS = [
@@ -26,14 +26,12 @@ function PeriodToggle({ period, onChange }) {
 
 function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
   const [period, setPeriod] = useState(goal?.period || 'week')
-  const [hours, setHours] = useState(goal ? String(Math.floor(goal.value / 60)) : '')
-  const [minutes, setMinutes] = useState(goal ? String(goal.value % 60) : '')
+  const [hours, setHours] = useState(goal ? String(minutesToHours(goal.value)) : '')
 
-  function commit(nextPeriod, nextHours, nextMinutes) {
-    const h = Number(nextHours) || 0
-    const m = Number(nextMinutes) || 0
-    if (h === 0 && m === 0) return
-    onSave(itemKey, nextPeriod, h * 60 + m)
+  function commit(nextPeriod, nextHours) {
+    const minutes = hoursToMinutes(nextHours)
+    if (minutes === 0) return
+    onSave(itemKey, nextPeriod, minutes)
   }
 
   return (
@@ -47,30 +45,20 @@ function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
           period={period}
           onChange={(p) => {
             setPeriod(p)
-            commit(p, hours, minutes)
+            commit(p, hours)
           }}
         />
         <input
           className="goal-row__value goal-row__value--num"
           type="number"
           min="0"
-          placeholder="h"
+          step="0.5"
+          placeholder="es. 7.5"
           value={hours}
           onChange={(e) => setHours(e.target.value)}
-          onBlur={() => commit(period, hours, minutes)}
+          onBlur={() => commit(period, hours)}
         />
         <span className="goal-row__unit">h</span>
-        <input
-          className="goal-row__value goal-row__value--num"
-          type="number"
-          min="0"
-          max="59"
-          placeholder="m"
-          value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
-          onBlur={() => commit(period, hours, minutes)}
-        />
-        <span className="goal-row__unit">m</span>
       </div>
     </div>
   )

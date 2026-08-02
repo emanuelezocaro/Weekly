@@ -13,6 +13,7 @@ import {
 } from '../utils/date'
 import { dailyTotalsForActivity } from '../utils/entries'
 import { colorVar } from '../utils/palette'
+import { minutesToHours } from '../utils/goals'
 import GoalLine from './GoalLine'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
@@ -62,7 +63,7 @@ export default function ActivityTrendChart({ activity, days, entries, period, go
           monthIso={toMonthISO(days[days.length - 1])}
           barGranularity={isWeekly ? 'week' : 'day'}
           maxValue={maxMs / 60000}
-          formatValue={(v) => formatDuration(v * 60000)}
+          formatValue={(v) => `${minutesToHours(v)}h`}
         />
         <div className="trend-chart__bars">
           {totals.map((t, i) => {
