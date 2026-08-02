@@ -10,6 +10,8 @@
   --accent-bg: rgba(52, 199, 89, 0.1);
   --danger: #ff3b30;
   --danger-bg: rgba(255, 59, 48, 0.1);
+  --warn: #c98500;
+  --warn-bg: rgba(237, 161, 0, 0.14);
   --shadow: 0 1px 3px rgba(20, 20, 26, 0.06);
   --shadow-lg: 0 8px 24px rgba(20, 20, 26, 0.08);
   --radius-sm: 10px;
@@ -47,6 +49,8 @@
     --accent-bg: rgba(48, 209, 88, 0.16);
     --danger: #ff453a;
     --danger-bg: rgba(255, 69, 58, 0.16);
+    --warn: #eda100;
+    --warn-bg: rgba(237, 161, 0, 0.18);
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.55);
 

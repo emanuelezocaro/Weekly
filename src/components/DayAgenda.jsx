@@ -383,7 +383,15 @@ export default function DayAgenda({
             )}
 
             {!isToday && gaps.length === 0 && (
-              <p className="empty-state">Giornata già completa, dalle 00:00 alle 24:00.</p>
+              <p className="day-status day-status--complete">
+                Giornata già completa, dalle 00:00 alle 24:00.
+              </p>
+            )}
+
+            {gaps.length > 0 && (
+              <p className="day-status day-status--incomplete">
+                Mancano {formatDuration(gaps.reduce((sum, g) => sum + (g.end - g.start), 0))} da questo giorno.
+              </p>
             )}
 
             <ul className="timeline">
