@@ -92,6 +92,21 @@ function RatingMiniRowWeekly({ label, weeklyCounts }) {
   )
 }
 
+// Day labels aligned under each bar column, instead of a single centered
+// string that drifts out of sync with the columns above it.
+function WeekAxisRow({ days }) {
+  return (
+    <div className="mini-row">
+      <span className="mini-row__label" />
+      <div className="mini-row__axis">
+        {days.map((d) => (
+          <span key={toISODate(d)}>{dayLabel(d)}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function ExtraMiniRowWeekly({ weeklyExtra }) {
   return (
     <div className="mini-row">
@@ -213,9 +228,13 @@ export default function FoodReportCard({ food, days, period }) {
       <RatingMiniRow label="Alcol" values={records.map((r) => r?.alcol ?? null)} />
       <RatingMiniRow label="Dolci" values={records.map((r) => r?.dolci ?? null)} />
       <ExtraMiniRow values={records.map((r) => r?.extra ?? null)} />
-      <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-        {axisLegend(days)}
-      </p>
+      {days.length <= 7 ? (
+        <WeekAxisRow days={days} />
+      ) : (
+        <p className="trend-chart__caption" style={{ marginTop: 4 }}>
+          {axisLegend(days)}
+        </p>
+      )}
     </section>
   )
 }
