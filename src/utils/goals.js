@@ -22,15 +22,26 @@ export function hoursToMinutes(hours) {
 }
 
 // Whether exceeding the goal is good or bad depends on the item: more hours
-// of "Lavoro" is good, more hours of "Social" is bad. Defaults to "more is
-// good" for goals that predate this field (and for items where direction
-// isn't user-editable, like Uscite or Alimentazione).
-export function goalDirection(goal) {
-  return goal?.direction === 'lower_is_better' ? 'lower_is_better' : 'higher_is_better'
+// of "Lavoro" is good, more hours of "Social" is bad; fewer sigarette is
+// good. `fallback` is used only when the goal record itself doesn't carry an
+// explicit direction (goals set before this field existed, or items where
+// direction isn't user-editable, like Alimentazione).
+export function goalDirection(goal, fallback = 'higher_is_better') {
+  if (goal?.direction === 'lower_is_better' || goal?.direction === 'higher_is_better') return goal.direction
+  return fallback
 }
 
-export function isGoalMet(goal, actualValue, target) {
-  return goalDirection(goal) === 'lower_is_better' ? actualValue <= target : actualValue >= target
+export function isGoalMet(goal, actualValue, target, fallback = 'higher_is_better') {
+  return goalDirection(goal, fallback) === 'lower_is_better' ? actualValue <= target : actualValue >= target
+}
+
+// Scales a goal (expressed per day or per week) to a target for an arbitrary
+// number of days, so a card showing e.g. a whole month can compare its total
+// against a same-shape target instead of only per-bar amounts.
+export function goalTargetForDays(goal, daysCount) {
+  if (!goal) return null
+  const perDay = goal.period === 'day' ? goal.value : goal.value / 7
+  return perDay * daysCount
 }
 
 // Converts a goal (expressed in its own period) into a reference value for a

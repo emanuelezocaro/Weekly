@@ -64,9 +64,9 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
     const goal = goalForMonth(goals, 'cigarettes', monthIso)
     let note = ''
     if (goal) {
-      // Fewer is better here, so the goal is a ceiling, not a floor.
+      // Fewer is better here by default, so the goal is normally a ceiling.
       const weeklyTarget = Math.round(goalPerBar(goal, 'week'))
-      const respected = total <= weeklyTarget
+      const respected = isGoalMet(goal, total, weeklyTarget, 'lower_is_better')
       note = ` (obiettivo ${goal.value}/${goalPeriodLabel(goal)}: ${respected ? 'rispettato' : 'superato'})`
     }
     lines.push(`Sigarette: ${total} totali${note}`)
@@ -78,7 +78,7 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
     let note = ''
     if (outputsGoal) {
       const weeklyTarget = Math.round(goalPerBar(outputsGoal, 'week'))
-      const met = outputsTotal >= weeklyTarget
+      const met = isGoalMet(outputsGoal, outputsTotal, weeklyTarget)
       note = ` (obiettivo ${outputsGoal.value}/${goalPeriodLabel(outputsGoal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
     }
     lines.push(`Uscite: ${outputsTotal}${note}`)

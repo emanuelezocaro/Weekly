@@ -88,13 +88,14 @@ function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
   )
 }
 
-function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
+function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day', withDirection, defaultDirection = 'higher_is_better' }) {
   const [period, setPeriod] = useState(goal?.period || defaultPeriod)
+  const [direction, setDirection] = useState(goal?.direction || defaultDirection)
   const [value, setValue] = useState(goal ? String(goal.value) : '')
 
-  function commit(nextPeriod, nextValue) {
+  function commit(nextPeriod, nextDirection, nextValue) {
     if (nextValue === '') return
-    onSave(itemKey, nextPeriod, Number(nextValue) || 0)
+    onSave(itemKey, nextPeriod, Number(nextValue) || 0, withDirection ? nextDirection : undefined)
   }
 
   return (
@@ -105,9 +106,18 @@ function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
           period={period}
           onChange={(p) => {
             setPeriod(p)
-            commit(p, value)
+            commit(p, direction, value)
           }}
         />
+        {withDirection && (
+          <DirectionSelect
+            direction={direction}
+            onChange={(d) => {
+              setDirection(d)
+              commit(period, d, value)
+            }}
+          />
+        )}
         <input
           className="goal-row__value"
           type="number"
@@ -115,7 +125,7 @@ function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
           placeholder="5"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onBlur={() => commit(period, value)}
+          onBlur={() => commit(period, direction, value)}
         />
       </div>
     </div>
@@ -156,14 +166,18 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
       <CountGoalRow
         itemKey="cigarettes"
         label="Sigarette"
+        withDirection
+        defaultDirection="lower_is_better"
         goal={goalForMonth(goals, 'cigarettes', monthIso)}
-        onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
+        onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
       />
       <CountGoalRow
         itemKey="outputs"
         label="Uscite"
+        withDirection
+        defaultDirection="higher_is_better"
         goal={goalForMonth(goals, 'outputs', monthIso)}
-        onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
+        onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
       />
       {FOOD_GOALS.map((f) => (
         <CountGoalRow

@@ -1,5 +1,7 @@
 import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import GoalLine from './GoalLine'
+import GoalTrendIndicator from './GoalTrendIndicator'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
@@ -61,10 +63,15 @@ export default function CigarettesReportCard({ cigarettes, days, period, goals }
           value: c.count || 0,
         }))
   const maxValue = Math.max(1, ...bars.map((b) => b.value))
+  const goal = goalForMonth(goals, 'cigarettes', toMonthISO(days[days.length - 1]))
+  const target = goalTargetForDays(goal, days.length)
 
   return (
     <section className="settings-card">
-      <h2 className="settings-card__title">Sigarette</h2>
+      <div className="settings-card__title-row">
+        <h2 className="settings-card__title">Sigarette</h2>
+        <GoalTrendIndicator goal={goal} actual={total} target={target} fallbackDirection="lower_is_better" />
+      </div>
       <p className="trend-chart__caption">
         {total} in totale · {avg}/giorno in media
       </p>

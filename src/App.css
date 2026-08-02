@@ -690,12 +690,22 @@
   right: 0;
 }
 
+/* Diagonal hatching instead of a flat fill, so the zone reads as a
+   background reference and doesn't compete with the bars' own colors. */
 .goal-zone--good {
-  background: color-mix(in srgb, var(--series-2) 12%, transparent);
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--series-2) 12%, transparent) 0 5px,
+    transparent 5px 11px
+  );
 }
 
 .goal-zone--bad {
-  background: color-mix(in srgb, var(--series-6) 10%, transparent);
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--series-6) 11%, transparent) 0 5px,
+    transparent 5px 11px
+  );
 }
 
 .goal-line {
@@ -820,6 +830,27 @@
   margin: 0;
   font-size: 15px;
   font-weight: 700;
+}
+
+.settings-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.goal-trend {
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.goal-trend.is-good {
+  color: var(--series-2);
+}
+
+.goal-trend.is-bad {
+  color: var(--series-6);
 }
 
 .settings-card__hint {

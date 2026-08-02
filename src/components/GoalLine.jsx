@@ -12,7 +12,7 @@ export default function GoalLine({ goals, itemKey, monthIso, barGranularity, max
   const target = goalPerBar(goal, barGranularity)
   if (!target) return null
   const bottomPct = Math.min(100, Math.max(0, (target / maxValue) * 100))
-  const higherIsBetter = (direction ?? goalDirection(goal)) !== 'lower_is_better'
+  const higherIsBetter = goalDirection(goal, direction ?? 'higher_is_better') !== 'lower_is_better'
 
   const unit = goal.period === 'day' ? 'g' : 'sett'
   // Tag with the month the goal record actually belongs to, not the month

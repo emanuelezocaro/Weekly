@@ -1,7 +1,9 @@
-import { formatDuration } from '../utils/date'
+import { formatDuration, toMonthISO } from '../utils/date'
 import { activityStats } from '../utils/entries'
+import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { colorVar } from '../utils/palette'
 import ActivityTrendChart from './ActivityTrendChart'
+import GoalTrendIndicator from './GoalTrendIndicator'
 
 function formatPct(fraction) {
   return `${Math.round(fraction * 100)}%`
@@ -87,11 +89,14 @@ export default function ActivityStatsSummary({
             prev && prev.totalMs > 0
               ? Math.round(((activity.totalMs - prev.totalMs) / prev.totalMs) * 100)
               : null
+          const goal = canDrillDown ? goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1])) : null
+          const target = canDrillDown ? goalTargetForDays(goal, days.length) : null
           return (
             <li key={activity.id} className="report-card">
               <div className="report-card__header">
                 <span className="report-card__swatch" style={{ background: colorVar(activity.colorSlot) }} />
                 <span className="report-card__name">{activity.name}</span>
+                <GoalTrendIndicator goal={goal} actual={activity.totalMs / 60000} target={target} />
               </div>
               <div className="report-card__line2">
                 <span className="report-card__total">{formatDuration(activity.totalMs)}</span>

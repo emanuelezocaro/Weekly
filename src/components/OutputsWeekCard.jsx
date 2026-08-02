@@ -1,5 +1,7 @@
 import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import GoalLine from './GoalLine'
+import GoalTrendIndicator from './GoalTrendIndicator'
 
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
@@ -41,10 +43,16 @@ export default function OutputsWeekCard({ outputs, days, period, goals }) {
           value: c.count,
         }))
   const maxValue = Math.max(1, ...bars.map((b) => b.value))
+  const total = counts.reduce((sum, c) => sum + c.count, 0)
+  const goal = goalForMonth(goals, 'outputs', toMonthISO(days[days.length - 1]))
+  const target = goalTargetForDays(goal, days.length)
 
   return (
     <section className="settings-card">
-      <h2 className="settings-card__title">Uscite</h2>
+      <div className="settings-card__title-row">
+        <h2 className="settings-card__title">Uscite</h2>
+        <GoalTrendIndicator goal={goal} actual={total} target={target} />
+      </div>
       <p className="trend-chart__caption">
         {daysWithOutputs}/{days.length} giorni con almeno un'uscita
       </p>
