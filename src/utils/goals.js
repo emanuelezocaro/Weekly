@@ -21,6 +21,18 @@ export function hoursToMinutes(hours) {
   return Math.round((Number(hours) || 0) * 60)
 }
 
+// Whether exceeding the goal is good or bad depends on the item: more hours
+// of "Lavoro" is good, more hours of "Social" is bad. Defaults to "more is
+// good" for goals that predate this field (and for items where direction
+// isn't user-editable, like Uscite or Alimentazione).
+export function goalDirection(goal) {
+  return goal?.direction === 'lower_is_better' ? 'lower_is_better' : 'higher_is_better'
+}
+
+export function isGoalMet(goal, actualValue, target) {
+  return goalDirection(goal) === 'lower_is_better' ? actualValue <= target : actualValue >= target
+}
+
 // Converts a goal (expressed in its own period) into a reference value for a
 // chart whose bars represent `barGranularity` ('day' | 'week'), so the same
 // goal can be drawn as a line regardless of whether the chart shows daily or

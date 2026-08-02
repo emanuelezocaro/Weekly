@@ -7,31 +7,48 @@ const GOAL_PERIODS = [
   { id: 'week', label: 'Settimana' },
 ]
 
-function PeriodToggle({ period, onChange }) {
+const GOAL_DIRECTIONS = [
+  { id: 'higher_is_better', label: 'Più è meglio ↑' },
+  { id: 'lower_is_better', label: 'Meno è meglio ↓' },
+]
+
+function PeriodSelect({ period, onChange }) {
   return (
-    <div className="goal-seg">
+    <select className="goal-row__select" value={period} onChange={(e) => onChange(e.target.value)}>
       {GOAL_PERIODS.map((p) => (
-        <button
-          key={p.id}
-          type="button"
-          className={period === p.id ? 'is-active' : ''}
-          onClick={() => onChange(p.id)}
-        >
+        <option key={p.id} value={p.id}>
           {p.label}
-        </button>
+        </option>
       ))}
-    </div>
+    </select>
+  )
+}
+
+function DirectionSelect({ direction, onChange }) {
+  return (
+    <select
+      className={`goal-row__select ${direction === 'lower_is_better' ? 'is-bad' : 'is-good'}`}
+      value={direction}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {GOAL_DIRECTIONS.map((d) => (
+        <option key={d.id} value={d.id}>
+          {d.label}
+        </option>
+      ))}
+    </select>
   )
 }
 
 function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
   const [period, setPeriod] = useState(goal?.period || 'week')
+  const [direction, setDirection] = useState(goal?.direction || 'higher_is_better')
   const [hours, setHours] = useState(goal ? String(minutesToHours(goal.value)) : '')
 
-  function commit(nextPeriod, nextHours) {
+  function commit(nextPeriod, nextDirection, nextHours) {
     const minutes = hoursToMinutes(nextHours)
     if (minutes === 0) return
-    onSave(itemKey, nextPeriod, minutes)
+    onSave(itemKey, nextPeriod, minutes, nextDirection)
   }
 
   return (
@@ -41,22 +58,29 @@ function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
         {label}
       </div>
       <div className="goal-row__controls">
-        <PeriodToggle
+        <PeriodSelect
           period={period}
           onChange={(p) => {
             setPeriod(p)
-            commit(p, hours)
+            commit(p, direction, hours)
+          }}
+        />
+        <DirectionSelect
+          direction={direction}
+          onChange={(d) => {
+            setDirection(d)
+            commit(period, d, hours)
           }}
         />
         <input
-          className="goal-row__value goal-row__value--num"
+          className="goal-row__value"
           type="number"
           min="0"
           step="0.5"
-          placeholder="es. 7.5"
+          placeholder="7.5"
           value={hours}
           onChange={(e) => setHours(e.target.value)}
-          onBlur={() => commit(period, hours)}
+          onBlur={() => commit(period, direction, hours)}
         />
         <span className="goal-row__unit">h</span>
       </div>
@@ -77,7 +101,7 @@ function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
     <div className="goal-row">
       <div className="goal-row__name">{label}</div>
       <div className="goal-row__controls">
-        <PeriodToggle
+        <PeriodSelect
           period={period}
           onChange={(p) => {
             setPeriod(p)
@@ -88,7 +112,7 @@ function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day' }) {
           className="goal-row__value"
           type="number"
           min="0"
-          placeholder="es. 5"
+          placeholder="5"
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={() => commit(period, value)}
@@ -114,8 +138,10 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
       <p className="settings-card__hint">
         Imposta un valore di riferimento per attività, sigarette, uscite e alimentazione: per le
         prime tre lo vedrai come linea nei grafici del Report, per l'alimentazione come conteggio
-        "X/obiettivo" accanto a ogni riga. Le modifiche valgono da questo mese in poi; i mesi
-        passati mantengono l'obiettivo che avevano allora.
+        "X/obiettivo" accanto a ogni riga. Per le attività scegli anche se superare l'obiettivo è
+        un bene o un male: nel grafico la zona sopra e sotto la linea si colora di verde/rosso di
+        conseguenza. Le modifiche valgono da questo mese in poi; i mesi passati mantengono
+        l'obiettivo che avevano allora.
       </p>
       {activities.map((a) => (
         <DurationGoalRow
@@ -124,7 +150,7 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
           label={a.name}
           swatchColor={colorVar(a.colorSlot)}
           goal={goalForMonth(goals, a.id, monthIso)}
-          onSave={(itemKey, period, value) => onSetGoal(itemKey, monthIso, period, value)}
+          onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
         />
       ))}
       <CountGoalRow

@@ -329,14 +329,17 @@ export function useHabitData() {
   // --- Goals (per item, versioned month by month) ---
 
   const setGoal = useCallback(
-    (itemKey, month, period, value) => {
+    (itemKey, month, period, value, direction) => {
       setGoalsMeta((prev) => {
         const idx = prev.findIndex((g) => !g.deleted && g.itemKey === itemKey && g.month === month)
         if (idx === -1) {
-          return [...prev, { id: makeGoalId(), itemKey, month, period, value, updatedAt: Date.now(), deleted: false }]
+          return [
+            ...prev,
+            { id: makeGoalId(), itemKey, month, period, value, direction, updatedAt: Date.now(), deleted: false },
+          ]
         }
         const next = [...prev]
-        next[idx] = { ...next[idx], period, value, updatedAt: Date.now() }
+        next[idx] = { ...next[idx], period, value, direction, updatedAt: Date.now() }
         return next
       })
       scheduleSync()

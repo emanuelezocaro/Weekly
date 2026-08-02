@@ -1,15 +1,18 @@
 import { formatMonthShort, toMonthISO } from '../utils/date'
-import { goalForMonth, goalPerBar } from '../utils/goals'
+import { goalDirection, goalForMonth, goalPerBar } from '../utils/goals'
 
-// Draws a dashed reference line at the goal's height on a bar chart. Tags it
-// with the month when showing a past month's (historical) goal, so it
-// doesn't silently look like today's.
-export default function GoalLine({ goals, itemKey, monthIso, barGranularity, maxValue, formatValue }) {
+// Draws a dashed reference line at the goal's height on a bar chart, plus two
+// background bands showing which side is good and which is bad -- flipped
+// depending on the goal's direction (more hours of "Lavoro" is good, more
+// hours of "Social" is bad). Tags the line with the month when showing a
+// past month's (historical) goal, so it doesn't silently look like today's.
+export default function GoalLine({ goals, itemKey, monthIso, barGranularity, maxValue, formatValue, direction }) {
   const goal = goalForMonth(goals, itemKey, monthIso)
   if (!goal || maxValue <= 0) return null
   const target = goalPerBar(goal, barGranularity)
   if (!target) return null
   const bottomPct = Math.min(100, Math.max(0, (target / maxValue) * 100))
+  const higherIsBetter = (direction ?? goalDirection(goal)) !== 'lower_is_better'
 
   const unit = goal.period === 'day' ? 'g' : 'sett'
   // Tag with the month the goal record actually belongs to, not the month
@@ -18,12 +21,19 @@ export default function GoalLine({ goals, itemKey, monthIso, barGranularity, max
   const isCurrentMonth = goal.month === toMonthISO(new Date())
   const monthTag = isCurrentMonth ? '' : ` · ${formatMonthShort(goal.month)}`
 
+  const aboveLine = { bottom: `${bottomPct}%`, top: 0 }
+  const belowLine = { top: `${100 - bottomPct}%`, bottom: 0 }
+
   return (
-    <div className="goal-line" style={{ bottom: `${bottomPct}%` }}>
-      <span className="goal-line__tag">
-        Obiettivo {formatValue(goal.value)}/{unit}
-        {monthTag}
-      </span>
-    </div>
+    <>
+      <div className="goal-zone goal-zone--good" style={higherIsBetter ? aboveLine : belowLine} />
+      <div className="goal-zone goal-zone--bad" style={higherIsBetter ? belowLine : aboveLine} />
+      <div className="goal-line" style={{ bottom: `${bottomPct}%` }}>
+        <span className="goal-line__tag">
+          Obiettivo {formatValue(goal.value)}/{unit}
+          {monthTag}
+        </span>
+      </div>
+    </>
   )
 }

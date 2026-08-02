@@ -76,6 +76,7 @@ export default function CigarettesReportCard({ cigarettes, days, period, goals }
           barGranularity={period === 'quarter' ? 'week' : 'day'}
           maxValue={maxValue}
           formatValue={(v) => String(v)}
+          direction="lower_is_better"
         />
         <div className="trend-chart__bars">
           {bars.map((b) => {

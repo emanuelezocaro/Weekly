@@ -10,7 +10,7 @@ import {
   toMonthISO,
 } from './date'
 import { activityStats } from './entries'
-import { goalForMonth, goalPerBar, minutesToHours } from './goals'
+import { goalForMonth, goalPerBar, isGoalMet, minutesToHours } from './goals'
 
 const FOOD_FIELDS = [
   { key: 'colazione', label: 'Colazione', goalKey: 'food_colazione' },
@@ -52,7 +52,7 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
     let note = ''
     if (goal) {
       const weeklyTargetMinutes = goalPerBar(goal, 'week')
-      const met = s.totalMs / 60000 >= weeklyTargetMinutes
+      const met = isGoalMet(goal, s.totalMs / 60000, weeklyTargetMinutes)
       note = ` (obiettivo ${minutesToHours(goal.value)}h/${goalPeriodLabel(goal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
     }
     lines.push(`- ${s.name}: ${formatDuration(s.totalMs)}${note}`)
