@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
 import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
@@ -7,6 +8,7 @@ import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
 const TITLES = {
+  dashboard: 'Oggi',
   calendar: 'Calendario',
   report: 'Report',
   settings: 'Impostazioni',
@@ -43,15 +45,25 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="app-header__left">
+        <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1>Weekly</h1>
           <p className="app-header__subtitle">{TITLES[tab]}</p>
-        </div>
+        </button>
         <div className="app-header__sep" />
         <TopNav active={tab} onChange={setTab} />
       </header>
 
       <main className="app-main">
+        {tab === 'dashboard' && (
+          <DashboardView
+            activities={activities}
+            entries={entries}
+            cigarettes={cigarettes}
+            outputs={outputs}
+            food={food}
+            goals={goals}
+          />
+        )}
         {tab === 'calendar' && (
           <DayAgenda
             activities={activities}

@@ -24,6 +24,13 @@
   flex-direction: column;
   gap: 1px;
   min-width: 0;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
 
 .app-header__left h1 {
@@ -78,6 +85,130 @@
   color: var(--text-muted);
   padding: 40px 20px;
   font-size: 14px;
+}
+
+/* Dashboard ("Oggi") */
+.dash-date {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.dash-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.dash-section-title:not(:first-of-type) {
+  margin-top: 20px;
+}
+
+.dash-section-title__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dash-section-title__dot--bad {
+  background: var(--series-6);
+}
+
+.dash-section-title__dot--good {
+  background: var(--series-2);
+}
+
+.dash-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+}
+
+.dash-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dash-card__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dash-card__name {
+  font-weight: 700;
+  font-size: 14px;
+  flex: 1;
+}
+
+.dash-card__period {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  padding: 2px 7px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.dash-card__gap {
+  font-size: 13.5px;
+  margin: 0 0 8px;
+}
+
+.dash-card__bar-track {
+  height: 6px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.dash-card__bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--series-6);
+}
+
+.dash-good-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dash-good-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 10px 5px 8px;
+}
+
+.dash-good-pill .swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dash-good-pill .check {
+  color: var(--series-2);
+  font-weight: 800;
 }
 
 .day-status {
