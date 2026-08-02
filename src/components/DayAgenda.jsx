@@ -213,6 +213,15 @@ function OutputsCard({ dayOutputs, onAdd, onRemove }) {
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Uscite</h2>
+      <form className="outputs-add-row" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Es. Fattura inviata a..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button type="submit">Aggiungi</button>
+      </form>
       <p className="settings-card__hint">
         Cose uscite dalle mie mani oggi.
         <br />
@@ -228,15 +237,6 @@ function OutputsCard({ dayOutputs, onAdd, onRemove }) {
         <br />
         Test: qualcun altro sa che è successo? Se no, non è un'uscita.
       </p>
-      <form className="add-activity__row" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Es. Fattura inviata a..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button type="submit">Aggiungi</button>
-      </form>
       {dayOutputs.length > 0 && (
         <ul className="outputs-list">
           {dayOutputs.map((o) => (

@@ -783,6 +783,31 @@
   cursor: pointer;
 }
 
+.outputs-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.outputs-add-row input {
+  flex: 1;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 16px;
+}
+
+.outputs-add-row button {
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .activity-manage-list {
   list-style: none;
   margin: 0;
