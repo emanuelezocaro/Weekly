@@ -30,6 +30,22 @@ function paceTarget(goal, elapsedDaysCount) {
   return goal.period === 'day' ? goal.value : (goal.value / 7) * elapsedDaysCount
 }
 
+// Days from today through the end of this week that don't have a value yet
+// for `field` -- a day already rated (good or not) has used its one slot,
+// so it's not a chance to still catch up, unlike a day that's still blank.
+function openDaysThisWeek(records, field, now) {
+  const todayIso = toISODate(now)
+  const weekStart = startOfWeek(now)
+  let count = 0
+  for (let i = 0; i < 7; i++) {
+    const dayIso = toISODate(addDays(weekStart, i))
+    if (dayIso < todayIso) continue
+    const rec = records.find((r) => r.date === dayIso)
+    if (!rec || !rec[field]) count += 1
+  }
+  return count
+}
+
 function behindPhrase(direction, diffLabel, targetLabel) {
   return direction === 'lower_is_better'
     ? `Hai fatto ${diffLabel} in più rispetto al tuo obiettivo di ${targetLabel}`
@@ -48,21 +64,21 @@ function metPhrase(direction, diffLabel, targetLabel, actualLabel) {
 
 // For goals where each day can only move the needle by so much (e.g. one
 // "colazione buona" per day), catching up stops being possible once what's
-// still missing exceeds what the remaining days could even provide -- at
-// that point it's not "behind", it's already lost for this week, and no
-// amount of "recupera" framing is honest. `maxPerDay` is omitted for items
-// without a meaningful per-day ceiling (hours, Uscite), which skips this
-// check entirely.
-function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysCount, fallbackDirection, formatDiff, maxPerDay }) {
+// still missing exceeds how many such days are still open -- at that point
+// it's not "behind", it's already lost for this week, and no amount of
+// "recupera" framing is honest. `remainingCapacity` is precomputed by the
+// caller (it needs day-by-day data this function doesn't have) and omitted
+// for items without a meaningful per-day ceiling (hours, Uscite), which
+// skips this check entirely.
+function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysCount, fallbackDirection, formatDiff, remainingCapacity }) {
   const target = paceTarget(goal, elapsedDaysCount)
   const direction = goalDirection(goal, fallbackDirection)
   const met = isGoalMet(goal, actual, target, fallbackDirection)
 
   let status = met ? 'met' : 'behind'
-  if (!met && direction === 'higher_is_better' && goal.period === 'week' && maxPerDay !== undefined) {
-    const remainingDays = 7 - elapsedDaysCount + 1
+  if (!met && direction === 'higher_is_better' && goal.period === 'week' && remainingCapacity !== undefined) {
     const stillMissing = goal.value - actual
-    if (stillMissing > remainingDays * maxPerDay) status = 'failed'
+    if (stillMissing > remainingCapacity) status = 'failed'
   }
 
   const paceDiff = direction === 'lower_is_better' ? actual - target : target - actual
@@ -172,7 +188,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         elapsedDaysCount: days.length,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
-        maxPerDay: 1,
+        remainingCapacity: goal.period === 'week' ? openDaysThisWeek(food, field.key, now) : undefined,
       }),
     )
   }
@@ -192,7 +208,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         elapsedDaysCount: days.length,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
-        maxPerDay: 1,
+        remainingCapacity: extraGoal.period === 'week' ? openDaysThisWeek(food, 'extra', now) : undefined,
       }),
     )
   }
