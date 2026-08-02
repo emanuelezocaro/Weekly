@@ -144,7 +144,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </button>
       </div>
 
-      {period === 'month' && (
+      {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
         <div className="month-summary">
           <div className="backup-card__actions">
             <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
