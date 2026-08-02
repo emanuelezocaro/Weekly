@@ -15,7 +15,7 @@ const TITLES = {
 }
 
 function App() {
-  const [tab, setTab] = useState('calendar')
+  const [tab, setTab] = useState('dashboard')
   const {
     activities,
     entries,
