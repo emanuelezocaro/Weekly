@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { formatFullDate } from '../utils/date'
-import { buildDashboardItems } from '../utils/dashboard'
+import { buildDashboardItems, dashboardMotivation } from '../utils/dashboard'
 
 const TABS = [
   { id: 'behind', label: 'Recuperare' },
@@ -88,7 +87,6 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
       <div className="view">
-        <p className="dash-date">{formatFullDate(now)}</p>
         <p className="empty-state">
           Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento della settimana.
         </p>
@@ -102,7 +100,7 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
 
   return (
     <div className="view">
-      <p className="dash-date">{formatFullDate(now)}</p>
+      <p className="dash-motivation">{dashboardMotivation({ behind, failed, onTrack })}</p>
 
       <div className="segmented">
         {TABS.map((t) => (

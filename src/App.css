@@ -88,12 +88,12 @@
 }
 
 /* Dashboard ("Oggi") */
-.dash-date {
-  font-size: 13px;
-  color: var(--text-muted);
+.dash-motivation {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
   margin: 0 0 16px;
   text-align: center;
-  text-transform: capitalize;
 }
 
 .dash-card {

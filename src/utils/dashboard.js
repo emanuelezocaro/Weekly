@@ -259,3 +259,20 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
 
   return { behind, failed, onTrack }
 }
+
+// A short, honest read of how the day is going -- acknowledges a setback
+// without dwelling on it, and gives credit for what's already on track.
+export function dashboardMotivation({ behind, failed, onTrack }) {
+  if (failed.length > 0) {
+    return "Qualcosa oggi non ce l'ha fatta, ma il resto della settimana è ancora tuo."
+  }
+  if (behind.length > 0 && onTrack.length === 0) {
+    return behind.length === 1
+      ? 'Una cosa da recuperare: sei ancora in tempo.'
+      : `${behind.length} cose da recuperare: sei ancora in tempo.`
+  }
+  if (behind.length > 0 && onTrack.length > 0) {
+    return "Bene su diversi fronti, ma c'è ancora qualcosa da recuperare."
+  }
+  return 'Tutto in pace oggi: continua così.'
+}
