@@ -45,6 +45,35 @@ export function resolveOverlaps(entries, changedId, now = new Date()) {
   })
 }
 
+// Defensive sweep for imported data: unlike resolveOverlaps (which only
+// trims the neighbors of a single just-edited entry), this walks every
+// entry in chronological order and trims any that bleed into the next one.
+// A backup file can contain overlapping entries from outside the app's own
+// edit path -- a hand-built reconstruction, a merge of two exports, a bug
+// in whatever produced it -- and without this sweep, overlapping entries
+// silently double-count their shared minutes in every total.
+export function resolveAllOverlaps(entries, now = new Date()) {
+  const nowMs = Date.now()
+  const sorted = entries
+    .filter((e) => !e.deleted)
+    .map((e) => ({ ...e }))
+    .sort((a, b) => parseISODateTime(a.start) - parseISODateTime(b.start))
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const cur = sorted[i]
+    const next = sorted[i + 1]
+    const curEnd = cur.end ? parseISODateTime(cur.end) : now
+    const nextStart = parseISODateTime(next.start)
+    if (curEnd > nextStart) {
+      cur.end = next.start
+      cur.updatedAt = nowMs
+    }
+  }
+
+  const byId = new Map(sorted.map((e) => [e.id, e]))
+  return entries.map((e) => byId.get(e.id) ?? e)
+}
+
 function effectiveEnd(entry, now) {
   return entry.end ? parseISODateTime(entry.end) : now
 }

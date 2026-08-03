@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { closeStaleOpenEntries, deleteEntry, makeEntryId, resolveOverlaps, updateEntry } from '../utils/entries'
+import {
+  closeStaleOpenEntries,
+  deleteEntry,
+  makeEntryId,
+  resolveAllOverlaps,
+  resolveOverlaps,
+  updateEntry,
+} from '../utils/entries'
 import { APP_START_DATE, parseISODateTime } from '../utils/date'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
@@ -294,7 +301,7 @@ export function useHabitData() {
       throw new Error('File di backup non valido')
     }
     setActivitiesMeta(parsed.activities)
-    setEntriesMeta(closeStaleOpenEntries(parsed.entries))
+    setEntriesMeta(closeStaleOpenEntries(resolveAllOverlaps(parsed.entries)))
     setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
     setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
