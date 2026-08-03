@@ -39,23 +39,22 @@ function HourMarks() {
         opacity={isMajor ? 0.7 : 0.35}
       />,
     )
-    if (isMajor) {
-      const labelPt = pointAt(frac, RADIUS + STROKE / 2 + 21)
-      marks.push(
-        <text
-          key={`label-${h}`}
-          x={labelPt.x}
-          y={labelPt.y}
-          fontSize="11"
-          fontWeight="700"
-          fill="var(--text-muted)"
-          textAnchor="middle"
-          dominantBaseline="middle"
-        >
-          {h}
-        </text>,
-      )
-    }
+    const labelPt = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 21 : 18))
+    marks.push(
+      <text
+        key={`label-${h}`}
+        x={labelPt.x}
+        y={labelPt.y}
+        fontSize={isMajor ? '11' : '8.5'}
+        fontWeight={isMajor ? '700' : '500'}
+        fill="var(--text-muted)"
+        opacity={isMajor ? 1 : 0.65}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {h}
+      </text>,
+    )
   }
   return <>{marks}</>
 }
