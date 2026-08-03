@@ -414,7 +414,7 @@ export default function DayAgenda({
   }
 
   return (
-    <div className="panel">
+    <div className="panel" {...swipeHandlers}>
       <div className="segmented">
         {DAY_TABS.map((t) => (
           <button
@@ -429,7 +429,7 @@ export default function DayAgenda({
         ))}
       </div>
 
-      <div {...swipeHandlers}>
+      <>
         {activeTab === 'outputs' && (
           <OutputsCard
             dayOutputs={dayOutputs}
@@ -564,7 +564,7 @@ export default function DayAgenda({
               </ul>
             </>
           ))}
-      </div>
+      </>
     </div>
   )
 }

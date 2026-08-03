@@ -120,7 +120,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   }
 
   return (
-    <div className="view">
+    <div className="view" {...swipeHandlers}>
       <div className="segmented-sticky-wrap">
         <div className="segmented">
           {PERIODS.map((p) => (
@@ -136,7 +136,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </div>
       </div>
 
-      <div {...swipeHandlers}>
+      <>
         {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
           <div className="month-summary">
             <div className="backup-card__actions">
@@ -165,7 +165,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
           period={period}
           goals={goals}
         />
-      </div>
+      </>
     </div>
   )
 }
