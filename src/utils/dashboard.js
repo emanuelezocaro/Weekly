@@ -1,6 +1,6 @@
 import { addDays, formatDuration, startOfWeek, toISODate, toMonthISO } from './date'
 import { aggregateDuration } from './entries'
-import { goalDirection, goalForMonth, isGoalMet } from './goals'
+import { goalDirection, goalForMonth, isGoalMet, isGoalTracked } from './goals'
 import { colorVar } from './palette'
 
 const FOOD_FIELDS = [
@@ -77,10 +77,19 @@ function buildItem({
   if (direction === 'lower_is_better') {
     status = actual > fullWeekQuota ? 'failed' : actual <= target ? 'met' : 'behind'
   } else {
-    const met = isGoalMet(goal, actual, target, fallbackDirection)
+    const paceMet = isGoalMet(goal, actual, target, fallbackDirection)
+    // Con alwaysFullWeekTarget il verdetto "successo" richiede il traguardo
+    // pieno, non solo il ritmo -- essere in pari col ritmo del lunedì non è
+    // ancora un vero successo per un obiettivo a settimana.
+    const met = alwaysFullWeekTarget ? actual >= fullWeekQuota : paceMet
     status = met ? 'met' : 'behind'
-    if (!met && remainingCapacity !== undefined && fullWeekQuota - actual > remainingCapacity) status = 'failed'
+    if (!paceMet && remainingCapacity !== undefined && fullWeekQuota - actual > remainingCapacity) status = 'failed'
   }
+
+  // Con alwaysFullWeekTarget, lo stato "behind" (ci sto ancora provando, non
+  // è né un successo né un fallimento reale) non va mostrato da nessuna
+  // parte: niente rumore a metà settimana, solo un verdetto vero.
+  if (alwaysFullWeekTarget && status === 'behind') return null
 
   const roundedActual = round(actual)
   let displayTarget, diffStatLabel, diffValue
@@ -156,97 +165,92 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
   const isoWeekDays = new Set(weekDays.map(toISODate))
   const elapsedDaysThisWeek = weekDays.length
 
+  function pushItem(args) {
+    const item = buildItem(args)
+    if (item) items.push(item)
+  }
+
   for (const activity of activities) {
     const goal = goalForMonth(goals, activity.id, monthIso)
-    if (!goal) continue
+    if (!goal || !isGoalTracked(goal)) continue
     const totals = aggregateDuration(entries, weekDays[0], addDays(weekDays[weekDays.length - 1], 1), now)
     const actualMinutes = (totals.get(activity.id) || 0) / 60000
-    items.push(
-      buildItem({
-        key: activity.id,
-        label: activity.name,
-        swatchColor: colorVar(activity.colorSlot),
-        goal,
-        actual: actualMinutes,
-        elapsedDaysThisWeek,
-        fallbackDirection: 'higher_is_better',
-        formatDiff: formatHours,
-        round: roundMinutes,
-      }),
-    )
+    pushItem({
+      key: activity.id,
+      label: activity.name,
+      swatchColor: colorVar(activity.colorSlot),
+      goal,
+      actual: actualMinutes,
+      elapsedDaysThisWeek,
+      fallbackDirection: 'higher_is_better',
+      formatDiff: formatHours,
+      round: roundMinutes,
+    })
   }
 
   const cigGoal = goalForMonth(goals, 'cigarettes', monthIso)
-  if (cigGoal) {
+  if (cigGoal && isGoalTracked(cigGoal)) {
     const actual = cigarettes.filter((c) => isoWeekDays.has(c.date)).reduce((sum, c) => sum + c.count, 0)
-    items.push(
-      buildItem({
-        key: 'cigarettes',
-        label: 'Sigarette',
-        swatchColor: 'var(--series-1)',
-        goal: cigGoal,
-        actual,
-        elapsedDaysThisWeek,
-        fallbackDirection: 'lower_is_better',
-        formatDiff: formatCount,
-      }),
-    )
+    pushItem({
+      key: 'cigarettes',
+      label: 'Sigarette',
+      swatchColor: 'var(--series-1)',
+      goal: cigGoal,
+      actual,
+      elapsedDaysThisWeek,
+      fallbackDirection: 'lower_is_better',
+      formatDiff: formatCount,
+    })
   }
 
   const outputsGoal = goalForMonth(goals, 'outputs', monthIso)
-  if (outputsGoal) {
+  if (outputsGoal && isGoalTracked(outputsGoal)) {
     const actual = outputs.filter((o) => isoWeekDays.has(o.date)).length
-    items.push(
-      buildItem({
-        key: 'outputs',
-        label: 'Uscite',
-        swatchColor: 'var(--accent)',
-        goal: outputsGoal,
-        actual,
-        elapsedDaysThisWeek,
-        fallbackDirection: 'higher_is_better',
-        formatDiff: formatCount,
-      }),
-    )
+    pushItem({
+      key: 'outputs',
+      label: 'Uscite',
+      swatchColor: 'var(--accent)',
+      goal: outputsGoal,
+      actual,
+      elapsedDaysThisWeek,
+      fallbackDirection: 'higher_is_better',
+      formatDiff: formatCount,
+    })
   }
 
   for (const field of FOOD_FIELDS) {
     const goal = goalForMonth(goals, field.goalKey, monthIso)
-    if (!goal) continue
+    if (!goal || !isGoalTracked(goal)) continue
     const actual = food.filter((f) => isoWeekDays.has(f.date) && f[field.key] === 'good').length
-    items.push(
-      buildItem({
-        key: field.goalKey,
-        label: field.label,
-        swatchColor: 'var(--series-2)',
-        goal,
-        actual,
-        elapsedDaysThisWeek,
-        fallbackDirection: 'higher_is_better',
-        formatDiff: formatCount,
-        remainingCapacity: openDaysThisWeek(food, field.key, now),
-        alwaysFullWeekTarget: true,
-      }),
-    )
+    pushItem({
+      key: field.goalKey,
+      label: field.label,
+      swatchColor: 'var(--series-2)',
+      goal,
+      actual,
+      elapsedDaysThisWeek,
+      fallbackDirection: 'higher_is_better',
+      formatDiff: formatCount,
+      remainingCapacity: openDaysThisWeek(food, field.key, now),
+      alwaysFullWeekTarget: true,
+    })
   }
 
   const extraGoal = goalForMonth(goals, 'food_extra', monthIso)
-  if (extraGoal) {
+  if (extraGoal && isGoalTracked(extraGoal)) {
     const actual = food.filter((f) => isoWeekDays.has(f.date) && f.extra === 'no').length
-    items.push(
-      buildItem({
-        key: 'food_extra',
-        label: 'Extra evitato',
-        swatchColor: 'var(--series-2)',
-        goal: extraGoal,
-        actual,
-        elapsedDaysThisWeek,
-        fallbackDirection: 'higher_is_better',
-        formatDiff: formatCount,
-        remainingCapacity: openDaysThisWeek(food, 'extra', now),
-        alwaysFullWeekTarget: true,
-      }),
-    )
+    pushItem({
+      key: 'food_extra',
+      label: 'Extra evitato',
+      swatchColor: 'var(--series-2)',
+      goal: extraGoal,
+      actual,
+      elapsedDaysThisWeek,
+      fallbackDirection: 'higher_is_better',
+      formatDiff: formatCount,
+      remainingCapacity: openDaysThisWeek(food, 'extra', now),
+      alwaysFullWeekTarget: true,
+    })
   }
 
   const behind = items.filter((i) => i.status === 'behind')

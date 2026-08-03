@@ -10,7 +10,14 @@ const GOAL_PERIODS = [
 const GOAL_DIRECTIONS = [
   { id: 'higher_is_better', label: 'Più è meglio ↑' },
   { id: 'lower_is_better', label: 'Meno è meglio ↓' },
+  { id: 'none', label: 'Nessun obiettivo (solo traccia)' },
 ]
+
+function directionClass(direction) {
+  if (direction === 'lower_is_better') return 'is-bad'
+  if (direction === 'none') return 'is-neutral'
+  return 'is-good'
+}
 
 function PeriodSelect({ period, onChange }) {
   return (
@@ -27,7 +34,7 @@ function PeriodSelect({ period, onChange }) {
 function DirectionSelect({ direction, onChange }) {
   return (
     <select
-      className={`goal-row__select ${direction === 'lower_is_better' ? 'is-bad' : 'is-good'}`}
+      className={`goal-row__select ${directionClass(direction)}`}
       value={direction}
       onChange={(e) => onChange(e.target.value)}
     >

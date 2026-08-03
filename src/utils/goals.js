@@ -35,6 +35,13 @@ export function isGoalMet(goal, actualValue, target, fallback = 'higher_is_bette
   return goalDirection(goal, fallback) === 'lower_is_better' ? actualValue <= target : actualValue >= target
 }
 
+// A goal set to "none" is tracked (value/period still recorded) but not
+// judged -- it should stay out of the Dashboard and lose the goal line /
+// trend indicator in the Report, as if no goal existed for evaluation.
+export function isGoalTracked(goal) {
+  return goal?.direction !== 'none'
+}
+
 // Scales a goal (expressed per day or per week) to a target for an arbitrary
 // number of days, so a card showing e.g. a whole month can compare its total
 // against a same-shape target instead of only per-bar amounts.

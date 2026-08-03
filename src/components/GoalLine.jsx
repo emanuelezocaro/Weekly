@@ -8,7 +8,7 @@ import { goalDirection, goalForMonth, goalPerBar } from '../utils/goals'
 // past month's (historical) goal, so it doesn't silently look like today's.
 export default function GoalLine({ goals, itemKey, monthIso, barGranularity, maxValue, formatValue, direction }) {
   const goal = goalForMonth(goals, itemKey, monthIso)
-  if (!goal || maxValue <= 0) return null
+  if (!goal || goal.direction === 'none' || maxValue <= 0) return null
   const target = goalPerBar(goal, barGranularity)
   if (!target) return null
   const bottomPct = Math.min(100, Math.max(0, (target / maxValue) * 100))

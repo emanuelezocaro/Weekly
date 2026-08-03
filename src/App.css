@@ -923,6 +923,10 @@
   color: var(--series-6);
 }
 
+.goal-row__select.is-neutral {
+  color: var(--text-muted);
+}
+
 .goal-row__value {
   flex: 0 0 46px;
   width: 46px;

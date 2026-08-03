@@ -10,7 +10,7 @@ export default function GoalTrendIndicator({
   fallbackDirection = 'higher_is_better',
   formatDiff = (n) => String(Math.round(n)),
 }) {
-  if (!goal || target === null || target === undefined) return null
+  if (!goal || goal.direction === 'none' || target === null || target === undefined) return null
   const met = isGoalMet(goal, actual, target, fallbackDirection)
   if (met) return <span className="goal-trend is-good">▲</span>
   const diff = actual - target
