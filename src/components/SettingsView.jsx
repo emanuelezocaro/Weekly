@@ -24,6 +24,13 @@ function ColorPicker({ value, onChange }) {
 const APP_URL = 'https://emanuelezocaro.github.io/Weekly/'
 const REPO_URL = 'https://github.com/emanuelezocaro/Weekly'
 
+const SETTINGS_TABS = [
+  { id: 'goals', label: 'Obiettivi' },
+  { id: 'activities', label: 'Attività' },
+  { id: 'backup', label: 'Backup' },
+  { id: 'app', label: 'App' },
+]
+
 export default function SettingsView({
   activities,
   onAdd,
@@ -34,6 +41,7 @@ export default function SettingsView({
   goals,
   onSetGoal,
 }) {
+  const [tab, setTab] = useState('goals')
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
   const [editingId, setEditingId] = useState(null)
@@ -89,106 +97,127 @@ export default function SettingsView({
 
   return (
     <div className="view">
-      <GoalsCard activities={activities} goals={goals} monthIso={toMonthISO(new Date())} onSetGoal={onSetGoal} />
+      <div className="segmented">
+        {SETTINGS_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`segmented__item ${tab === t.id ? 'is-active' : ''}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <section className="settings-card">
-        <h2 className="settings-card__title">Nuova attività</h2>
-        <form className="add-activity" onSubmit={handleAdd}>
-          <div className="add-activity__row">
-            <input
-              type="text"
-              placeholder="Nuova attività (es. Meditazione)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <button type="submit">Aggiungi</button>
-          </div>
-          <ColorPicker value={colorSlot} onChange={setColorSlot} />
-        </form>
+      {tab === 'goals' && (
+        <GoalsCard activities={activities} goals={goals} monthIso={toMonthISO(new Date())} onSetGoal={onSetGoal} />
+      )}
 
-        <ul className="activity-manage-list">
-          {activities.map((activity) => (
-            <li key={activity.id} className="activity-manage-row">
-              {editingId === activity.id ? (
-                <div className="activity-manage-row__edit">
-                  <div className="add-activity__row">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      autoFocus
+      {tab === 'activities' && (
+        <section className="settings-card">
+          <h2 className="settings-card__title">Nuova attività</h2>
+          <form className="add-activity" onSubmit={handleAdd}>
+            <div className="add-activity__row">
+              <input
+                type="text"
+                placeholder="Nuova attività (es. Meditazione)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button type="submit">Aggiungi</button>
+            </div>
+            <ColorPicker value={colorSlot} onChange={setColorSlot} />
+          </form>
+
+          <ul className="activity-manage-list">
+            {activities.map((activity) => (
+              <li key={activity.id} className="activity-manage-row">
+                {editingId === activity.id ? (
+                  <div className="activity-manage-row__edit">
+                    <div className="add-activity__row">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        autoFocus
+                      />
+                      <button type="button" onClick={() => saveEdit(activity.id)}>
+                        Salva
+                      </button>
+                    </div>
+                    <ColorPicker value={editColorSlot} onChange={setEditColorSlot} />
+                  </div>
+                ) : (
+                  <>
+                    <span
+                      className="activity-manage-row__swatch"
+                      style={{ background: colorVar(activity.colorSlot) }}
                     />
-                    <button type="button" onClick={() => saveEdit(activity.id)}>
-                      Salva
-                    </button>
-                  </div>
-                  <ColorPicker value={editColorSlot} onChange={setEditColorSlot} />
-                </div>
-              ) : (
-                <>
-                  <span
-                    className="activity-manage-row__swatch"
-                    style={{ background: colorVar(activity.colorSlot) }}
-                  />
-                  <span className="activity-manage-row__name">{activity.name}</span>
-                  <div className="activity-manage-row__actions">
-                    <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
-                      Modifica
-                    </button>
-                    <button
-                      type="button"
-                      className="text-btn text-btn--danger"
-                      onClick={() => {
-                        if (confirm(`Eliminare "${activity.name}"? Verrà rimosso anche lo storico.`)) {
-                          onDelete(activity.id)
-                        }
-                      }}
-                    >
-                      Elimina
-                    </button>
-                  </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+                    <span className="activity-manage-row__name">{activity.name}</span>
+                    <div className="activity-manage-row__actions">
+                      <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
+                        Modifica
+                      </button>
+                      <button
+                        type="button"
+                        className="text-btn text-btn--danger"
+                        onClick={() => {
+                          if (confirm(`Eliminare "${activity.name}"? Verrà rimosso anche lo storico.`)) {
+                            onDelete(activity.id)
+                          }
+                        }}
+                      >
+                        Elimina
+                      </button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      <section className="settings-card">
-        <h2 className="settings-card__title">Backup</h2>
-        <p className="settings-card__hint">
-          Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
-          e da usare per riportare i dati su un nuovo telefono.
-        </p>
-        <div className="backup-card__actions">
-          <button type="button" onClick={handleExport}>
-            Esporta backup
-          </button>
-          <button type="button" className="backup-card__secondary" onClick={handleImportClick}>
-            Importa backup
-          </button>
-        </div>
-        {backupMessage && <p className="backup-card__message">{backupMessage}</p>}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          onChange={handleImportFile}
-          hidden
-        />
-      </section>
+      {tab === 'backup' && (
+        <section className="settings-card">
+          <h2 className="settings-card__title">Backup</h2>
+          <p className="settings-card__hint">
+            Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
+            e da usare per riportare i dati su un nuovo telefono.
+          </p>
+          <div className="backup-card__actions">
+            <button type="button" onClick={handleExport}>
+              Esporta backup
+            </button>
+            <button type="button" className="backup-card__secondary" onClick={handleImportClick}>
+              Importa backup
+            </button>
+          </div>
+          {backupMessage && <p className="backup-card__message">{backupMessage}</p>}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={handleImportFile}
+            hidden
+          />
+        </section>
+      )}
 
-      <section className="settings-card">
-        <h2 className="settings-card__title">App e codice</h2>
-        <div className="link-list">
-          <a href={APP_URL} target="_blank" rel="noreferrer" className="link-list__item">
-            Apri l'app (URL pubblico)
-          </a>
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="link-list__item">
-            Repository su GitHub
-          </a>
-        </div>
-      </section>
+      {tab === 'app' && (
+        <section className="settings-card">
+          <h2 className="settings-card__title">App e codice</h2>
+          <div className="link-list">
+            <a href={APP_URL} target="_blank" rel="noreferrer" className="link-list__item">
+              Apri l'app (URL pubblico)
+            </a>
+            <a href={REPO_URL} target="_blank" rel="noreferrer" className="link-list__item">
+              Repository su GitHub
+            </a>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

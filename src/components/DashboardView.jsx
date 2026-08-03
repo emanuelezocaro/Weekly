@@ -80,13 +80,35 @@ function MetCard({ item }) {
 
 const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 
-export default function DashboardView({ activities, entries, cigarettes, outputs, food, goals, now = new Date() }) {
+function MonthReminder({ onOpenSettings }) {
+  return (
+    <div className="dash-reminder">
+      <span>È il primo del mese: rivedi e aggiorna i tuoi obiettivi.</span>
+      <button type="button" className="text-btn" onClick={onOpenSettings}>
+        Vai a Impostazioni
+      </button>
+    </div>
+  )
+}
+
+export default function DashboardView({
+  activities,
+  entries,
+  cigarettes,
+  outputs,
+  food,
+  goals,
+  now = new Date(),
+  onOpenSettings,
+}) {
   const { behind, failed, onTrack } = buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now })
   const [tab, setTab] = useState('behind')
+  const isFirstOfMonth = now.getDate() === 1
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
       <div className="view">
+        {isFirstOfMonth && <MonthReminder onOpenSettings={onOpenSettings} />}
         <p className="empty-state">
           Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento della settimana.
         </p>
@@ -100,6 +122,7 @@ export default function DashboardView({ activities, entries, cigarettes, outputs
 
   return (
     <div className="view">
+      {isFirstOfMonth && <MonthReminder onOpenSettings={onOpenSettings} />}
       <p className="dash-motivation">{dashboardMotivation({ behind, failed, onTrack })}</p>
 
       <div className="segmented">

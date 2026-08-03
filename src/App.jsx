@@ -63,6 +63,7 @@ function App() {
             outputs={outputs}
             food={food}
             goals={goals}
+            onOpenSettings={() => setTab('settings')}
           />
         )}
         {tab === 'calendar' && (

@@ -104,6 +104,21 @@
   text-align: center;
 }
 
+.dash-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
 .dash-card {
   border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
   border-radius: var(--radius);
