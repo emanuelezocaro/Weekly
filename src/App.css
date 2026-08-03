@@ -486,20 +486,140 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px dashed var(--border);
-  background: none;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent-bg);
   cursor: pointer;
   text-align: left;
-  font-size: 12.5px;
-  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .timeline__gap-action {
   flex-shrink: 0;
+  font-weight: 800;
+  font-size: 12.5px;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  padding: 7px 13px;
+  border-radius: 999px;
+}
+
+.add-block__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 15.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.add-block__cta-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.14);
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Day clock (analog view of the day's blocks) */
+.day-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-clock__svg {
+  width: min(78vw, 300px);
+  height: min(78vw, 300px);
+}
+
+.day-clock__segment {
+  cursor: pointer;
+  transition: stroke-width 0.15s ease, opacity 0.15s ease;
+}
+
+.day-clock__caption {
+  margin: 0;
+  min-height: 18px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.day-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.day-breakdown__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-breakdown__swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-breakdown__name {
+  width: 84px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-breakdown__bar-track {
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.day-breakdown__bar-fill {
+  height: 100%;
+  border-radius: 5px;
+}
+
+.day-breakdown__pct {
+  width: 34px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-breakdown__row.is-notdone .day-breakdown__name,
+.day-breakdown__row.is-notdone .day-breakdown__pct {
+  color: var(--text-muted);
 }
 
 .timeline__item .quarter-select {

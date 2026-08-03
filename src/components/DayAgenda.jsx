@@ -16,9 +16,11 @@ import {
   toISODateTime,
 } from '../utils/date'
 import { DAY_MS, entriesForDay, findGapsForDay } from '../utils/entries'
+import { buildClockSegments, buildDayBreakdown } from '../utils/dayClock'
 import { useSwipeNav } from '../hooks/useSwipeNav'
-import { colorVar } from '../utils/palette'
 import CigarettesCard from './CigarettesCard'
+import DayBreakdownChart from './DayBreakdownChart'
+import DayClock from './DayClock'
 import FoodCard from './FoodCard'
 
 const DAY_TABS = [
@@ -67,13 +69,29 @@ function ActivitySelect({ activities, value, onChange }) {
   )
 }
 
-function activityFor(activities, id) {
-  return activities.find((a) => a.id === id)
-}
-
 function timeToMinutes(t) {
   const [h, m] = t.split(':').map(Number)
   return h * 60 + m
+}
+
+// Minute ranges (from midnight) already claimed by other blocks that day --
+// so the picker can only offer times that are actually free, instead of a
+// time that would just get silently trimmed by the overlap resolver.
+function coveredRanges(items, dayStart, excludeEntryId) {
+  return items
+    .filter((it) => it.entry.id !== excludeEntryId)
+    .map((it) => [
+      Math.round((it.clippedStart.getTime() - dayStart.getTime()) / 60000),
+      Math.round((it.clippedEnd.getTime() - dayStart.getTime()) / 60000),
+    ])
+}
+
+function isMinuteCovered(minute, ranges) {
+  return ranges.some(([s, e]) => minute >= s && minute < e)
+}
+
+function availableTimeOptions(options, ranges) {
+  return options.filter((t) => !isMinuteCovered(timeToMinutes(t), ranges))
 }
 
 // A day that's "done" is locked 48h after it ends, so old history can't be
@@ -119,12 +137,20 @@ function ActivityPicker({ activities, onPick }) {
   )
 }
 
-function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, onCloseNow }) {
+function EntryEditor({ entry, activities, dayDate, items, onSave, onDelete, onCancel, onCloseNow }) {
   const isOpen = entry.end === null
   const startDate = parseISODateTime(entry.start)
   const endDate = entry.end ? parseISODateTime(entry.end) : null
   const isStartDay = isSameDay(startDate, dayDate)
   const isEndDay = endDate ? isSameDay(endDate, dayDate) : false
+
+  // Times already claimed by other blocks that day are hidden from both
+  // pickers -- this entry's own current slot stays selectable (excluded by
+  // id), everyone else's doesn't, so you can't pick a time that would just
+  // get silently trimmed by the overlap resolver.
+  const ranges = coveredRanges(items, startOfDay(dayDate), entry.id)
+  const startOptions = availableTimeOptions(HALF_HOUR_OPTIONS, ranges)
+  const endOptions = availableTimeOptions(END_TIME_OPTIONS, ranges)
 
   const [activityId, setActivityId] = useState(entry.activityId)
   const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
@@ -190,6 +216,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
               setStartTime(t)
               setStartTouched(true)
             }}
+            options={startOptions}
           />
         </label>
         {isOpen ? (
@@ -205,7 +232,7 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
                 setEndTime(t)
                 setEndTouched(true)
               }}
-              options={END_TIME_OPTIONS}
+              options={endOptions}
             />
           </label>
         )}
@@ -391,12 +418,11 @@ export default function DayAgenda({
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
   }
 
-  // Gaps (things still needing attention) come first, then entries in
-  // reverse-chronological order so whatever was just logged is on top.
-  const rows = [
-    ...gaps.map((g) => ({ type: 'gap', sortKey: g.start, gap: g })).sort((a, b) => a.sortKey - b.sortKey),
-    ...items.map((it) => ({ type: 'entry', sortKey: it.clippedStart, ...it })).sort((a, b) => b.sortKey - a.sortKey),
-  ]
+  const dayStart = startOfDay(cursor)
+  const clockSegments = buildClockSegments(items, activities, dayStart)
+  const dayBreakdown = buildDayBreakdown(items, activities, dayElapsedMs)
+  const nowFrac = isToday ? (now.getTime() - dayStart.getTime()) / DAY_MS : null
+  const sortedGaps = [...gaps].sort((a, b) => a.start - b.start)
 
   function handleSaveEdit(id, patch) {
     onEditEntry(id, patch)
@@ -464,7 +490,7 @@ export default function DayAgenda({
             <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
           ) : (
             <>
-              {rows.length === 0 && !isToday && (
+              {items.length === 0 && !isToday && (
                 <p className="empty-state">Nessun blocco registrato in questo giorno.</p>
               )}
 
@@ -481,6 +507,7 @@ export default function DayAgenda({
                     <ManualAddForm
                       activities={activities}
                       dayDate={cursor}
+                      items={items}
                       initialStart={addBlockDefaults.start}
                       initialEnd={addBlockDefaults.end}
                       onAdd={(activityId, start, end) => {
@@ -490,83 +517,64 @@ export default function DayAgenda({
                       onCancel={() => setAddingManual(false)}
                     />
                   ) : (
-                    <button type="button" className="backup-card__secondary" onClick={() => setAddingManual(true)}>
-                      + Aggiungi blocco
+                    <button type="button" className="add-block__cta" onClick={() => setAddingManual(true)}>
+                      <span className="add-block__cta-icon">+</span>
+                      Aggiungi blocco
                     </button>
                   )}
                 </div>
               )}
 
-              <ul className="timeline">
-                {rows.map((row) => {
-                  if (row.type === 'gap') {
-                    const key = toISODateTime(row.gap.start)
+              {items.length > 0 && (
+                <>
+                  <DayClock
+                    segments={clockSegments}
+                    nowFrac={nowFrac}
+                    selectedId={expandedId}
+                    onSelect={isLocked ? () => {} : setExpandedId}
+                  />
+                  {expandedId &&
+                    (() => {
+                      const row = items.find((it) => it.entry.id === expandedId)
+                      if (!row) return null
+                      return (
+                        <EntryEditor
+                          entry={row.entry}
+                          activities={activities}
+                          dayDate={cursor}
+                          items={items}
+                          onSave={(patch) => handleSaveEdit(row.entry.id, patch)}
+                          onDelete={() => handleDelete(row.entry.id)}
+                          onCancel={() => setExpandedId(null)}
+                          onCloseNow={() => handleSaveEdit(row.entry.id, { end: nowISODateTime() })}
+                        />
+                      )
+                    })()}
+                  <DayBreakdownChart
+                    rows={dayBreakdown.rows}
+                    notDoneMs={dayBreakdown.notDoneMs}
+                    accountedMs={dayElapsedMs}
+                  />
+                </>
+              )}
+
+              {gaps.length > 0 && (
+                <ul className="timeline">
+                  {sortedGaps.map((gap) => {
+                    const key = toISODateTime(gap.start)
                     return (
                       <GapRow
                         key={key}
-                        gap={row.gap}
+                        gap={gap}
                         activities={activities}
                         expanded={expandedGap === key}
                         onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
-                        onPick={(activityId) => handleFillGap(row.gap, activityId)}
+                        onPick={(activityId) => handleFillGap(gap, activityId)}
                       />
                     )
-                  }
-
-                  const { entry, clippedStart, clippedEnd, isOpen } = row
-                  const activity = activityFor(activities, entry.activityId)
-                  const expanded = expandedId === entry.id
-                  // A block can be logged ahead of time and stretch past "now" (e.g.
-                  // pre-planning the rest of today); only the elapsed portion counts
-                  // toward "% of today so far", otherwise this blows way past 100%
-                  // right after midnight when dayElapsedMs is still tiny.
-                  const pctEnd = clippedEnd < now ? clippedEnd : now
-                  const pct = Math.max(0, Math.round(((pctEnd - clippedStart) / dayElapsedMs) * 100))
-                  return (
-                    <li key={entry.id} className="timeline__item">
-                      <button
-                        type="button"
-                        className="timeline__row"
-                        disabled={isLocked}
-                        onClick={() => setExpandedId(expanded ? null : entry.id)}
-                      >
-                        <span
-                          className="timeline__swatch"
-                          style={{ background: activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-                        />
-                        <span className="timeline__info">
-                          <span className="timeline__name">
-                            {activity ? activity.name : 'Attività eliminata'}
-                          </span>
-                          <span className="timeline__pill-row">
-                            <span
-                              className="timeline__pill"
-                              style={{ '--pill-color': activity ? colorVar(activity.colorSlot) : 'var(--gap)' }}
-                            >
-                              {formatTime(clippedStart)} → {isOpen ? 'ora' : formatTime(clippedEnd)}
-                            </span>
-                            <span className="timeline__duration">
-                              {formatDuration(clippedEnd - clippedStart)}
-                            </span>
-                            <span className="timeline__pct">{pct}%</span>
-                          </span>
-                        </span>
-                      </button>
-                      {expanded && (
-                        <EntryEditor
-                          entry={entry}
-                          activities={activities}
-                          dayDate={cursor}
-                          onSave={(patch) => handleSaveEdit(entry.id, patch)}
-                          onDelete={() => handleDelete(entry.id)}
-                          onCancel={() => setExpandedId(null)}
-                          onCloseNow={() => handleSaveEdit(entry.id, { end: nowISODateTime() })}
-                        />
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
+                  })}
+                </ul>
+              )}
             </>
           ))}
       </>
@@ -574,10 +582,17 @@ export default function DayAgenda({
   )
 }
 
-function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '09:00', initialEnd = '10:00' }) {
+function ManualAddForm({ activities, dayDate, items, onAdd, onCancel, initialStart = '09:00', initialEnd = '10:00' }) {
   const [activityId, setActivityId] = useState(activities[0]?.id)
   const [startTime, setStartTime] = useState(initialStart)
   const [endTime, setEndTime] = useState(initialEnd)
+
+  // Only actually-free times are offered -- times already covered by another
+  // block that day would just get silently trimmed away by the overlap
+  // resolver, which reads as a bug rather than "obviously that time is taken".
+  const ranges = coveredRanges(items, startOfDay(dayDate), null)
+  const startOptions = availableTimeOptions(HALF_HOUR_OPTIONS, ranges)
+  const endOptions = availableTimeOptions(END_TIME_OPTIONS, ranges)
 
   function handleAdd() {
     const dateIso = toISODate(dayDate)
@@ -595,11 +610,11 @@ function ManualAddForm({ activities, dayDate, onAdd, onCancel, initialStart = '0
       <div className="entry-editor__times">
         <label>
           <span>Inizio</span>
-          <HalfHourSelect value={startTime} onChange={setStartTime} />
+          <HalfHourSelect value={startTime} onChange={setStartTime} options={startOptions} />
         </label>
         <label>
           <span>Fine</span>
-          <HalfHourSelect value={endTime} onChange={setEndTime} options={END_TIME_OPTIONS} />
+          <HalfHourSelect value={endTime} onChange={setEndTime} options={endOptions} />
         </label>
       </div>
       <div className="entry-editor__actions">
