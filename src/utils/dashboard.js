@@ -70,28 +70,55 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
     if (!met && remainingCapacity !== undefined && fullWeekQuota - actual > remainingCapacity) status = 'failed'
   }
 
-  // The reference shown as "obiettivo" is the pace target while there's
-  // still time to close the gap, but the full weekly quota once it's
-  // already failed -- the pace target stops meaning anything at that point.
-  const referenceTarget = status === 'failed' ? fullWeekQuota : target
-
-  // Round target and actual first, then derive the diff from those same
-  // rounded numbers. Rounding the raw diff independently can disagree with
-  // the two rounded numbers shown next to it (e.g. obiettivo=ceil(0.7)=1,
-  // ma ceil(3-0.7)=3, che non torna con "come sto"=3).
-  const roundedTarget = round(referenceTarget)
   const roundedActual = round(actual)
-  const diff = roundedActual - roundedTarget
+  let displayTarget, diffStatLabel, diffValue
+
+  if (direction === 'lower_is_better') {
+    // "Meno è meglio" (es. sigarette): il numero che conta è sempre il tetto
+    // dell'intera settimana, non il ritmo del giorno -- "quante me ne restano
+    // prima di sforare" è più diretto di una frazione giornaliera. Resta lo
+    // stesso in ogni tab, e passa da "margine" a "sforato" esattamente
+    // quando lo superi (lo stesso istante in cui lo status diventa 'failed').
+    displayTarget = round(fullWeekQuota)
+    const margin = displayTarget - roundedActual
+    if (margin >= 0) {
+      diffStatLabel = 'Margine'
+      diffValue = margin
+    } else {
+      diffStatLabel = 'Sforo'
+      diffValue = -margin
+    }
+  } else {
+    // "Più è meglio": il riferimento resta il ritmo del giorno finché c'è
+    // ancora tempo per recuperare, il traguardo pieno della settimana una
+    // volta fallito (il ritmo non significa più nulla a quel punto).
+    const referenceTarget = status === 'failed' ? fullWeekQuota : target
+    displayTarget = round(referenceTarget)
+    const diff = roundedActual - displayTarget
+    if (status === 'failed') {
+      diffStatLabel = 'Mancavano'
+      diffValue = -diff
+    } else if (diff >= 0) {
+      diffStatLabel = 'Vantaggio'
+      diffValue = diff
+    } else {
+      diffStatLabel = 'Manca'
+      diffValue = -diff
+    }
+  }
+
+  const progressBase = direction === 'lower_is_better' ? fullWeekQuota : target
 
   return {
     key,
     label,
     swatchColor,
     status,
-    targetLabel: formatDiff(roundedTarget),
+    targetLabel: formatDiff(displayTarget),
     actualLabel: formatDiff(roundedActual),
-    diffLabel: `${diff >= 0 ? '+' : '−'}${formatDiff(Math.abs(diff))}`,
-    progressPct: target > 0 ? Math.min(100, Math.max(0, (actual / target) * 100)) : 100,
+    diffStatLabel,
+    diffLabel: formatDiff(diffValue),
+    progressPct: progressBase > 0 ? Math.min(100, Math.max(0, (actual / progressBase) * 100)) : 100,
   }
 }
 
