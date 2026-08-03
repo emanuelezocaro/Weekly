@@ -14,20 +14,26 @@ const EMPTY_MESSAGES = {
   failed: 'Nessun obiettivo fallito questa settimana.',
 }
 
+// "Vantaggio"/"Margine" sono buone notizie (sei avanti, hai ancora spazio),
+// "Manca"/"Sforo"/"Mancavano" sono cattive notizie (ti serve qualcosa in
+// più, o hai già sforato).
+const POSITIVE_DIFF_LABELS = new Set(['Vantaggio', 'Margine'])
+
 function StatsRow({ item }) {
+  const diffClass = POSITIVE_DIFF_LABELS.has(item.diffStatLabel) ? 'is-good' : 'is-bad'
   return (
     <div className="dash-card__stats">
-      <div className="dash-card__stat">
-        <span className="dash-card__stat-label">Obiettivo</span>
-        <span className="dash-card__stat-value">{item.targetLabel}</span>
+      <div className={`dash-card__stat dash-card__stat--diff ${diffClass}`}>
+        <span className="dash-card__stat-label">{item.diffStatLabel}</span>
+        <span className="dash-card__stat-value">{item.diffLabel}</span>
       </div>
       <div className="dash-card__stat">
         <span className="dash-card__stat-label">Come sto</span>
         <span className="dash-card__stat-value">{item.actualLabel}</span>
       </div>
       <div className="dash-card__stat">
-        <span className="dash-card__stat-label">{item.diffStatLabel}</span>
-        <span className="dash-card__stat-value">{item.diffLabel}</span>
+        <span className="dash-card__stat-label">Obiettivo</span>
+        <span className="dash-card__stat-value">{item.targetLabel}</span>
       </div>
     </div>
   )

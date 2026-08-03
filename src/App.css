@@ -175,6 +175,16 @@
   font-weight: 700;
 }
 
+.dash-card__stat--diff.is-good .dash-card__stat-label,
+.dash-card__stat--diff.is-good .dash-card__stat-value {
+  color: var(--series-2);
+}
+
+.dash-card__stat--diff.is-bad .dash-card__stat-label,
+.dash-card__stat--diff.is-bad .dash-card__stat-value {
+  color: var(--series-6);
+}
+
 .dash-card__bar-track {
   height: 6px;
   border-radius: 4px;
