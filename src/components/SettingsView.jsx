@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { copyOrShareText, shareOrDownloadText } from '../utils/shareFile'
 import { colorVar, PALETTE_SIZE } from '../utils/palette'
 import { toMonthISO } from '../utils/date'
+import { markBackupDone } from '../utils/backupReminder'
 import GoalsCard from './GoalsCard'
 
 function ColorPicker({ value, onChange }) {
@@ -67,8 +68,9 @@ export default function SettingsView({
   onImport,
   goals,
   onSetGoal,
+  initialTab,
 }) {
-  const [tab, setTab] = useState('goals')
+  const [tab, setTab] = useState(initialTab || 'goals')
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
   const [editingId, setEditingId] = useState(null)
@@ -99,6 +101,7 @@ export default function SettingsView({
   async function handleExport() {
     const today = new Date().toISOString().slice(0, 10)
     const shared = await shareOrDownloadText(`weekly-backup-${today}.json`, onExport())
+    if (shared) markBackupDone()
     setBackupMessage(shared ? 'Backup esportato ✓' : '')
   }
 
@@ -242,6 +245,15 @@ export default function SettingsView({
             <div className="copy-row-list">
               <CopyRow label="URL dell'app" value={APP_URL} />
             </div>
+          </section>
+
+          <section className="settings-card settings-card--warning">
+            <h2 className="settings-card__title">⚠️ Attenzione su iPhone</h2>
+            <p className="settings-card__hint">
+              Se cancelli l'icona dell'app dalla schermata Home e poi la aggiungi di nuovo (es. per
+              aggiornare l'icona), iOS crea una copia completamente nuova e <strong>cancella tutti i
+              dati salvati</strong>. Prima di cancellare l'icona, fai sempre "Esporta backup" qui sopra.
+            </p>
           </section>
         </>
       )}

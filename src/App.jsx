@@ -17,6 +17,7 @@ const TITLES = {
 function App() {
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
+  const [settingsInitialTab, setSettingsInitialTab] = useState('goals')
   const {
     activities,
     entries,
@@ -63,7 +64,10 @@ function App() {
             outputs={outputs}
             food={food}
             goals={goals}
-            onOpenSettings={() => setTab('settings')}
+            onOpenSettings={(subtab) => {
+              setSettingsInitialTab(subtab || 'goals')
+              setTab('settings')
+            }}
           />
         )}
         {tab === 'calendar' && (
@@ -107,6 +111,7 @@ function App() {
             onImport={importData}
             goals={goals}
             onSetGoal={setGoal}
+            initialTab={settingsInitialTab}
           />
         )}
       </main>
