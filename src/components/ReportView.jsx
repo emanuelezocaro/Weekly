@@ -9,6 +9,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from '../utils/date'
+import { useSwipeNav } from '../hooks/useSwipeNav'
 import { buildMonthSummaryText } from '../utils/monthSummary'
 import { copyOrShareText } from '../utils/shareFile'
 import ActivityStatsSummary from './ActivityStatsSummary'
@@ -96,6 +97,12 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   const prevDisabled = isPrevDisabled(period, cursor)
   const days = periodDays(period, cursor)
   const prevDays = periodDays(period, shiftCursor(period, cursor, -1))
+  const swipeHandlers = useSwipeNav({
+    onPrev: () => setCursor((c) => shiftCursor(period, c, -1)),
+    onNext: () => setCursor((c) => shiftCursor(period, c, 1)),
+    prevDisabled,
+    nextDisabled,
+  })
 
   async function handleCopySummary() {
     const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
@@ -121,58 +128,60 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         </div>
       </div>
 
-      <div className="day-switcher">
-        <button
-          type="button"
-          className="day-switcher__arrow"
-          onClick={() => setCursor((c) => shiftCursor(period, c, -1))}
-          disabled={prevDisabled}
-          aria-label="Periodo precedente"
-        >
-          ‹
-        </button>
-        <div className="day-switcher__label">
-          <strong>{periodHeaderLabel(period, cursor)}</strong>
-        </div>
-        <button
-          type="button"
-          className="day-switcher__arrow"
-          onClick={() => setCursor((c) => shiftCursor(period, c, 1))}
-          disabled={nextDisabled}
-          aria-label="Periodo successivo"
-        >
-          ›
-        </button>
-      </div>
-
-      {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
-        <div className="month-summary">
-          <div className="backup-card__actions">
-            <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
-              Copia riepilogo del mese
-            </button>
+      <div {...swipeHandlers}>
+        <div className="day-switcher">
+          <button
+            type="button"
+            className="day-switcher__arrow"
+            onClick={() => setCursor((c) => shiftCursor(period, c, -1))}
+            disabled={prevDisabled}
+            aria-label="Periodo precedente"
+          >
+            ‹
+          </button>
+          <div className="day-switcher__label">
+            <strong>{periodHeaderLabel(period, cursor)}</strong>
           </div>
-          {summaryMessage && <p className="backup-card__message">{summaryMessage}</p>}
+          <button
+            type="button"
+            className="day-switcher__arrow"
+            onClick={() => setCursor((c) => shiftCursor(period, c, 1))}
+            disabled={nextDisabled}
+            aria-label="Periodo successivo"
+          >
+            ›
+          </button>
         </div>
-      )}
 
-      <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
-      <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
-      <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
+        {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
+          <div className="month-summary">
+            <div className="backup-card__actions">
+              <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
+                Copia riepilogo del mese
+              </button>
+            </div>
+            {summaryMessage && <p className="backup-card__message">{summaryMessage}</p>}
+          </div>
+        )}
 
-      <hr className="report-divider" />
+        <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
+        <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
+        <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
 
-      <ActivityStatsSummary
-        activities={activities}
-        entries={entries}
-        rangeStart={rangeStart}
-        rangeEnd={rangeEnd}
-        prevRangeStart={prevRangeStart}
-        prevRangeEnd={prevRangeEnd}
-        days={days}
-        period={period}
-        goals={goals}
-      />
+        <hr className="report-divider" />
+
+        <ActivityStatsSummary
+          activities={activities}
+          entries={entries}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          prevRangeStart={prevRangeStart}
+          prevRangeEnd={prevRangeEnd}
+          days={days}
+          period={period}
+          goals={goals}
+        />
+      </div>
     </div>
   )
 }
