@@ -510,7 +510,28 @@ export default function DayAgenda({
                 </p>
               )}
 
-              {!isLocked && (isToday || gaps.length > 0) && (
+              {/* "Aggiungi blocco" and the gap-fill prompt are alternatives: a
+                  gap already means there's a specific hole to fill, so it
+                  takes over the top slot instead of the generic add button. */}
+              {!isLocked && gaps.length > 0 && (
+                <ul className="timeline">
+                  {sortedGaps.map((gap) => {
+                    const key = toISODateTime(gap.start)
+                    return (
+                      <GapRow
+                        key={key}
+                        gap={gap}
+                        activities={activities}
+                        expanded={expandedGap === key}
+                        onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
+                        onPick={(activityId) => handleFillGap(gap, activityId)}
+                      />
+                    )
+                  })}
+                </ul>
+              )}
+
+              {!isLocked && gaps.length === 0 && isToday && (
                 <div className="add-block">
                   {addingManual ? (
                     <ManualAddForm
@@ -565,24 +586,6 @@ export default function DayAgenda({
                     accountedMs={dayElapsedMs}
                   />
                 </>
-              )}
-
-              {gaps.length > 0 && (
-                <ul className="timeline">
-                  {sortedGaps.map((gap) => {
-                    const key = toISODateTime(gap.start)
-                    return (
-                      <GapRow
-                        key={key}
-                        gap={gap}
-                        activities={activities}
-                        expanded={expandedGap === key}
-                        onToggle={() => setExpandedGap(expandedGap === key ? null : key)}
-                        onPick={(activityId) => handleFillGap(gap, activityId)}
-                      />
-                    )
-                  })}
-                </ul>
               )}
             </>
           ))}
