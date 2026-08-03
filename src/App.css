@@ -547,6 +547,7 @@
 .day-clock__svg {
   width: min(78vw, 300px);
   height: min(78vw, 300px);
+  overflow: visible;
 }
 
 .day-clock__segment {

@@ -3,8 +3,11 @@ import { colorVar } from '../utils/palette'
 
 const SIZE = 300
 const CENTER = SIZE / 2
-const RADIUS = 122
-const STROKE = 34
+// The ring is deliberately smaller than the canvas (rather than edge-to-edge)
+// so the 24 hour labels around it have real room to breathe instead of
+// getting clipped by the SVG viewBox at the top/left/right/bottom.
+const RADIUS = 100
+const STROKE = 30
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 // Below this share of the day, a wedge is too thin to hold a readable label
 // on the face itself -- it's still drawn and still tappable, it just relies
@@ -26,7 +29,7 @@ function HourMarks() {
     const frac = h / 24
     const isMajor = h % 3 === 0
     const inner = pointAt(frac, RADIUS + STROKE / 2 + 3)
-    const outer = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 9 : 5))
+    const outer = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 8 : 5))
     marks.push(
       <line
         key={`tick-${h}`}
@@ -36,19 +39,19 @@ function HourMarks() {
         y2={outer.y}
         stroke="var(--text-muted)"
         strokeWidth={isMajor ? 1.6 : 1}
-        opacity={isMajor ? 0.7 : 0.35}
+        opacity={isMajor ? 0.75 : 0.4}
       />,
     )
-    const labelPt = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 21 : 18))
+    const labelPt = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 20 : 17))
     marks.push(
       <text
         key={`label-${h}`}
         x={labelPt.x}
         y={labelPt.y}
-        fontSize={isMajor ? '11' : '8.5'}
-        fontWeight={isMajor ? '700' : '500'}
-        fill="var(--text-muted)"
-        opacity={isMajor ? 1 : 0.65}
+        fontSize={isMajor ? '12' : '8.5'}
+        fontWeight={isMajor ? '800' : '600'}
+        fill={isMajor ? 'var(--text)' : 'var(--text-muted)'}
+        opacity={isMajor ? 1 : 0.8}
         textAnchor="middle"
         dominantBaseline="middle"
       >
