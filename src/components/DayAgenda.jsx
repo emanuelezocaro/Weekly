@@ -128,6 +128,11 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   const [activityId, setActivityId] = useState(entry.activityId)
   const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
   const [endTime, setEndTime] = useState(endDate ? formatTimeRounded(endDate) : '')
+  // The picker only offers half-hour steps, so its initial value is a
+  // rounded display of the real start/end -- if the field is never touched,
+  // save must keep the exact original timestamp rather than the rounding.
+  const [startTouched, setStartTouched] = useState(false)
+  const [endTouched, setEndTouched] = useState(false)
 
   if (!isStartDay && !isEndDay) {
     return (
@@ -156,11 +161,14 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
   function handleSave() {
     const dateIso = toISODate(dayDate)
     const startDateIso = startsPrevDay ? toISODate(addDays(dayDate, -1)) : dateIso
-    const patch = { activityId, start: `${startDateIso}T${startTime}:00` }
+    const patch = {
+      activityId,
+      start: startTouched ? `${startDateIso}T${startTime}:00` : entry.start,
+    }
     if (!isOpen) {
       const endDateIso = endsNextDay ? toISODate(addDays(dayDate, 1)) : dateIso
       const normalizedEndTime = endTime === '24:00' ? '00:00' : endTime
-      patch.end = `${endDateIso}T${normalizedEndTime}:00`
+      patch.end = endTouched ? `${endDateIso}T${normalizedEndTime}:00` : entry.end
     }
     onSave(patch)
   }
@@ -175,7 +183,13 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
       <div className="entry-editor__times">
         <label>
           <span>Inizio{startsPrevDay ? ' (giorno prima)' : ''}</span>
-          <HalfHourSelect value={startTime} onChange={setStartTime} />
+          <HalfHourSelect
+            value={startTime}
+            onChange={(t) => {
+              setStartTime(t)
+              setStartTouched(true)
+            }}
+          />
         </label>
         {isOpen ? (
           <button type="button" className="backup-card__secondary" onClick={onCloseNow}>
@@ -184,7 +198,14 @@ function EntryEditor({ entry, activities, dayDate, onSave, onDelete, onCancel, o
         ) : (
           <label>
             <span>Fine{endsNextDay ? ' (giorno dopo)' : ''}</span>
-            <HalfHourSelect value={endTime} onChange={setEndTime} options={END_TIME_OPTIONS} />
+            <HalfHourSelect
+              value={endTime}
+              onChange={(t) => {
+                setEndTime(t)
+                setEndTouched(true)
+              }}
+              options={END_TIME_OPTIONS}
+            />
           </label>
         )}
       </div>
