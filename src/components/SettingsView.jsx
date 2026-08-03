@@ -22,7 +22,6 @@ function ColorPicker({ value, onChange }) {
 }
 
 const APP_URL = 'https://emanuelezocaro.github.io/Weekly/'
-const REPO_URL = 'https://github.com/emanuelezocaro/Weekly'
 
 const COPY_LINK_MESSAGES = {
   copied: 'Copiato ✓',
@@ -56,8 +55,7 @@ function CopyRow({ label, value }) {
 const SETTINGS_TABS = [
   { id: 'goals', label: 'Obiettivi' },
   { id: 'activities', label: 'Attività' },
-  { id: 'backup', label: 'Backup' },
-  { id: 'app', label: 'App' },
+  { id: 'setup', label: 'Setup' },
 ]
 
 export default function SettingsView({
@@ -208,49 +206,44 @@ export default function SettingsView({
         </section>
       )}
 
-      {tab === 'backup' && (
-        <section className="settings-card">
-          <h2 className="settings-card__title">Backup</h2>
-          <p className="settings-card__hint">
-            Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
-            e da usare per riportare i dati su un nuovo telefono.
-          </p>
-          <div className="backup-card__actions">
-            <button type="button" onClick={handleExport}>
-              Esporta backup
-            </button>
-            <button type="button" className="backup-card__secondary" onClick={handleImportClick}>
-              Importa backup
-            </button>
-          </div>
-          {backupMessage && <p className="backup-card__message">{backupMessage}</p>}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json,.json"
-            onChange={handleImportFile}
-            hidden
-          />
-        </section>
-      )}
+      {tab === 'setup' && (
+        <>
+          <section className="settings-card">
+            <h2 className="settings-card__title">Backup</h2>
+            <p className="settings-card__hint">
+              Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
+              e da usare per riportare i dati su un nuovo telefono.
+            </p>
+            <div className="backup-card__actions">
+              <button type="button" onClick={handleExport}>
+                Esporta backup
+              </button>
+              <button type="button" className="backup-card__secondary" onClick={handleImportClick}>
+                Importa backup
+              </button>
+            </div>
+            {backupMessage && <p className="backup-card__message">{backupMessage}</p>}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              onChange={handleImportFile}
+              hidden
+            />
+          </section>
 
-      {tab === 'app' && (
-        <section className="settings-card">
-          <h2 className="settings-card__title">App e codice</h2>
-          <div className="copy-row-list">
-            <CopyRow label="URL pubblico dell'app" value={APP_URL} />
-            <CopyRow label="Repository GitHub" value={REPO_URL} />
-          </div>
-          <p className="settings-card__hint">
-            È un sito statico (Vite + React), nessun server dietro. Per rimetterlo altrove: clona il
-            repository, <code>npm install</code> e poi <code>npm run build</code> genera la cartella{' '}
-            <code>dist/</code> — quella cartella si carica su qualsiasi hosting statico (GitHub
-            Pages, Netlify, Vercel, Cloudflare Pages, un tuo server). Se cambi indirizzo, aggiorna il
-            campo <code>base</code> in <code>vite.config.js</code> con il nuovo percorso. Il deploy su
-            GitHub Pages di questo repository è già automatico: parte da solo ad ogni push sul branch
-            principale (vedi <code>.github/workflows/deploy.yml</code>).
-          </p>
-        </section>
+          <section className="settings-card">
+            <h2 className="settings-card__title">Se cambi telefono</h2>
+            <ol className="setup-steps">
+              <li>Sul telefono vecchio tocca "Esporta backup" qui sopra e invia il file al telefono nuovo (email, WhatsApp, Drive...).</li>
+              <li>Sul telefono nuovo apri il link dell'app qui sotto e aggiungila alla schermata Home.</li>
+              <li>Vai su Impostazioni → Setup, tocca "Importa backup" e scegli il file ricevuto.</li>
+            </ol>
+            <div className="copy-row-list">
+              <CopyRow label="URL dell'app" value={APP_URL} />
+            </div>
+          </section>
+        </>
       )}
     </div>
   )

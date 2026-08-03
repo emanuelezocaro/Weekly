@@ -1084,6 +1084,21 @@
   flex-shrink: 0;
 }
 
+.setup-steps {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.setup-steps li {
+  padding-left: 2px;
+}
+
 /* Add activity */
 .add-activity {
   display: flex;
