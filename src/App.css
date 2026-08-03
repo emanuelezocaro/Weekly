@@ -343,13 +343,12 @@
 
 .segmented-sticky-wrap {
   position: sticky;
-  /* .app-header lives outside the scrolling .app-main now, so this only
-     needs to clear .app-main's own top padding, not the header's height. */
+  /* No padding/margin of its own -- .view's own flex gap spaces it exactly
+     like the bare .segmented used directly in Add/Settings, so the gap
+     above and below the sub-menu matches across every section. */
   top: 0;
   z-index: 4;
   background: var(--bg);
-  padding: 10px 0 6px;
-  margin: -10px 0 -6px;
 }
 
 .segmented__item {

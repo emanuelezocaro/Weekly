@@ -516,7 +516,12 @@ export default function DayAgenda({
                   const { entry, clippedStart, clippedEnd, isOpen } = row
                   const activity = activityFor(activities, entry.activityId)
                   const expanded = expandedId === entry.id
-                  const pct = Math.round(((clippedEnd - clippedStart) / dayElapsedMs) * 100)
+                  // A block can be logged ahead of time and stretch past "now" (e.g.
+                  // pre-planning the rest of today); only the elapsed portion counts
+                  // toward "% of today so far", otherwise this blows way past 100%
+                  // right after midnight when dayElapsedMs is still tiny.
+                  const pctEnd = clippedEnd < now ? clippedEnd : now
+                  const pct = Math.max(0, Math.round(((pctEnd - clippedStart) / dayElapsedMs) * 100))
                   return (
                     <li key={entry.id} className="timeline__item">
                       <button
