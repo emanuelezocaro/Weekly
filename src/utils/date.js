@@ -2,29 +2,23 @@
 // and navigation can't go further back than this day.
 export const APP_START_DATE = new Date(2026, 6, 1)
 
-const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-const DAY_LABELS_FULL = [
-  'Lunedì',
-  'Martedì',
-  'Mercoledì',
-  'Giovedì',
-  'Venerdì',
-  'Sabato',
-  'Domenica',
-]
+// Monday-first, English -- dates are shown in English (3-letter month)
+// everywhere except the month-statistics header, which spells the month out
+// (see formatMonthLabel).
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTH_LABELS = [
-  'Gennaio',
-  'Febbraio',
-  'Marzo',
-  'Aprile',
-  'Maggio',
-  'Giugno',
-  'Luglio',
-  'Agosto',
-  'Settembre',
-  'Ottobre',
-  'Novembre',
-  'Dicembre',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ]
 
 export function toISODate(date) {
@@ -39,19 +33,10 @@ export function toMonthISO(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
-// "Lug" from "2026-07", to tag a goal line with the month it belonged to.
+// "Jul" from "2026-07", to tag a goal line with the month it belonged to.
 export function formatMonthShort(monthIso) {
   const m = Number(monthIso.split('-')[1])
   return MONTH_LABELS[m - 1].slice(0, 3)
-}
-
-const EN_DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const EN_MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-// "Mon, 3 Aug" -- compact English weekday + day/month, for the app header's
-// period display where space is tight.
-export function formatShortDateEN(date) {
-  return `${EN_DAY_ABBR[date.getDay()]}, ${date.getDate()} ${EN_MONTH_ABBR[date.getMonth()]}`
 }
 
 export function todayISO() {
@@ -85,8 +70,8 @@ export function getWeekDates(weekStart) {
   return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 }
 
-export function dayLabel(date, full = false) {
-  return (full ? DAY_LABELS_FULL : DAY_LABELS)[mondayIndex(date)]
+export function dayLabel(date) {
+  return DAY_LABELS[mondayIndex(date)]
 }
 
 export function formatWeekRange(weekStart) {
@@ -104,8 +89,10 @@ export function formatDateRange(startInclusive, endExclusive) {
   return `${startStr} – ${endStr}`
 }
 
+// "Mon, 3 Aug" -- compact weekday + day/month, used everywhere a specific
+// day needs a label (day-switcher header, per-day list headers, etc).
 export function formatFullDate(date) {
-  return `${dayLabel(date, true)} ${date.getDate()} ${MONTH_LABELS[date.getMonth()]}`
+  return `${dayLabel(date)}, ${date.getDate()} ${MONTH_LABELS[date.getMonth()].slice(0, 3)}`
 }
 
 export function isSameDay(a, b) {
@@ -136,8 +123,12 @@ export function addMonths(date, amount) {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1)
 }
 
+// Month statistics get the month spelled out in full, with a 2-digit year
+// ("August 26") -- everywhere else dates are abbreviated (see formatFullDate,
+// formatShortDate, formatDateRange).
 export function formatMonthLabel(date) {
-  return `${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`
+  const yy = String(date.getFullYear()).slice(-2)
+  return `${MONTH_LABELS[date.getMonth()]} ${yy}`
 }
 
 export function formatShortDate(date) {

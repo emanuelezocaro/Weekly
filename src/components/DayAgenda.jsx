@@ -5,7 +5,6 @@ import {
   endOfDay,
   formatDuration,
   formatFullDate,
-  formatShortDateEN,
   formatTime,
   formatTimeRounded,
   isFuture,
@@ -359,7 +358,7 @@ export default function DayAgenda({
   // of the day-switcher (removed in favor of the swipe gesture below).
   useEffect(() => {
     if (!onPeriodLabel) return
-    onPeriodLabel(isToday ? 'Oggi' : formatShortDateEN(cursor))
+    onPeriodLabel(isToday ? 'Oggi' : formatFullDate(cursor))
     return () => onPeriodLabel(null)
   }, [isToday, cursor, onPeriodLabel])
 
