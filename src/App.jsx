@@ -60,7 +60,9 @@ function App() {
     <div className="app">
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
-          <h1>Weekly</h1>
+          <h1 className="app-header__brand">
+            Weekl<span className="app-header__brand-accent">y</span>
+          </h1>
         </button>
         <div className="app-header__sep" />
         <p className="app-header__period">

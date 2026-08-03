@@ -18,7 +18,7 @@
 
 .app-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 10px;
   flex-shrink: 0;
@@ -39,11 +39,24 @@
   cursor: pointer;
 }
 
-.app-header__left h1 {
+/* Echoes the app icon's own palette (oxblood badge, cream glyph, amber
+   accent) so the wordmark reads as the same mark, not just styled text --
+   fixed hex values on purpose, not theme variables, to match the icon
+   exactly in both light and dark mode. */
+.app-header__brand {
   margin: 0;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  line-height: 1;
+  color: #f3e9da;
+  background: #57101f;
+  padding: 6px 9px;
+  border-radius: 8px;
+}
+
+.app-header__brand-accent {
+  color: #f2a93b;
 }
 
 .app-header__sep {
@@ -56,7 +69,7 @@
 .app-header__period {
   flex: 1;
   min-width: 0;
-  margin: 0;
+  margin: 0 0 2px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
