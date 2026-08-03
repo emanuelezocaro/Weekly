@@ -154,7 +154,16 @@ function EntryEditor({ entry, activities, dayDate, items, onSave, onDelete, onCa
 
   const [activityId, setActivityId] = useState(entry.activityId)
   const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
-  const [endTime, setEndTime] = useState(endDate ? formatTimeRounded(endDate) : '')
+  // A block ending exactly at midnight of the next day must display as
+  // "24:00", the picker's dedicated end-of-day option -- not "00:00", which
+  // means minute zero of THIS day and gets filtered out of the options
+  // whenever something else (e.g. Sleep) starts right at midnight, leaving
+  // the select with no matching option and silently falling back to the
+  // first one in the list.
+  const initialEndTime = endDate ? formatTimeRounded(endDate) : ''
+  const [endTime, setEndTime] = useState(
+    isStartDay && !isEndDay && initialEndTime === '00:00' ? '24:00' : initialEndTime,
+  )
   // The picker only offers half-hour steps, so its initial value is a
   // rounded display of the real start/end -- if the field is never touched,
   // save must keep the exact original timestamp rather than the rounding.
