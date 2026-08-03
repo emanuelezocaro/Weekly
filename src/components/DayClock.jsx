@@ -14,6 +14,61 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 // on the caption instead of a permanent label.
 const LABEL_MIN_FRACTION = 90 / (24 * 60)
 
+// A continuous "sky" backdrop for the ring track, standing in for the flat
+// gray it used to have -- it shows through wherever a part of the day isn't
+// covered by a logged block, giving an at-a-glance sense of what time of day
+// that gap is in. Anchors roughly follow notte (21-06) / mattina (06-13) /
+// pomeriggio (13-18) / sera (18-21), blended smoothly between them rather
+// than as hard-edged sectors.
+const SKY_STOPS = [
+  { h: 0, rgb: [24, 27, 58] }, // notte fonda
+  { h: 6, rgb: [246, 200, 147] }, // alba, inizio mattina
+  { h: 13, rgb: [231, 244, 251] }, // pieno giorno, inizio pomeriggio
+  { h: 18, rgb: [242, 147, 90] }, // tramonto, inizio sera
+  { h: 19.5, rgb: [193, 86, 124] }, // crepuscolo rosato
+  { h: 21, rgb: [74, 56, 104] }, // sera che sfuma in notte
+  { h: 24, rgb: [24, 27, 58] }, // notte fonda, richiude il ciclo
+]
+
+function skyColorAt(hour) {
+  const h = ((hour % 24) + 24) % 24
+  for (let i = 0; i < SKY_STOPS.length - 1; i++) {
+    const a = SKY_STOPS[i]
+    const b = SKY_STOPS[i + 1]
+    if (h >= a.h && h <= b.h) {
+      const t = (h - a.h) / (b.h - a.h)
+      const [r, g, bl] = a.rgb.map((c, idx) => Math.round(c + (b.rgb[idx] - c) * t))
+      return `rgb(${r}, ${g}, ${bl})`
+    }
+  }
+  return `rgb(${SKY_STOPS[0].rgb.join(', ')})`
+}
+
+const SKY_SEGMENTS = 96 // 15-minute resolution -- fine enough to read as a smooth gradient
+
+function SkyBackground() {
+  const wedges = []
+  for (let i = 0; i < SKY_SEGMENTS; i++) {
+    const startFrac = i / SKY_SEGMENTS
+    const midHour = ((i + 0.5) / SKY_SEGMENTS) * 24
+    const len = CIRCUMFERENCE / SKY_SEGMENTS + 0.6 // tiny overlap so wedges don't leave hairline seams
+    wedges.push(
+      <circle
+        key={`sky-${i}`}
+        cx={CENTER}
+        cy={CENTER}
+        r={RADIUS}
+        fill="none"
+        stroke={skyColorAt(midHour)}
+        strokeWidth={STROKE}
+        strokeDasharray={`${len} ${CIRCUMFERENCE - len}`}
+        strokeDashoffset={-(startFrac * CIRCUMFERENCE)}
+      />,
+    )
+  }
+  return <>{wedges}</>
+}
+
 function angleFor(frac) {
   return frac * 2 * Math.PI - Math.PI / 2
 }
@@ -67,7 +122,11 @@ function NowHand({ frac }) {
   const base = pointAt(frac, RADIUS - STROKE / 2 - 6)
   return (
     <>
+      {/* White halo underneath so the red hand stays visible over the sky
+          gradient's darker/warmer tones (night navy, sunset orange). */}
+      <line x1={base.x} y1={base.y} x2={tip.x} y2={tip.y} stroke="#fff" strokeWidth="4" opacity="0.9" />
       <line x1={base.x} y1={base.y} x2={tip.x} y2={tip.y} stroke="var(--danger)" strokeWidth="2" />
+      <circle cx={tip.x} cy={tip.y} r="4" fill="#fff" opacity="0.9" />
       <circle cx={tip.x} cy={tip.y} r="3.5" fill="var(--danger)" />
     </>
   )
@@ -85,7 +144,9 @@ export default function DayClock({ segments, nowFrac, selectedId, onSelect }) {
   return (
     <div className="day-clock">
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="day-clock__svg" role="img" aria-label="Blocchi della giornata">
-        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--surface-2)" strokeWidth={STROKE} />
+        <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
+          <SkyBackground />
+        </g>
         <HourMarks />
         <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
           {segments.map((seg) => {
