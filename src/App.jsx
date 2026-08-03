@@ -7,13 +7,6 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-const TITLES = {
-  dashboard: 'Dashboard',
-  calendar: 'Add',
-  report: 'Report',
-  settings: 'Impostazioni',
-}
-
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,10 +57,7 @@ function App() {
             Weekl<span className="app-header__brand-accent">y</span>
           </h1>
         </button>
-        <p className="app-header__period">
-          {periodLabel ? `${periodLabel} ` : ''}
-          <span className="app-header__title">{TITLES[tab]}</span>
-        </p>
+        <p className="app-header__period">{periodLabel || (tab === 'settings' ? 'Impostazioni' : '')}</p>
         <button
           type="button"
           className={`header-settings-btn ${tab === 'settings' ? 'is-active' : ''}`}
