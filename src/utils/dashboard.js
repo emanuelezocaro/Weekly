@@ -55,7 +55,19 @@ function openDaysThisWeek(records, field, now) {
 // once the week's cumulative total already exceeds the full weekly quota,
 // nothing left in the week can undo that, so it's an immediate "failed"
 // regardless of days remaining (you can't un-smoke a cigarette).
-function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek, fallbackDirection, formatDiff, round = Math.ceil, remainingCapacity }) {
+function buildItem({
+  key,
+  label,
+  swatchColor,
+  goal,
+  actual,
+  elapsedDaysThisWeek,
+  fallbackDirection,
+  formatDiff,
+  round = Math.ceil,
+  remainingCapacity,
+  alwaysFullWeekTarget = false,
+}) {
   const rate = perDayRate(goal)
   const target = rate * elapsedDaysThisWeek
   const fullWeekQuota = rate * 7
@@ -91,8 +103,11 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
   } else {
     // "Più è meglio": il riferimento resta il ritmo del giorno finché c'è
     // ancora tempo per recuperare, il traguardo pieno della settimana una
-    // volta fallito (il ritmo non significa più nulla a quel punto).
-    const referenceTarget = status === 'failed' ? fullWeekQuota : target
+    // volta fallito (il ritmo non significa più nulla a quel punto) --
+    // oppure sempre il traguardo pieno se il chiamante lo richiede (es. il
+    // Cibo, dove il ritmo dei primi giorni collassa sempre su valori piccoli
+    // e poco informativi, indipendentemente dall'obiettivo reale).
+    const referenceTarget = alwaysFullWeekTarget || status === 'failed' ? fullWeekQuota : target
     displayTarget = round(referenceTarget)
     const diff = roundedActual - displayTarget
     if (status === 'failed') {
@@ -107,7 +122,7 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
     }
   }
 
-  const progressBase = direction === 'lower_is_better' ? fullWeekQuota : target
+  const progressBase = direction === 'lower_is_better' || alwaysFullWeekTarget ? fullWeekQuota : target
 
   return {
     key,
@@ -210,6 +225,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
         remainingCapacity: openDaysThisWeek(food, field.key, now),
+        alwaysFullWeekTarget: true,
       }),
     )
   }
@@ -228,6 +244,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
         remainingCapacity: openDaysThisWeek(food, 'extra', now),
+        alwaysFullWeekTarget: true,
       }),
     )
   }
