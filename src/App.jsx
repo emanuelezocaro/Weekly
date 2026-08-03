@@ -92,6 +92,7 @@ function App() {
               setSettingsInitialTab(subtab || 'goals')
               setTab('settings')
             }}
+            onPeriodLabel={setPeriodLabel}
           />
         )}
         {tab === 'calendar' && (

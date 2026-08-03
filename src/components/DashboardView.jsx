@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { buildDashboardItems, dashboardMotivation } from '../utils/dashboard'
 import { shouldShowBackupReminder } from '../utils/backupReminder'
+import { formatFullDate } from '../utils/date'
 
 const TABS = [
   { id: 'behind', label: 'Recuperare' },
@@ -112,11 +113,18 @@ export default function DashboardView({
   goals,
   now = new Date(),
   onOpenSettings,
+  onPeriodLabel,
 }) {
   const { behind, failed, onTrack } = buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now })
   const [tab, setTab] = useState('behind')
   const isFirstOfMonth = now.getDate() === 1
   const showBackupReminder = activities.length > 0 && shouldShowBackupReminder(now)
+
+  useEffect(() => {
+    if (!onPeriodLabel) return
+    onPeriodLabel(`Today · ${formatFullDate(now)}`)
+    return () => onPeriodLabel(null)
+  }, [now, onPeriodLabel])
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
