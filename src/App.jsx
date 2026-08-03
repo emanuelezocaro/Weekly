@@ -64,7 +64,6 @@ function App() {
             Weekl<span className="app-header__brand-accent">y</span>
           </h1>
         </button>
-        <div className="app-header__sep" />
         <p className="app-header__period">
           {TITLES[tab]}
           {periodLabel ? ` · ${periodLabel}` : ''}
