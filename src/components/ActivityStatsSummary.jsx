@@ -15,6 +15,45 @@ const PERIOD_PHRASE = {
   quarter: 'del trimestre trascorso',
 }
 
+// Ring chart for "share of the day so far": each slice's arc length comes
+// from stroke-dasharray on a plain circle, with a small gap (the standard
+// donut technique) between slices so adjacent colors never touch.
+function DonutChart({ segments, size = 108, strokeWidth = 20 }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const gapPx = segments.length > 1 ? 3 : 0
+  let cumulative = 0
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="day-donut__svg" role="img" aria-label="Ripartizione del tempo per attività">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--surface-2)" strokeWidth={strokeWidth} />
+      <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+        {segments.map((s) => {
+          const rawLen = s.fraction * circumference
+          const len = Math.max(0, rawLen - gapPx)
+          const dashoffset = -cumulative
+          cumulative += rawLen
+          if (rawLen <= 0) return null
+          return (
+            <circle
+              key={s.id}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={s.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={`${len} ${circumference - len}`}
+              strokeDashoffset={dashoffset}
+              strokeLinecap="round"
+            />
+          )
+        })}
+      </g>
+    </svg>
+  )
+}
+
 export default function ActivityStatsSummary({
   activities,
   entries,
@@ -48,14 +87,21 @@ export default function ActivityStatsSummary({
   }
 
   const barSegments = stats.filter((s) => s.totalMs > 0)
+  const zeroActivities = stats.filter((s) => s.totalMs === 0)
   const canDrillDown = Array.isArray(days) && days.length > 1
 
-  // The bar always renders full: widths are proportions of what's actually
-  // elapsed so far (tracked + untracked), not of a fixed 24h/day denominator
-  // -- otherwise an in-progress week/month would show a bar that trails off
-  // partway, since the current day hasn't fully elapsed yet.
+  // Shares are proportions of what's actually elapsed so far (tracked +
+  // untracked), not of a fixed 24h/day denominator -- otherwise an
+  // in-progress week/month would show slices that don't add up to a full
+  // ring, since the current day hasn't fully elapsed yet.
   const accountedMs = trackedMs + untrackedMs
-  const barWidth = (ms) => (accountedMs > 0 ? formatPct(ms / accountedMs) : '0%')
+  const shareOf = (ms) => (accountedMs > 0 ? ms / accountedMs : 0)
+  const donutSegments = [
+    ...barSegments.map((s) => ({ id: s.id, name: s.name, color: colorVar(s.colorSlot), fraction: shareOf(s.totalMs) })),
+    ...(untrackedMs > 0
+      ? [{ id: '__untracked', name: 'Non registrato', color: 'var(--gap)', fraction: shareOf(untrackedMs) }]
+      : []),
+  ]
 
   const periodMs = rangeEnd - rangeStart
   const elapsedPct = periodMs > 0 ? Math.round((accountedMs / periodMs) * 100) : 100
@@ -63,15 +109,27 @@ export default function ActivityStatsSummary({
 
   return (
     <div className="stats-summary">
-      <div className="avg-day-bar">
-        {barSegments.map((s) => (
-          <span key={s.id} style={{ width: barWidth(s.totalMs), background: colorVar(s.colorSlot) }} />
-        ))}
-        {untrackedMs > 0 && <span className="avg-day-bar__untracked" style={{ width: barWidth(untrackedMs) }} />}
-      </div>
+      {donutSegments.length > 0 && (
+        <div className="day-donut">
+          <DonutChart segments={donutSegments} />
+          <ul className="day-donut__legend">
+            {donutSegments.map((s) => (
+              <li key={s.id}>
+                <span className="day-donut__swatch" style={{ background: s.color }} />
+                <span className="day-donut__name">{s.name}</span>
+                <span className="day-donut__pct">{formatPct(s.fraction)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {zeroActivities.length > 0 && (
+        <p className="day-donut__zero">A zero: {zeroActivities.map((a) => a.name).join(', ')}</p>
+      )}
       {canDrillDown && periodPhrase && (
         <p className="stats-summary__progress">
-          {elapsedPct}% {periodPhrase} · {100 - elapsedPct}% rimanente
+          {elapsedPct}% {periodPhrase}
+          {elapsedPct < 100 && ` · ${100 - elapsedPct}% rimanente`}
         </p>
       )}
 
