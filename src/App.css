@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 10px;
   position: sticky;
   top: 0;
   background: var(--bg);
@@ -21,9 +21,8 @@
 
 .app-header__left {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+  align-items: center;
+  flex-shrink: 0;
   border: none;
   background: none;
   padding: 0;
@@ -40,15 +39,6 @@
   letter-spacing: -0.3px;
 }
 
-.app-header__subtitle {
-  margin: 0;
-  font-size: 11.5px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-
 .app-header__sep {
   width: 1px;
   align-self: stretch;
@@ -57,11 +47,15 @@
 }
 
 .app-header__period {
+  flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-main {

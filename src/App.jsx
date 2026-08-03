@@ -8,8 +8,8 @@ import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
 const TITLES = {
-  dashboard: 'Oggi',
-  calendar: 'Calendario',
+  dashboard: 'Dashboard',
+  calendar: 'Add',
   report: 'Report',
   settings: 'Impostazioni',
 }
@@ -61,10 +61,12 @@ function App() {
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1>Weekly</h1>
-          <p className="app-header__subtitle">{TITLES[tab]}</p>
         </button>
         <div className="app-header__sep" />
-        {periodLabel && <p className="app-header__period">{periodLabel}</p>}
+        <p className="app-header__period">
+          {TITLES[tab]}
+          {periodLabel ? ` · ${periodLabel}` : ''}
+        </p>
         <button
           type="button"
           className={`header-settings-btn ${tab === 'settings' ? 'is-active' : ''}`}

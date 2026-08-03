@@ -31,8 +31,8 @@ function ReportIcon() {
 }
 
 const TABS = [
-  { id: 'dashboard', label: 'Oggi', Icon: HomeIcon },
-  { id: 'calendar', label: 'Calendario', Icon: CalendarIcon },
+  { id: 'dashboard', label: 'Dashboard', Icon: HomeIcon },
+  { id: 'calendar', label: 'Add', Icon: CalendarIcon },
   { id: 'report', label: 'Report', Icon: ReportIcon },
 ]
 
