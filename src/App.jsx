@@ -65,8 +65,8 @@ function App() {
           </h1>
         </button>
         <p className="app-header__period">
+          {periodLabel ? `${periodLabel} ` : ''}
           <span className="app-header__title">{TITLES[tab]}</span>
-          {periodLabel ? ` · ${periodLabel}` : ''}
         </p>
         <button
           type="button"
