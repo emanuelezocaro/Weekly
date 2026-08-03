@@ -21,17 +21,8 @@ function ColorPicker({ value, onChange }) {
   )
 }
 
-const SYNC_LABELS = {
-  idle: 'Non ancora sincronizzato',
-  syncing: 'Sincronizzazione…',
-  synced: 'Sincronizzato',
-  error: 'Errore di sincronizzazione',
-}
-
-function formatSyncTime(ts) {
-  if (!ts) return ''
-  return new Date(ts).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })
-}
+const APP_URL = 'https://emanuelezocaro.github.io/Weekly/'
+const REPO_URL = 'https://github.com/emanuelezocaro/Weekly'
 
 export default function SettingsView({
   activities,
@@ -40,10 +31,6 @@ export default function SettingsView({
   onDelete,
   onExport,
   onImport,
-  settings,
-  setSettings,
-  syncStatus,
-  onSyncNow,
   goals,
   onSetGoal,
 }) {
@@ -53,8 +40,6 @@ export default function SettingsView({
   const [editName, setEditName] = useState('')
   const [editColorSlot, setEditColorSlot] = useState(0)
   const [backupMessage, setBackupMessage] = useState('')
-  const [sheetUrlDraft, setSheetUrlDraft] = useState(settings.sheetUrl)
-  const [tokenDraft, setTokenDraft] = useState(settings.token)
   const fileInputRef = useRef(null)
 
   function handleAdd(e) {
@@ -100,11 +85,6 @@ export default function SettingsView({
       }
     }
     reader.readAsText(file)
-  }
-
-  function saveSyncSettings(e) {
-    e.preventDefault()
-    setSettings({ sheetUrl: sheetUrlDraft.trim(), token: tokenDraft.trim() })
   }
 
   return (
@@ -175,53 +155,10 @@ export default function SettingsView({
       </section>
 
       <section className="settings-card">
-        <h2 className="settings-card__title">Sincronizzazione Google Sheet</h2>
+        <h2 className="settings-card__title">Backup</h2>
         <p className="settings-card__hint">
-          Incolla qui l'URL del tuo Google Apps Script Web App (vedi istruzioni in{' '}
-          <code>google-apps-script/README.md</code>) e un token a tua scelta: i dati verranno
-          salvati sul tuo Google Sheet e disponibili su ogni dispositivo.
-        </p>
-        <form className="settings-form" onSubmit={saveSyncSettings}>
-          <label className="settings-form__field">
-            <span>URL Web App</span>
-            <input
-              type="url"
-              placeholder="https://script.google.com/macros/s/.../exec"
-              value={sheetUrlDraft}
-              onChange={(e) => setSheetUrlDraft(e.target.value)}
-            />
-          </label>
-          <label className="settings-form__field">
-            <span>Token</span>
-            <input
-              type="text"
-              placeholder="una password a tua scelta"
-              value={tokenDraft}
-              onChange={(e) => setTokenDraft(e.target.value)}
-            />
-          </label>
-          <button type="submit">Salva</button>
-        </form>
-        {settings.sheetUrl && (
-          <div className="sync-status">
-            <span className={`sync-status__dot sync-status__dot--${syncStatus.state}`} />
-            <span>{SYNC_LABELS[syncStatus.state] || syncStatus.state}</span>
-            {syncStatus.lastSyncedAt && (
-              <span className="sync-status__time">{formatSyncTime(syncStatus.lastSyncedAt)}</span>
-            )}
-            <button type="button" className="backup-card__secondary" onClick={onSyncNow}>
-              Sincronizza ora
-            </button>
-          </div>
-        )}
-        {syncStatus.state === 'error' && <p className="settings-card__error">{syncStatus.error}</p>}
-      </section>
-
-      <section className="settings-card">
-        <h2 className="settings-card__title">Backup manuale</h2>
-        <p className="settings-card__hint">
-          Esporta un file con tutte le tue attività e lo storico come rete di sicurezza extra oltre
-          al Google Sheet.
+          Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
+          e da usare per riportare i dati su un nuovo telefono.
         </p>
         <div className="backup-card__actions">
           <button type="button" onClick={handleExport}>
@@ -239,6 +176,18 @@ export default function SettingsView({
           onChange={handleImportFile}
           hidden
         />
+      </section>
+
+      <section className="settings-card">
+        <h2 className="settings-card__title">App e codice</h2>
+        <div className="link-list">
+          <a href={APP_URL} target="_blank" rel="noreferrer" className="link-list__item">
+            Apri l'app (URL pubblico)
+          </a>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="link-list__item">
+            Repository su GitHub
+          </a>
+        </div>
       </section>
     </div>
   )

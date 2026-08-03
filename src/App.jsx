@@ -40,10 +40,6 @@ function App() {
     setGoal,
     exportData,
     importData,
-    settings,
-    setSettings,
-    syncStatus,
-    syncNow,
   } = useHabitData()
 
   return (
@@ -108,10 +104,6 @@ function App() {
             onDelete={deleteActivity}
             onExport={exportData}
             onImport={importData}
-            settings={settings}
-            setSettings={setSettings}
-            syncStatus={syncStatus}
-            onSyncNow={syncNow}
             goals={goals}
             onSetGoal={setGoal}
           />

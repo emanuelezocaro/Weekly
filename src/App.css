@@ -1026,98 +1026,22 @@
   border-radius: 5px;
 }
 
-.settings-card__error {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--danger);
-}
-
-.settings-form {
+.link-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.settings-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12.5px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.settings-form__field--row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.settings-form__field input[type='text'],
-.settings-form__field input[type='url'],
-.settings-form__field input[type='time'] {
-  padding: 10px 12px;
+.link-list__item {
+  display: block;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
   font-size: 14px;
-}
-
-.settings-form__field input[type='checkbox'] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--accent);
-}
-
-.settings-form > button {
-  align-self: flex-start;
-  padding: 9px 16px;
-  border-radius: 10px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
   font-weight: 600;
-  cursor: pointer;
-  font-size: 13.5px;
-}
-
-.sync-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  flex-wrap: wrap;
-}
-
-.sync-status__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--text-muted);
-}
-
-.sync-status__dot--synced {
-  background: var(--accent);
-}
-
-.sync-status__dot--syncing {
-  background: #ffcc00;
-}
-
-.sync-status__dot--error {
-  background: var(--danger);
-}
-
-.sync-status__time {
-  color: var(--text-muted);
-}
-
-.sync-status button {
-  margin-left: auto;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 12px;
+  text-decoration: none;
 }
 
 /* Add activity */
