@@ -333,6 +333,7 @@ export default function DayAgenda({
   onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
+  onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
   const [activeTab, setActiveTab] = useState('calendar')
@@ -352,6 +353,14 @@ export default function DayAgenda({
     const id = setInterval(() => forceTick((n) => n + 1), 60000)
     return () => clearInterval(id)
   }, [isToday])
+
+  // Reports the current day up to the app header, which shows it in place
+  // of the day-switcher (removed in favor of the swipe gesture below).
+  useEffect(() => {
+    if (!onPeriodLabel) return
+    onPeriodLabel(isToday ? 'Oggi' : formatFullDate(cursor))
+    return () => onPeriodLabel(null)
+  }, [isToday, cursor, onPeriodLabel])
 
   const [expandedId, setExpandedId] = useState(null)
   const [expandedGap, setExpandedGap] = useState(null)
@@ -406,31 +415,6 @@ export default function DayAgenda({
 
   return (
     <div className="panel">
-      <div className="day-switcher">
-        <button
-          type="button"
-          className="day-switcher__arrow"
-          onClick={() => onCursorChange(addDays(cursor, -1))}
-          disabled={prevDisabled}
-          aria-label="Giorno precedente"
-        >
-          ‹
-        </button>
-        <button type="button" className="day-switcher__label" onClick={() => onCursorChange(new Date())}>
-          <strong>{isToday ? 'Oggi' : formatFullDate(cursor)}</strong>
-          {isToday && <span className="day-switcher__sub">{formatFullDate(cursor)}</span>}
-        </button>
-        <button
-          type="button"
-          className="day-switcher__arrow"
-          onClick={() => onCursorChange(addDays(cursor, 1))}
-          disabled={nextDisabled}
-          aria-label="Giorno successivo"
-        >
-          ›
-        </button>
-      </div>
-
       <div className="segmented">
         {DAY_TABS.map((t) => (
           <button

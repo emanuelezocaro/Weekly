@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   addDays,
   addMonths,
@@ -86,7 +86,7 @@ function isPrevDisabled(period, cursor) {
   return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries, outputs, cigarettes, food, goals }) {
+export default function ReportView({ activities, entries, outputs, cigarettes, food, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
@@ -103,6 +103,14 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
     prevDisabled,
     nextDisabled,
   })
+
+  // Reports the current period up to the app header, which shows it in
+  // place of the day-switcher (removed in favor of the swipe gesture below).
+  useEffect(() => {
+    if (!onPeriodLabel) return
+    onPeriodLabel(periodHeaderLabel(period, cursor))
+    return () => onPeriodLabel(null)
+  }, [period, cursor, onPeriodLabel])
 
   async function handleCopySummary() {
     const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
@@ -129,30 +137,6 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
       </div>
 
       <div {...swipeHandlers}>
-        <div className="day-switcher">
-          <button
-            type="button"
-            className="day-switcher__arrow"
-            onClick={() => setCursor((c) => shiftCursor(period, c, -1))}
-            disabled={prevDisabled}
-            aria-label="Periodo precedente"
-          >
-            ‹
-          </button>
-          <div className="day-switcher__label">
-            <strong>{periodHeaderLabel(period, cursor)}</strong>
-          </div>
-          <button
-            type="button"
-            className="day-switcher__arrow"
-            onClick={() => setCursor((c) => shiftCursor(period, c, 1))}
-            disabled={nextDisabled}
-            aria-label="Periodo successivo"
-          >
-            ›
-          </button>
-        </div>
-
         {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
           <div className="month-summary">
             <div className="backup-card__actions">

@@ -16,6 +16,7 @@ const TITLES = {
 
 function App() {
   const [tab, setTab] = useState('dashboard')
+  const [periodLabel, setPeriodLabel] = useState(null)
   const {
     activities,
     entries,
@@ -50,7 +51,7 @@ function App() {
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1>Weekly</h1>
-          <p className="app-header__subtitle">{TITLES[tab]}</p>
+          <p className="app-header__subtitle">{periodLabel ?? TITLES[tab]}</p>
         </button>
         <div className="app-header__sep" />
         <TopNav active={tab} onChange={setTab} />
@@ -84,6 +85,7 @@ function App() {
             onUndoNoOutputs={undoNoOutputs}
             onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
+            onPeriodLabel={setPeriodLabel}
           />
         )}
         {tab === 'report' && (
@@ -94,6 +96,7 @@ function App() {
             cigarettes={cigarettes}
             food={food}
             goals={goals}
+            onPeriodLabel={setPeriodLabel}
           />
         )}
         {tab === 'settings' && (
