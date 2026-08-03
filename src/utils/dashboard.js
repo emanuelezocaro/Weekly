@@ -55,7 +55,7 @@ function openDaysThisWeek(records, field, now) {
 // once the week's cumulative total already exceeds the full weekly quota,
 // nothing left in the week can undo that, so it's an immediate "failed"
 // regardless of days remaining (you can't un-smoke a cigarette).
-function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek, fallbackDirection, formatDiff, remainingCapacity }) {
+function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek, fallbackDirection, formatDiff, round = Math.ceil, remainingCapacity }) {
   const rate = perDayRate(goal)
   const target = rate * elapsedDaysThisWeek
   const fullWeekQuota = rate * 7
@@ -74,15 +74,22 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
   // still time to close the gap, but the full weekly quota once it's
   // already failed -- the pace target stops meaning anything at that point.
   const referenceTarget = status === 'failed' ? fullWeekQuota : target
-  const diff = actual - referenceTarget
+
+  // Round target and actual first, then derive the diff from those same
+  // rounded numbers. Rounding the raw diff independently can disagree with
+  // the two rounded numbers shown next to it (e.g. obiettivo=ceil(0.7)=1,
+  // ma ceil(3-0.7)=3, che non torna con "come sto"=3).
+  const roundedTarget = round(referenceTarget)
+  const roundedActual = round(actual)
+  const diff = roundedActual - roundedTarget
 
   return {
     key,
     label,
     swatchColor,
     status,
-    targetLabel: formatDiff(referenceTarget),
-    actualLabel: formatDiff(actual),
+    targetLabel: formatDiff(roundedTarget),
+    actualLabel: formatDiff(roundedActual),
     diffLabel: `${diff >= 0 ? '+' : '−'}${formatDiff(Math.abs(diff))}`,
     progressPct: target > 0 ? Math.min(100, Math.max(0, (actual / target) * 100)) : 100,
   }
@@ -90,6 +97,7 @@ function buildItem({ key, label, swatchColor, goal, actual, elapsedDaysThisWeek,
 
 const formatCount = (n) => String(Math.ceil(n))
 const formatHours = (minutes) => formatDuration(minutes * 60000)
+const roundMinutes = (n) => Math.round(n)
 
 // Builds the "sono in pace con la settimana?" list for the Dashboard: every
 // item with a goal, split into what needs attention right now, what's
@@ -121,6 +129,7 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
         elapsedDaysThisWeek,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatHours,
+        round: roundMinutes,
       }),
     )
   }
