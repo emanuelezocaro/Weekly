@@ -51,9 +51,10 @@ function App() {
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1>Weekly</h1>
-          <p className="app-header__subtitle">{periodLabel ?? TITLES[tab]}</p>
+          <p className="app-header__subtitle">{TITLES[tab]}</p>
         </button>
         <div className="app-header__sep" />
+        {periodLabel && <p className="app-header__period">{periodLabel}</p>}
         <TopNav active={tab} onChange={setTab} />
       </header>
 
