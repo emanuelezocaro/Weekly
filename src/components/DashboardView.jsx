@@ -28,7 +28,7 @@ function StatsRow({ item }) {
         <span className="dash-card__stat-label">{item.diffStatLabel}</span>
         <span className="dash-card__stat-value">{item.diffLabel}</span>
       </div>
-      <div className="dash-card__stat">
+      <div className="dash-card__stat dash-card__stat--main">
         <span className="dash-card__stat-label">Come sto</span>
         <span className="dash-card__stat-value">{item.actualLabel}</span>
       </div>
