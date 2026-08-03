@@ -90,6 +90,12 @@ export default function ActivityStatsSummary({
   const zeroActivities = stats.filter((s) => s.totalMs === 0)
   const canDrillDown = Array.isArray(days) && days.length > 1
 
+  // Sub-minute leftovers (floating-point/clock-tick residue between "now"
+  // and the last logged entry) round down to "0m" when displayed, so guard
+  // on the rounded value -- otherwise a technically-nonzero-but-invisible
+  // untrackedMs shows a "Non registrato: 0m" that reads as a bug.
+  const hasUntracked = Math.round(untrackedMs / 60000) > 0
+
   // Shares are proportions of what's actually elapsed so far (tracked +
   // untracked), not of a fixed 24h/day denominator -- otherwise an
   // in-progress week/month would show slices that don't add up to a full
@@ -98,7 +104,7 @@ export default function ActivityStatsSummary({
   const shareOf = (ms) => (accountedMs > 0 ? ms / accountedMs : 0)
   const donutSegments = [
     ...barSegments.map((s) => ({ id: s.id, name: s.name, color: colorVar(s.colorSlot), fraction: shareOf(s.totalMs) })),
-    ...(untrackedMs > 0
+    ...(hasUntracked
       ? [{ id: '__untracked', name: 'Non registrato', color: 'var(--gap)', fraction: shareOf(untrackedMs) }]
       : []),
   ]
@@ -137,7 +143,9 @@ export default function ActivityStatsSummary({
         <span>
           Tracciato: <strong>{formatDuration(trackedMs)}</strong>
         </span>
-        <span className="report-summary__muted">Non registrato: {formatDuration(untrackedMs)}</span>
+        {hasUntracked && (
+          <span className="report-summary__missing">Non registrato: {formatDuration(untrackedMs)}</span>
+        )}
       </div>
 
       <ul className="report-list">
