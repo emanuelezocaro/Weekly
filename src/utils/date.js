@@ -48,10 +48,10 @@ export function formatMonthShort(monthIso) {
 const EN_DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const EN_MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-// "Mon, 3/Aug" -- compact English weekday + day/month, for the app header's
+// "Mon, 3 Aug" -- compact English weekday + day/month, for the app header's
 // period display where space is tight.
 export function formatShortDateEN(date) {
-  return `${EN_DAY_ABBR[date.getDay()]}, ${date.getDate()}/${EN_MONTH_ABBR[date.getMonth()]}`
+  return `${EN_DAY_ABBR[date.getDay()]}, ${date.getDate()} ${EN_MONTH_ABBR[date.getMonth()]}`
 }
 
 export function todayISO() {
