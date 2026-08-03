@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { shareOrDownloadText } from '../utils/shareFile'
+import { copyOrShareText, shareOrDownloadText } from '../utils/shareFile'
 import { colorVar, PALETTE_SIZE } from '../utils/palette'
 import { toMonthISO } from '../utils/date'
 import GoalsCard from './GoalsCard'
@@ -23,6 +23,35 @@ function ColorPicker({ value, onChange }) {
 
 const APP_URL = 'https://emanuelezocaro.github.io/Weekly/'
 const REPO_URL = 'https://github.com/emanuelezocaro/Weekly'
+
+const COPY_LINK_MESSAGES = {
+  copied: 'Copiato ✓',
+  shared: 'Condiviso ✓',
+  downloaded: 'Scaricato ✓',
+  cancelled: '',
+}
+
+function CopyRow({ label, value }) {
+  const [message, setMessage] = useState('')
+
+  async function handleCopy() {
+    const result = await copyOrShareText(value)
+    setMessage(COPY_LINK_MESSAGES[result] ?? '')
+    if (result !== 'failed') setTimeout(() => setMessage(''), 2000)
+  }
+
+  return (
+    <div className="copy-row">
+      <div className="copy-row__text">
+        <span className="copy-row__label">{label}</span>
+        <code className="copy-row__value">{value}</code>
+      </div>
+      <button type="button" className="text-btn" onClick={handleCopy}>
+        {message || 'Copia'}
+      </button>
+    </div>
+  )
+}
 
 const SETTINGS_TABS = [
   { id: 'goals', label: 'Obiettivi' },
@@ -208,14 +237,19 @@ export default function SettingsView({
       {tab === 'app' && (
         <section className="settings-card">
           <h2 className="settings-card__title">App e codice</h2>
-          <div className="link-list">
-            <a href={APP_URL} target="_blank" rel="noreferrer" className="link-list__item">
-              Apri l'app (URL pubblico)
-            </a>
-            <a href={REPO_URL} target="_blank" rel="noreferrer" className="link-list__item">
-              Repository su GitHub
-            </a>
+          <div className="copy-row-list">
+            <CopyRow label="URL pubblico dell'app" value={APP_URL} />
+            <CopyRow label="Repository GitHub" value={REPO_URL} />
           </div>
+          <p className="settings-card__hint">
+            È un sito statico (Vite + React), nessun server dietro. Per rimetterlo altrove: clona il
+            repository, <code>npm install</code> e poi <code>npm run build</code> genera la cartella{' '}
+            <code>dist/</code> — quella cartella si carica su qualsiasi hosting statico (GitHub
+            Pages, Netlify, Vercel, Cloudflare Pages, un tuo server). Se cambi indirizzo, aggiorna il
+            campo <code>base</code> in <code>vite.config.js</code> con il nuovo percorso. Il deploy su
+            GitHub Pages di questo repository è già automatico: parte da solo ad ogni push sul branch
+            principale (vedi <code>.github/workflows/deploy.yml</code>).
+          </p>
         </section>
       )}
     </div>

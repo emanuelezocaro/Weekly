@@ -1041,22 +1041,47 @@
   border-radius: 5px;
 }
 
-.link-list {
+.copy-row-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 14px;
 }
 
-.link-list__item {
-  display: block;
-  padding: 12px 14px;
+.copy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-2);
-  color: var(--text);
-  font-size: 14px;
+}
+
+.copy-row__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.copy-row__label {
+  font-size: 11px;
   font-weight: 600;
-  text-decoration: none;
+  color: var(--text-muted);
+}
+
+.copy-row__value {
+  font-size: 12.5px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy-row .text-btn {
+  flex-shrink: 0;
 }
 
 /* Add activity */
