@@ -70,7 +70,9 @@ function periodDays(period, cursor) {
 function periodHeaderLabel(period, cursor) {
   if (period === 'month') return formatMonthLabel(startOfMonth(cursor))
   const [start, end] = periodRange(period, cursor)
-  return formatDateRange(start, end)
+  const label = formatDateRange(start, end)
+  const isCurrentWeek = period === 'week' && startOfWeek(cursor).getTime() === startOfWeek(new Date()).getTime()
+  return isCurrentWeek ? `Current week · ${label}` : label
 }
 
 function isNextDisabled(period, cursor) {
