@@ -286,13 +286,13 @@
   color: var(--accent-strong);
 }
 
-/* Classic "folder tab" pattern (reference: real file-folder tabs, the
-   selected one merges into the page beneath it, the rest recede behind
-   it). Each tab is its own slanted-edge shape; the active one matches the
-   panel below exactly (same background, sits taller/forward, no border
-   between it and the panel), while inactive tabs are a visibly different,
-   muted shade sitting shorter/behind -- not one uniformly-colored bar
-   with a highlighted slice, but genuinely separate tab shapes. */
+/* Folder-tab pattern (reference: real file-folder tabs) -- the point
+   isn't the slanted edges, it's that the SELECTED tab is visually
+   coherent with the panel beneath it (same background, same rounded-
+   corner language as every card in this app -- var(--radius-lg) -- no
+   border between them) while the rest sit shorter/muted, visibly not
+   part of that panel. Rounded top corners here, matching the panel's own
+   corners below, not a separate decorative shape. */
 .top-nav {
   display: flex;
   align-items: flex-end;
@@ -312,7 +312,7 @@
   color: var(--text-muted);
   padding: 8px 4px;
   margin-top: 8px;
-  clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, margin-top 0.15s ease, padding-top 0.15s ease;
 }
