@@ -1,18 +1,18 @@
-/* Fixed-height app shell (not min-height): header and bottom nav are plain
-   flex items that never move, and .app-main is the only scrolling region.
-   This sidesteps the well-known mobile-browser bug where a `position: fixed`
-   bottom bar drifts/rises when the address bar or on-screen keyboard resizes
-   the viewport. --app-height is set from JS (App.jsx) to the real measured
-   visual-viewport height -- on some phones 100dvh alone still reports the
-   wrong value for a moment on first paint (before the browser's toolbar
-   settles), leaving the nav floating above the true bottom edge; 100dvh
-   here is only the fallback for the instant before that JS runs. */
+/* Pinned directly to the real viewport edges with position: fixed + inset: 0
+   -- more reliable than sizing via 100dvh/svh or a JS-measured height, both
+   of which could end up reporting a viewport shorter than the true screen on
+   some phones and leave a gap (with blank -- but same-colored -- html
+   background showing through) between the bottom nav and the actual bottom
+   edge. This only works cleanly because html/body no longer scroll or
+   rubber-band (see index.css): with an outer scrolling page, fixed elements
+   used to drift as the browser toolbar resized things; with that removed,
+   the browser can position this against the real visual viewport every
+   frame, no measurement or JS involved. */
 .app {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  min-height: 100svh;
-  height: 100dvh;
-  height: var(--app-height, 100dvh);
   max-width: 480px;
   margin: 0 auto;
   background: var(--bg);

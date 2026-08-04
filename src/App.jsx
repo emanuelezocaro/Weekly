@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react'
+import { useState } from 'react'
 import BottomNav from './components/BottomNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -20,31 +20,7 @@ function SettingsIcon() {
   )
 }
 
-// iOS/Android can report a taller viewport than what's actually visible on
-// the very first paint (its toolbar height isn't settled yet), so 100dvh
-// alone can start out wrong and leave the bottom nav floating above the
-// real bottom edge until the browser corrects itself. Measuring the actual
-// visual viewport in JS and pinning it to a CSS var sidesteps that.
-function useAppHeightVar() {
-  useLayoutEffect(() => {
-    function setAppHeight() {
-      const h = window.visualViewport?.height ?? window.innerHeight
-      document.documentElement.style.setProperty('--app-height', `${h}px`)
-    }
-    setAppHeight()
-    window.addEventListener('resize', setAppHeight)
-    window.addEventListener('orientationchange', setAppHeight)
-    window.visualViewport?.addEventListener('resize', setAppHeight)
-    return () => {
-      window.removeEventListener('resize', setAppHeight)
-      window.removeEventListener('orientationchange', setAppHeight)
-      window.visualViewport?.removeEventListener('resize', setAppHeight)
-    }
-  }, [])
-}
-
 function App() {
-  useAppHeightVar()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
   const [settingsInitialTab, setSettingsInitialTab] = useState('goals')
