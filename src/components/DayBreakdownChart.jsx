@@ -21,7 +21,12 @@ function Row({ name, colorSlot, pct, isNotDone }) {
 // which still shows every individual block. Whatever wasn't logged always
 // comes last, regardless of its own share of the day.
 export default function DayBreakdownChart({ rows, notDoneMs, accountedMs, zeroActivities = [] }) {
-  const pct = (ms) => (accountedMs > 0 ? Math.round((ms / accountedMs) * 100) : 0)
+  // Clamped to 100 -- a share of accountedMs can never legitimately exceed
+  // it; if it does, something upstream (e.g. an entry whose real duration
+  // outruns how much of the day has actually elapsed) is already wrong, and
+  // showing an impossible percentage like 1643% only compounds the
+  // confusion instead of surfacing it usefully.
+  const pct = (ms) => (accountedMs > 0 ? Math.min(100, Math.round((ms / accountedMs) * 100)) : 0)
 
   if (rows.length === 0 && notDoneMs <= 0) return null
 
