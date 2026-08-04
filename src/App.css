@@ -353,7 +353,13 @@
      No side margin here -- .app-main already insets everything by 16px,
      matching .top-nav's own margin, so both line up exactly. */
   top: var(--topbar-height, 0px);
-  z-index: 1;
+  /* Needs to stay above ALL scrolling content, not just close to it --
+     Report's own trend-chart bars use z-index: 1 for their own internal
+     layering, and at that same value DOM order (they come later in the
+     page) let them paint over this sticky wrap while scrolling, making it
+     look "transparent" with chart bars showing through. Only visible on
+     Report because it's the only view with content using z-index at all. */
+  z-index: 5;
   padding: 0 10px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -371,9 +377,9 @@
   flex: 1;
   border: none;
   background: none;
-  padding: 10px 0 8px;
+  padding: 13px 0 11px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--text-muted);
   font-weight: 600;
   transition: color 0.15s ease;
