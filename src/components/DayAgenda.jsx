@@ -25,7 +25,7 @@ import DayClock from './DayClock'
 import FoodCard from './FoodCard'
 
 const DAY_TABS = [
-  { id: 'calendar', label: 'Calendario' },
+  { id: 'calendar', label: 'Attività' },
   { id: 'outputs', label: 'Uscite' },
   { id: 'cigarettes', label: 'Sigarette' },
   { id: 'food', label: 'Cibo' },
