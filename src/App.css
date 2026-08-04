@@ -1,16 +1,19 @@
-/* Pinned directly to the real viewport edges with position: fixed + inset: 0
-   -- more reliable than sizing via 100dvh/svh or a JS-measured height, both
-   of which could end up reporting a viewport shorter than the true screen on
-   some phones and leave a gap (with blank -- but same-colored -- html
-   background showing through) between the bottom nav and the actual bottom
-   edge. This only works cleanly because html/body no longer scroll or
-   rubber-band (see index.css): with an outer scrolling page, fixed elements
-   used to drift as the browser toolbar resized things; with that removed,
-   the browser can position this against the real visual viewport every
-   frame, no measurement or JS involved. */
+/* Pinned to the real viewport edges two ways at once: position:fixed+inset:0
+   AND an explicit 100dvh height. On their own, either can end up reporting a
+   viewport shorter than the true screen on some phones/iOS versions (a known
+   inconsistency in how "fixed" elements' containing block gets sized on iOS
+   home-screen web apps specifically), leaving a gap -- same-colored as the
+   page, so not obviously "wrong", but the nav sits above the real bottom
+   edge. Setting both is redundant when either works correctly on its own,
+   and a safety net for the iOS versions/devices where one alone doesn't.
+   Only reliable because html/body no longer scroll or rubber-band (see
+   index.css) -- with an outer scrolling page, fixed elements used to drift
+   as the browser toolbar resized things; with that removed, the browser can
+   position this against the real visual viewport every frame. */
 .app {
   position: fixed;
   inset: 0;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   max-width: 480px;
