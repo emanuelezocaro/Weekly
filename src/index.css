@@ -16,7 +16,10 @@
   --surface: #ffffff;
   --surface-2: #f2f2f4;
   --text: #14141a;
-  --text-muted: #86868c;
+  /* Darkened from #86868c -- the old value read a bit under 4.5:1 contrast
+     against --surface/--bg for small text, right at the size where most of
+     this app's secondary labels sit. */
+  --text-muted: #6e6e76;
   --border: #ececee;
   /* Brand accent (amber, from the app icon) drives all generic interactive
      UI -- buttons, active nav, chips. Goal-tracking "success" keeps its own

@@ -40,17 +40,58 @@ function StatsRow({ item }) {
   )
 }
 
+function ChevronIcon({ open }) {
+  return (
+    <svg
+      className={`dash-card__chevron ${open ? 'is-open' : ''}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  )
+}
+
+// Le card partono compatte (nome + valore chiave + barra) e si espandono al
+// tap per mostrare le 3 statistiche complete -- con più obiettivi attivi la
+// vista compatta si scorre molto più in fretta di 3 numeri ripetuti su ogni
+// card.
+function CardBody({ item, badge, showBar }) {
+  const [expanded, setExpanded] = useState(false)
+  const diffClass = POSITIVE_DIFF_LABELS.has(item.diffStatLabel) ? 'is-good' : 'is-bad'
+  return (
+    <>
+      <button
+        type="button"
+        className="dash-card__header dash-card__header--btn"
+        onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+      >
+        <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
+        <span className="dash-card__name">{item.label}</span>
+        {badge}
+        <span className={`dash-card__key ${diffClass}`}>{item.diffLabel}</span>
+        <ChevronIcon open={expanded} />
+      </button>
+      {showBar && (
+        <div className="dash-card__bar-track">
+          <div className="dash-card__bar-fill" style={{ width: `${item.progressPct}%` }} />
+        </div>
+      )}
+      {expanded && <StatsRow item={item} />}
+    </>
+  )
+}
+
 function BehindCard({ item }) {
   return (
     <div className="dash-card">
-      <div className="dash-card__header">
-        <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
-        <span className="dash-card__name">{item.label}</span>
-      </div>
-      <StatsRow item={item} />
-      <div className="dash-card__bar-track">
-        <div className="dash-card__bar-fill" style={{ width: `${item.progressPct}%` }} />
-      </div>
+      <CardBody item={item} showBar />
     </div>
   )
 }
@@ -58,12 +99,7 @@ function BehindCard({ item }) {
 function FailedCard({ item }) {
   return (
     <div className="dash-card dash-card--failed">
-      <div className="dash-card__header">
-        <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
-        <span className="dash-card__name">{item.label}</span>
-        <span className="dash-card__period">Fallito</span>
-      </div>
-      <StatsRow item={item} />
+      <CardBody item={item} badge={<span className="dash-card__period">Fallito</span>} />
     </div>
   )
 }
@@ -71,11 +107,7 @@ function FailedCard({ item }) {
 function MetCard({ item }) {
   return (
     <div className="dash-card dash-card--met">
-      <div className="dash-card__header">
-        <span className="dash-card__swatch" style={{ background: item.swatchColor }} />
-        <span className="dash-card__name">{item.label}</span>
-      </div>
-      <StatsRow item={item} />
+      <CardBody item={item} />
     </div>
   )
 }
