@@ -355,10 +355,10 @@
   justify-content: center;
   gap: 3px;
   border: 1.5px solid transparent;
-  border-bottom: none;
+  border-top: none;
   background: none;
   padding: 8px 0 6px;
-  border-radius: 14px 14px 0 0;
+  border-radius: 0 0 14px 14px;
   cursor: pointer;
   color: var(--text-muted);
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, margin 0.15s ease;
@@ -377,9 +377,10 @@
 
 /* The active tab's button shares the exact same fill as the panel behind
    it (nav bar + page content) and pokes up above the bar into the content
-   area with a negative margin -- a literal folder-tab shape attached to,
-   growing out of, the page it represents, not just a same-colored highlight
-   sitting inside the bar. */
+   area with a negative margin -- a literal folder-tab shape growing out of
+   the page it represents. Its top edge is flat and borderless (it merges
+   seamlessly into the content above, no seam), while the rounded, bordered
+   bottom is what actually reads as a distinct tab shape sitting in the bar. */
 .bottom-nav__tab.is-active {
   margin-top: -14px;
   padding-top: 16px;
