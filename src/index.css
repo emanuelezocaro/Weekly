@@ -42,12 +42,12 @@
   --radius: 18px;
   --radius-lg: 24px;
 
-  /* Eight hues spread around the wheel so no two activities read as "the
+  /* Twelve hues spread around the wheel so no two activities read as "the
      same color at a glance" -- includes clear primary red/yellow/blue,
-     plus green/purple/orange/pink/teal for real separation. --series-2 is
-     the one exception: it's pinned to the dedicated "goal achieved" green
-     used elsewhere in the app (see comment above), so it never changes
-     independently of that meaning. */
+     plus green/purple/orange/pink/teal/lime/violet/brown/navy for real
+     separation. --series-2 is the one exception: it's pinned to the
+     dedicated "goal achieved" green used elsewhere in the app (see comment
+     above), so it never changes independently of that meaning. */
   --series-1: #2e6ff2; /* blue */
   --series-2: #1baf7a; /* green -- reserved, see above */
   --series-3: #e3b300; /* yellow */
@@ -56,6 +56,10 @@
   --series-6: #f2762e; /* orange */
   --series-7: #e34ba9; /* pink */
   --series-8: #0ea5c4; /* teal */
+  --series-9: #8fae00; /* lime */
+  --series-10: #b34fd6; /* violet */
+  --series-11: #a35d3a; /* brown */
+  --series-12: #3f5d8a; /* navy */
   --gap: #d5d5d9;
 
   font: 15px/1.45 'Manrope', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
@@ -93,6 +97,10 @@
     --series-6: #ff9152;
     --series-7: #f26fc0;
     --series-8: #3dc3e0;
+    --series-9: #c3d94d;
+    --series-10: #d693ea;
+    --series-11: #cf9670;
+    --series-12: #7fa0d1;
     --gap: #29292d;
   }
 }
