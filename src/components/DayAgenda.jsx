@@ -579,7 +579,7 @@ export default function DayAgenda({
               )}
 
               {items.length > 0 && (
-                <>
+                <section className="settings-card">
                   <DayClock
                     segments={clockSegments}
                     nowFrac={nowFrac}
@@ -612,7 +612,7 @@ export default function DayAgenda({
                     accountedMs={dayElapsedMs}
                     zeroActivities={dayBreakdown.zeroActivities}
                   />
-                </>
+                </section>
               )}
             </>
           ))}

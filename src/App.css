@@ -1,11 +1,12 @@
-/* Pinned to the real viewport edges two ways at once: position:fixed+inset:0
-   AND an explicit 100dvh height. On their own, either can end up reporting a
-   viewport shorter than the true screen on some phones/iOS versions (a known
-   inconsistency in how "fixed" elements' containing block gets sized on iOS
-   home-screen web apps specifically), leaving a gap -- same-colored as the
-   page, so not obviously "wrong", but the nav sits above the real bottom
-   edge. Setting both is redundant when either works correctly on its own,
-   and a safety net for the iOS versions/devices where one alone doesn't.
+/* Pinned directly to the real viewport edges with position:fixed + inset:0
+   -- top:0 AND bottom:0 both anchored with no height calculation involved,
+   the most reliable way to guarantee this box exactly fills the visible
+   screen. Deliberately NOT combined with an explicit height: per the CSS
+   spec, when top/height/bottom are all non-auto on a fixed element, height
+   wins and bottom is the one that gets ignored/recomputed -- so pairing
+   inset:0 with e.g. height:100dvh actually UNDOES the bottom:0 anchor
+   whenever 100dvh doesn't exactly match the true viewport height, which is
+   the exact failure mode this is meant to avoid. inset:0 alone is the fix.
    Only reliable because html/body no longer scroll or rubber-band (see
    index.css) -- with an outer scrolling page, fixed elements used to drift
    as the browser toolbar resized things; with that removed, the browser can
@@ -13,7 +14,6 @@
 .app {
   position: fixed;
   inset: 0;
-  height: 100dvh;
   display: flex;
   flex-direction: column;
   max-width: 480px;
