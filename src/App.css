@@ -346,10 +346,14 @@
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
      height of the pinned header + top nav above it -- sticking at top: 0
      here would stack this UNDER that fixed bar instead of right below it,
-     since the page itself scrolls now instead of an inner container. */
+     since the page itself scrolls now instead of an inner container.
+     No side margin here -- .app-main already insets everything by 16px,
+     so adding another 16px margin on top of that (as this used to) made
+     this card 32px narrower than .top-nav (which sits in .app-topbar,
+     with no extra ancestor padding), leaving mismatched, jagged edges
+     instead of one continuous outline. */
   top: var(--topbar-height, 0px);
   z-index: 4;
-  margin: 0 16px;
   padding: 0 10px;
   background: var(--tab-highlight-bg);
   border: 1px solid var(--border);
