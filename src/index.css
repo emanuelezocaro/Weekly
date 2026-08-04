@@ -28,11 +28,13 @@
   --accent: #f2a93b;
   --accent-strong: #a3650a;
   --accent-bg: rgba(242, 169, 59, 0.16);
-  /* Solid (not semi-transparent) equivalent of --accent-bg, for the one
-     spot (the active top-nav tab + its sub-tab strip) that needs to look
-     identical across two elements sitting on different backgrounds --
-     see the comment on .segmented-sticky-wrap in App.css. */
-  --tab-highlight-bg: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  /* Solid (not semi-transparent) tint for the one spot (the active top-nav
+     tab + its sub-tab strip) that needs to look identical across two
+     elements sitting on different backgrounds -- see the comment on
+     .segmented-sticky-wrap in App.css. Mixed from the wordmark's own
+     oxblood badge color (#57101f, see .app-header__brand) rather than the
+     amber accent, so the menu reads as tied to the logo. */
+  --tab-highlight-bg: color-mix(in srgb, #57101f 14%, var(--surface));
   /* Amber is a light hue in both themes, so white text on it (the old
      green-button pattern) fails contrast -- dark text reads correctly on
      --accent regardless of light/dark mode, so this stays fixed. */
@@ -87,7 +89,12 @@
     --accent: #f2b355;
     --accent-strong: #f2c988;
     --accent-bg: rgba(242, 179, 85, 0.18);
-    --tab-highlight-bg: color-mix(in srgb, var(--accent) 18%, var(--surface));
+    /* A lighter maroon than the literal logo hex (#57101f) as the mix
+       ingredient, and a higher percentage -- the logo's own oxblood is
+       nearly as dark as --surface here already, so mixing it in directly
+       barely shifted the color; this reads as a clear warm dark-maroon
+       tint against the neutral dark card backgrounds instead. */
+    --tab-highlight-bg: color-mix(in srgb, #7a2438 30%, var(--surface));
     --danger: #ff453a;
     --danger-bg: rgba(255, 69, 58, 0.16);
     --warn: #eda100;
