@@ -37,11 +37,14 @@
      equally close to --bg so they read as a quiet, coherent family rather
      than four separate "colors". The active tab's own button AND the page
      content behind it share the exact same value, so the tab visually
-     "continues" upward into the page instead of just being highlighted. */
+     "continues" upward into the page instead of just being highlighted.
+     Add is pink rather than amber/orange on purpose: that section is full
+     of amber "add" buttons (--accent), and an amber outline around them
+     too would blur into "which amber thing is the button?". */
   --tab-dashboard-bg: #eef4fe;
   --tab-dashboard-fg: #2e6ff2;
-  --tab-add-bg: #fdf3e3;
-  --tab-add-fg: #a3650a;
+  --tab-add-bg: #fdeef7;
+  --tab-add-fg: #c23b8f;
   --tab-report-bg: #eaf7f1;
   --tab-report-fg: #1a9c6c;
   --tab-settings-bg: #f3f0fe;
@@ -94,8 +97,8 @@
     --warn-bg: rgba(237, 161, 0, 0.18);
     --tab-dashboard-bg: #10151f;
     --tab-dashboard-fg: #6c9bff;
-    --tab-add-bg: #1c160c;
-    --tab-add-fg: #f2b355;
+    --tab-add-bg: #1f1017;
+    --tab-add-fg: #f26fc0;
     --tab-report-bg: #0e1a15;
     --tab-report-fg: #3ecd93;
     --tab-settings-bg: #17131f;
