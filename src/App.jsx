@@ -13,23 +13,40 @@ import './App.css'
    paintable/interactive canvas genuinely tops out at the measured value, so
    stretching .app past it pushed the nav below the real visible area
    instead of closing the gap above it. visualViewport is the correct,
-   trustworthy measurement -- back to using it directly. */
+   trustworthy measurement -- back to using it directly.
+
+   One wrinkle: visualViewport.height also shrinks when the on-screen
+   keyboard opens. Once .bottom-nav became position:absolute against .app
+   (so content can scroll under it), letting --app-height shrink for the
+   keyboard collapsed the whole layout instead of just resizing it -- the
+   nav (anchored to .app's now much shorter bottom edge) ended up stranded
+   mid-screen. iOS already scrolls the focused input above the keyboard on
+   its own, so .app doesn't need to shrink for that at all: a big, sudden
+   drop from the tallest height seen is treated as "keyboard opened" and
+   ignored, keeping the last keyboard-closed height instead. */
 function useAppHeightVar() {
   useLayoutEffect(() => {
     const root = document.documentElement
+    let maxHeight = 0
     const setAppHeight = () => {
       const height = window.visualViewport?.height ?? window.innerHeight
-      root.style.setProperty('--app-height', `${height}px`)
+      if (maxHeight - height > 150) return
+      maxHeight = Math.max(maxHeight, height)
+      root.style.setProperty('--app-height', `${maxHeight}px`)
+    }
+    const resetAndSetAppHeight = () => {
+      maxHeight = 0
+      setAppHeight()
     }
     setAppHeight()
     window.addEventListener('resize', setAppHeight)
-    window.addEventListener('orientationchange', setAppHeight)
-    window.addEventListener('pageshow', setAppHeight)
+    window.addEventListener('orientationchange', resetAndSetAppHeight)
+    window.addEventListener('pageshow', resetAndSetAppHeight)
     window.visualViewport?.addEventListener('resize', setAppHeight)
     return () => {
       window.removeEventListener('resize', setAppHeight)
-      window.removeEventListener('orientationchange', setAppHeight)
-      window.removeEventListener('pageshow', setAppHeight)
+      window.removeEventListener('orientationchange', resetAndSetAppHeight)
+      window.removeEventListener('pageshow', resetAndSetAppHeight)
       window.visualViewport?.removeEventListener('resize', setAppHeight)
     }
   }, [])
