@@ -403,9 +403,12 @@ export default function DayAgenda({
   const [addingManual, setAddingManual] = useState(false)
 
   // Tapping a wedge on the clock opens its editor below it -- tapping
-  // anywhere else on the screen (not just the wedge again) dismisses it.
-  const clockAreaRef = useRef(null)
-  useClickOutside(clockAreaRef, () => setExpandedId(null), expandedId != null)
+  // anywhere else, INCLUDING elsewhere on the clock face itself (an
+  // untracked area, a different tick, the day-part band), dismisses it.
+  // Wedges are carved out of the "outside" check since they already handle
+  // their own select/switch/toggle logic on click.
+  const entryEditorRef = useRef(null)
+  useClickOutside(entryEditorRef, () => setExpandedId(null), expandedId != null, '.day-clock__segment')
 
   const now = new Date()
   const items = entriesForDay(entries, cursor, now)
@@ -562,18 +565,18 @@ export default function DayAgenda({
 
               {items.length > 0 && (
                 <>
-                  <div ref={clockAreaRef}>
-                    <DayClock
-                      segments={clockSegments}
-                      nowFrac={nowFrac}
-                      selectedId={expandedId}
-                      onSelect={isLocked ? () => {} : setExpandedId}
-                    />
-                    {expandedId &&
-                      (() => {
-                        const row = items.find((it) => it.entry.id === expandedId)
-                        if (!row) return null
-                        return (
+                  <DayClock
+                    segments={clockSegments}
+                    nowFrac={nowFrac}
+                    selectedId={expandedId}
+                    onSelect={isLocked ? () => {} : setExpandedId}
+                  />
+                  {expandedId &&
+                    (() => {
+                      const row = items.find((it) => it.entry.id === expandedId)
+                      if (!row) return null
+                      return (
+                        <div ref={entryEditorRef}>
                           <EntryEditor
                             entry={row.entry}
                             activities={activities}
@@ -584,9 +587,9 @@ export default function DayAgenda({
                             onCancel={() => setExpandedId(null)}
                             onCloseNow={() => handleSaveEdit(row.entry.id, { end: nowISODateTime() })}
                           />
-                        )
-                      })()}
-                  </div>
+                        </div>
+                      )
+                    })()}
                   <DayBreakdownChart
                     rows={dayBreakdown.rows}
                     notDoneMs={dayBreakdown.notDoneMs}
