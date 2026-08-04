@@ -593,6 +593,7 @@ export default function DayAgenda({
                       return (
                         <div ref={entryEditorRef}>
                           <EntryEditor
+                            key={row.entry.id}
                             entry={row.entry}
                             activities={activities}
                             dayDate={cursor}
