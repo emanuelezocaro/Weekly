@@ -303,7 +303,7 @@
   display: flex;
   flex-shrink: 0;
   gap: 4px;
-  margin: 0 12px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  margin: 0 12px max(12px, env(safe-area-inset-bottom, 0px));
   padding: 5px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
