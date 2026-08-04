@@ -80,7 +80,10 @@ export function resolveAllOverlaps(entries, now = new Date()) {
 // touch -- so "Free 00:00-02:05" followed by adding "Free" starting exactly
 // at 02:05 reads (and counts) as one continuous block, not two. Only exact
 // touches merge; a real gap between them is left alone since that's
-// genuinely untracked time, not a rounding artifact.
+// genuinely untracked time, not a rounding artifact. The touch at midnight
+// itself never merges, even for two same-activity fragments that are exactly
+// adjacent there -- a day closes at 24:00 and the next one starts fresh, so
+// that particular touch is a day boundary, not a continuation.
 export function mergeAdjacentSameActivity(entries, changedId, now = new Date()) {
   let list = entries
   let current = list.find((e) => e.id === changedId)
@@ -89,9 +92,11 @@ export function mergeAdjacentSameActivity(entries, changedId, now = new Date()) 
   function findTouchingNeighbor(entry) {
     const start = parseISODateTime(entry.start)
     const end = entry.end !== null ? parseISODateTime(entry.end) : null
+    const entryDay = toISODate(start)
     return list.find((e) => {
       if (e.id === entry.id || e.deleted || e.activityId !== entry.activityId) return false
       const eStart = parseISODateTime(e.start)
+      if (toISODate(eStart) !== entryDay) return false
       const eEnd = e.end !== null ? parseISODateTime(e.end) : null
       return (end !== null && eStart.getTime() === end.getTime()) || (eEnd !== null && eEnd.getTime() === start.getTime())
     })
