@@ -7,24 +7,41 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-/* visualViewport tracks the *actual* visible height on iOS (accounting for
-   the home indicator / safe areas in standalone PWA mode) more reliably
-   than any CSS unit tried so far -- see App.css for why this replaced the
-   CSS-only attempts. */
+/* visualViewport tracks the *actual* visible height on iOS more reliably
+   than any CSS unit tried so far (see App.css) -- but on a home-screen PWA
+   cold launch it can itself report a too-short height for the first moment
+   after opening, with no resize event ever firing afterward to correct it.
+   screen.height is the true physical portrait height, so it's used as a
+   floor only during that initial settle window; after that, live
+   measurements take over uncapped so real shrinks (the on-screen keyboard
+   opening) still work normally. */
 function useAppHeightVar() {
   useLayoutEffect(() => {
     const root = document.documentElement
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    let settled = false
     const setAppHeight = () => {
-      const height = window.visualViewport?.height ?? window.innerHeight
+      const measured = window.visualViewport?.height ?? window.innerHeight
+      const height = !settled && isStandalone ? Math.max(measured, window.screen.height) : measured
       root.style.setProperty('--app-height', `${height}px`)
     }
     setAppHeight()
+    const retryTimers = [50, 150, 300, 600, 1000].map((delay) => setTimeout(setAppHeight, delay))
+    const settleTimer = setTimeout(() => {
+      settled = true
+      setAppHeight()
+    }, 1200)
     window.addEventListener('resize', setAppHeight)
     window.addEventListener('orientationchange', setAppHeight)
+    window.addEventListener('pageshow', setAppHeight)
     window.visualViewport?.addEventListener('resize', setAppHeight)
     return () => {
+      retryTimers.forEach(clearTimeout)
+      clearTimeout(settleTimer)
       window.removeEventListener('resize', setAppHeight)
       window.removeEventListener('orientationchange', setAppHeight)
+      window.removeEventListener('pageshow', setAppHeight)
       window.visualViewport?.removeEventListener('resize', setAppHeight)
     }
   }, [])
