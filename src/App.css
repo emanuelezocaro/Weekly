@@ -316,11 +316,15 @@
 
 /* Bottom nav -- its background follows the active tab's own pale tint (set
    via .app--<tab> below), same as .app-main, with no border between them:
-   nav bar and page content read as one continuous colored panel, and the
-   active button's outline is what "anchors" it to that panel rather than a
-   different fill setting it apart. */
+   nav bar and page content read as one continuous colored panel. The active
+   tab itself is a literal folder-tab shape (rounded top, flat bottom) that
+   overlaps upward into the content above it via a negative margin, so it
+   reads as physically attached to -- poking up out of -- the page, not just
+   colored to match it. .bottom-nav stays overflow:visible (the default) so
+   that overlap actually shows instead of getting clipped at the bar's edge. */
 .bottom-nav {
   display: flex;
+  align-items: flex-end;
   flex-shrink: 0;
   background: var(--bg);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
@@ -351,12 +355,13 @@
   justify-content: center;
   gap: 3px;
   border: 1.5px solid transparent;
+  border-bottom: none;
   background: none;
   padding: 8px 0 6px;
-  border-radius: var(--radius-sm);
+  border-radius: 14px 14px 0 0;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, margin 0.15s ease;
 }
 
 .bottom-nav__tab svg {
@@ -371,9 +376,15 @@
 }
 
 /* The active tab's button shares the exact same fill as the panel behind
-   it (nav bar + page content), so nothing but its own outline sets it
-   apart -- it reads as "hooked onto" that colored zone, not painted a
-   different color from it. */
+   it (nav bar + page content) and pokes up above the bar into the content
+   area with a negative margin -- a literal folder-tab shape attached to,
+   growing out of, the page it represents, not just a same-colored highlight
+   sitting inside the bar. */
+.bottom-nav__tab.is-active {
+  margin-top: -14px;
+  padding-top: 16px;
+}
+
 .bottom-nav__tab--dashboard.is-active {
   background: var(--tab-dashboard-bg);
   color: var(--tab-dashboard-fg);
