@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
-import BottomNav from './components/BottomNav'
+import TopNav from './components/TopNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
 import ReportView from './components/ReportView'
@@ -11,12 +11,11 @@ import './App.css'
    visualViewport.height -- the two matched exactly (793px) in real-device
    testing on this app's target device while the keyboard was closed, but
    only innerHeight stays put while the on-screen keyboard is open.
-   visualViewport.height shrinks for the keyboard, which used to collapse
-   .app (and the now position:absolute .bottom-nav anchored to its bottom
-   edge) every time a text field was focused -- innerHeight sidesteps that
-   entirely instead of trying to detect and ignore the shrink after the
-   fact. iOS already scrolls the focused input above the keyboard on its
-   own, so .app doesn't need to shrink for that at all. */
+   visualViewport.height shrinks for the keyboard, which would otherwise
+   shrink .app every time a text field was focused -- innerHeight
+   sidesteps that entirely instead of trying to detect and ignore the
+   shrink after the fact. iOS already scrolls the focused input above the
+   keyboard on its own, so .app doesn't need to shrink for that at all. */
 function useAppHeightVar() {
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -97,6 +96,8 @@ function App() {
         </button>
       </header>
 
+      <TopNav active={tab} onChange={setTab} />
+
       <main className="app-main">
         {tab === 'dashboard' && (
           <DashboardView
@@ -158,8 +159,6 @@ function App() {
           />
         )}
       </main>
-
-      <BottomNav active={tab} onChange={setTab} />
     </div>
   )
 }

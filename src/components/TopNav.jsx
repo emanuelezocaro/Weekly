@@ -36,14 +36,14 @@ const TABS = [
   { id: 'report', label: 'Report', Icon: ReportIcon },
 ]
 
-export default function BottomNav({ active, onChange }) {
+export default function TopNav({ active, onChange }) {
   return (
-    <nav className="bottom-nav">
+    <nav className="top-nav">
       {TABS.map(({ id, label, Icon }) => (
         <button
           key={id}
           type="button"
-          className={`bottom-nav__tab bottom-nav__tab--${id} ${active === id ? 'is-active' : ''}`}
+          className={`top-nav__tab top-nav__tab--${id} ${active === id ? 'is-active' : ''}`}
           onClick={() => onChange(id)}
         >
           <Icon />

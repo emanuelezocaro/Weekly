@@ -1,14 +1,15 @@
-/* Base fallback is a plain height:100% chain (html down through body, #root,
-   see index.css) so there's always a sane height before JS runs. --app-height
-   is then set in App.jsx from window.visualViewport (falling back to
-   window.innerHeight), re-measured on resize/orientationchange -- this is
-   the one technique that reliably reached the true bottom edge on real iOS
-   home-screen installs; dvh, position:fixed+inset:0, and CSS-only
-   -webkit-fill-available were all tried first and each still left a gap
-   below the nav on at least one real device despite working in every
-   local/automated check. */
+/* The main nav lives at the TOP now (see .top-nav, right after
+   .app-header), not fixed/floating at the bottom -- iOS standalone PWAs
+   turned out not to expose a reliably measurable "true bottom edge" on at
+   least one real device (dvh, position:fixed+inset:0, -webkit-fill-available,
+   and a floating overlay nav were all tried and each still left something
+   broken there), so nothing here depends on pinning an element precisely
+   to it anymore. Content just flows normally in .app-main and scrolls to
+   wherever the bottom actually is -- a few px of slack there is invisible,
+   unlike a floating button landing out of reach. --app-height (from
+   App.jsx) still sizes .app to the real viewport so .app-main doesn't run
+   short, but nothing above breaks if it's slightly off. */
 .app {
-  position: relative;
   height: var(--app-height, 100%);
   display: flex;
   flex-direction: column;
@@ -80,11 +81,7 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  /* The floating nav is positioned over this area (see .bottom-nav) rather
-     than pushing it up, so content can scroll underneath it like the
-     sticky top tab menus do above -- this bottom padding just keeps the
-     last item scrollable clear of the nav instead of hiding behind it. */
-  padding: 10px 16px calc(76px + max(6px, calc(env(safe-area-inset-bottom, 0px) - 20px)));
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .view {
@@ -333,35 +330,20 @@
   background: var(--accent-bg);
 }
 
-/* Floats over the content as its own rounded card instead of sitting in
-   the normal document flow -- positioned absolutely against .app (see
-   "position: relative" there) so .app-main's content scrolls underneath
-   it, the same way the sticky top tab menus keep content scrolling
-   beneath them. .app-main's own bottom padding keeps the last item
-   reachable above the nav instead of hidden behind it. Detached from the
-   screen edges rather than flush against them because on iOS standalone
-   PWAs the reachable bottom edge isn't reliably measurable (confirmed on
-   a real device: trying to stretch content flush to the physical edge
-   pushed it out of the visible area instead) -- a flush-bottom bar always
-   risked reading as "cut off" by whatever margin the device reserves down
-   there, while a floating pill's own margin just reads as normal
-   breathing room regardless of its exact size. */
-.bottom-nav {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) - 20px));
-  z-index: 5;
+/* The primary nav (Dashboard/Add/Report), now living right below the
+   header instead of fixed/floating at the bottom -- see .app for why. A
+   plain row in normal document flow, so it needs no positioning logic of
+   its own at all. */
+.top-nav {
   display: flex;
+  flex-shrink: 0;
   gap: 4px;
-  padding: 5px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding: 6px 10px;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
+  border-bottom: 1px solid var(--border);
 }
 
-.bottom-nav__tab {
+.top-nav__tab {
   flex: 1;
   display: flex;
   flex-direction: row;
@@ -377,19 +359,19 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.bottom-nav__tab svg {
+.top-nav__tab svg {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
 }
 
-.bottom-nav__tab span {
+.top-nav__tab span {
   font-size: 13px;
   font-weight: 700;
   transition: color 0.15s ease;
 }
 
-.bottom-nav__tab.is-active {
+.top-nav__tab.is-active {
   color: var(--accent-strong);
   background: var(--accent-bg);
 }
