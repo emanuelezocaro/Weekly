@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import BottomNav from './components/BottomNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -47,6 +47,76 @@ function useAppHeightVar() {
   }, [])
 }
 
+/* TEMPORARY diagnostic overlay -- every previous fix for the standalone-mode
+   bottom-nav gap has looked correct locally and still failed on the user's
+   real device, so instead of guessing again this reads the actual numbers
+   from that device directly. Remove once the real cause is found. */
+function DebugHeightBadge() {
+  const [info, setInfo] = useState(null)
+  useEffect(() => {
+    const probe = document.createElement('div')
+    probe.style.cssText = 'position:fixed;bottom:0;left:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;'
+    document.body.appendChild(probe)
+    const safeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0
+    document.body.removeChild(probe)
+
+    const update = () => {
+      const appEl = document.querySelector('.app')
+      const navEl = document.querySelector('.bottom-nav')
+      const appRect = appEl?.getBoundingClientRect()
+      const navRect = navEl?.getBoundingClientRect()
+      setInfo({
+        innerH: window.innerHeight,
+        vvH: window.visualViewport?.height,
+        vvTop: window.visualViewport?.offsetTop,
+        scrH: window.screen.height,
+        docH: document.documentElement.clientHeight,
+        appH: appRect ? Math.round(appRect.height) : null,
+        appBottom: appRect ? Math.round(appRect.bottom) : null,
+        navBottom: navRect ? Math.round(navRect.bottom) : null,
+        navTop: navRect ? Math.round(navRect.top) : null,
+        safeBottom,
+        standalone: window.matchMedia('(display-mode: standalone)').matches,
+      })
+    }
+    update()
+    const id = setInterval(update, 500)
+    window.addEventListener('resize', update)
+    return () => {
+      clearInterval(id)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  if (!info) return null
+  return (
+    <pre
+      style={{
+        position: 'fixed',
+        top: 'calc(env(safe-area-inset-top, 0px) + 4px)',
+        left: 4,
+        zIndex: 9999,
+        margin: 0,
+        padding: '6px 8px',
+        fontSize: 10,
+        lineHeight: 1.4,
+        background: 'rgba(0,0,0,0.8)',
+        color: '#5f5',
+        borderRadius: 6,
+        pointerEvents: 'none',
+        fontFamily: 'monospace',
+        whiteSpace: 'pre',
+      }}
+    >
+      {`innerH:${info.innerH} vvH:${info.vvH} vvTop:${info.vvTop}
+scrH:${info.scrH} docH:${info.docH}
+appH:${info.appH} appBottom:${info.appBottom}
+navTop:${info.navTop} navBottom:${info.navBottom}
+safeBottom:${info.safeBottom} standalone:${String(info.standalone)}`}
+    </pre>
+  )
+}
+
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +161,9 @@ function App() {
   } = useHabitData()
 
   return (
-    <div className="app">
+    <>
+      <DebugHeightBadge />
+      <div className="app">
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1 className="app-header__brand">
@@ -172,7 +244,8 @@ function App() {
       </main>
 
       <BottomNav active={tab} onChange={setTab} />
-    </div>
+      </div>
+    </>
   )
 }
 
