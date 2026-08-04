@@ -8,6 +8,7 @@
    below the nav on at least one real device despite working in every
    local/automated check. */
 .app {
+  position: relative;
   height: var(--app-height, 100%);
   display: flex;
   flex-direction: column;
@@ -79,7 +80,11 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding: 10px 16px 12px;
+  /* The floating nav is positioned over this area (see .bottom-nav) rather
+     than pushing it up, so content can scroll underneath it like the
+     sticky top tab menus do above -- this bottom padding just keeps the
+     last item scrollable clear of the nav instead of hiding behind it. */
+  padding: 10px 16px calc(76px + max(6px, calc(env(safe-area-inset-bottom, 0px) - 20px)));
 }
 
 .view {
@@ -290,20 +295,27 @@
   background: var(--accent-bg);
 }
 
-/* Floats as its own rounded card, detached from the screen edges, instead
-   of a bar flush against them -- on iOS standalone PWAs the reachable
-   bottom edge isn't reliably measurable (confirmed on a real device: trying
-   to stretch content flush to the physical edge pushed it out of the
-   visible area instead), so a flush-bottom bar always risked reading as
-   "cut off" by whatever margin the device reserves down there. A floating
-   pill with its own margin below it turns that same margin into ordinary
-   breathing room around a self-contained element -- normal regardless of
-   its exact size, the way floating tab bars read in other apps. */
+/* Floats over the content as its own rounded card instead of sitting in
+   the normal document flow -- positioned absolutely against .app (see
+   "position: relative" there) so .app-main's content scrolls underneath
+   it, the same way the sticky top tab menus keep content scrolling
+   beneath them. .app-main's own bottom padding keeps the last item
+   reachable above the nav instead of hidden behind it. Detached from the
+   screen edges rather than flush against them because on iOS standalone
+   PWAs the reachable bottom edge isn't reliably measurable (confirmed on
+   a real device: trying to stretch content flush to the physical edge
+   pushed it out of the visible area instead) -- a flush-bottom bar always
+   risked reading as "cut off" by whatever margin the device reserves down
+   there, while a floating pill's own margin just reads as normal
+   breathing room regardless of its exact size. */
 .bottom-nav {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: max(6px, calc(env(safe-area-inset-bottom, 0px) - 20px));
+  z-index: 5;
   display: flex;
-  flex-shrink: 0;
   gap: 4px;
-  margin: 0 12px max(6px, calc(env(safe-area-inset-bottom, 0px) - 20px));
   padding: 5px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
