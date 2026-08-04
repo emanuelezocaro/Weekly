@@ -285,41 +285,18 @@
   color: var(--accent-strong);
 }
 
-/* Header settings button -- no border anywhere, just background: plain when
-   off, a solid color fill with white icon when Impostazioni is active. */
-.header-settings-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: none;
-  background: none;
-  margin-left: auto;
-  border-radius: 12px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.header-settings-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.header-settings-btn.is-active {
-  color: var(--accent);
-  background: var(--accent-bg);
-}
-
-/* The primary nav (Dashboard/Add/Report), now living right below the
-   header instead of fixed/floating at the bottom -- see .app for why. A
-   plain row in normal document flow, so it needs no positioning logic of
-   its own at all. */
+/* The primary nav (Dashboard/Add/Report/Impostazioni), now living right
+   below the header instead of fixed/floating at the bottom -- see .app
+   for why. A plain row in normal document flow, so it needs no
+   positioning logic of its own at all. No bottom padding: the active
+   tab's highlight (flat-bottomed, see below) sits flush against the sub-
+   tab strip beneath it instead of floating above it as a separate pill,
+   so picking a tab reads as opening a drawer attached to it rather than
+   highlighting two unrelated rows. */
 .top-nav {
   display: flex;
   gap: 4px;
-  padding: 6px 10px;
+  padding: 6px 10px 0;
   background: var(--surface);
 }
 
@@ -333,7 +310,7 @@
   border: none;
   background: none;
   padding: 8px 4px;
-  border-radius: 10px;
+  border-radius: 10px 10px 0 0;
   cursor: pointer;
   color: var(--text-muted);
   transition: background 0.15s ease, color 0.15s ease;
@@ -357,12 +334,11 @@
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
-   active (Recuperare/Successi/Falliti under Dashboard, and so on). Shares
-   .top-nav's background and sits flush against it (no gap, see
-   .app-main's padding) with no pill/card styling of its own, so the two
-   rows read as one attached tab unit: tap "Dashboard" above and its own
-   sub-tabs open directly underneath it, instead of looking like a second,
-   unrelated menu floating below the first. */
+   active (Recuperare/Successi/Falliti under Dashboard, and so on). Tinted
+   the same accent color as the active .top-nav__tab above it (which has a
+   flat bottom edge, no gap here) so the active top tab and its whole
+   sub-tab strip read as one highlighted, open "tab + drawer" unit, not
+   two separately-styled menus that happen to be stacked. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -373,7 +349,7 @@
   z-index: 4;
   margin: 0 -16px;
   padding: 0 10px;
-  background: var(--surface);
+  background: var(--accent-bg);
   border-bottom: 1px solid var(--border);
 }
 

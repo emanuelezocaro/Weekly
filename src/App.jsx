@@ -30,19 +30,6 @@ function useTopbarHeightVar(topbarRef) {
   }, [topbarRef])
 }
 
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="5" y1="7" x2="19" y2="7" />
-      <circle cx="9" cy="7" r="2" fill="currentColor" stroke="none" />
-      <line x1="5" y1="13" x2="19" y2="13" />
-      <circle cx="16" cy="13" r="2" fill="currentColor" stroke="none" />
-      <line x1="5" y1="19" x2="19" y2="19" />
-      <circle cx="11" cy="19" r="2" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
-
 function App() {
   const topbarRef = useRef(null)
   useTopbarHeightVar(topbarRef)
@@ -83,14 +70,6 @@ function App() {
             </h1>
           </button>
           <p className="app-header__period">{periodLabel || (tab === 'settings' ? 'Impostazioni' : '')}</p>
-          <button
-            type="button"
-            className={`header-settings-btn ${tab === 'settings' ? 'is-active' : ''}`}
-            onClick={() => setTab('settings')}
-            aria-label="Impostazioni"
-          >
-            <SettingsIcon />
-          </button>
         </header>
 
         <TopNav active={tab} onChange={setTab} />
