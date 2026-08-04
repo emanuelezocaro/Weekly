@@ -334,7 +334,7 @@
   position: relative;
   z-index: 2;
   color: var(--accent-strong);
-  background: var(--surface);
+  background: var(--tab-highlight-bg);
   opacity: 1;
   margin-top: 0;
   padding-top: 13px;
@@ -345,8 +345,10 @@
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
    active (Recuperare/Successi/Falliti under Dashboard, and so on). Same
-   background as the active folder tab above it and flush against it (no
-   gap, no border between them) so the two read as one merged panel that
+   --tab-highlight-bg tint as the active folder tab above it (not
+   --surface, which is what the content cards below use -- the whole nav
+   panel needs its own tone so it doesn't blend into them) and flush
+   against it (no gap, no border between them) so the two read as one merged panel that
    the active tab opens into -- the inactive tabs, in a different shade,
    are visibly outside this panel instead. */
 .segmented-sticky-wrap {
@@ -366,7 +368,7 @@
      Report because it's the only view with content using z-index at all. */
   z-index: 5;
   padding: 0 10px;
-  background: var(--surface);
+  background: var(--tab-highlight-bg);
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
