@@ -290,20 +290,25 @@
   background: var(--accent-bg);
 }
 
-/* Plain neutral bar, no per-section colors -- just as low-profile as
-   possible so it stays out of the way of the content above it. Only 3
-   items, so each gets to be short and wide (icon and label side by side,
-   not stacked) instead of tall, and padding is trimmed to the minimum that
-   still leaves a comfortable tap target. */
+/* Floats as its own rounded card, detached from the screen edges, instead
+   of a bar flush against them -- on iOS standalone PWAs the reachable
+   bottom edge isn't reliably measurable (confirmed on a real device: trying
+   to stretch content flush to the physical edge pushed it out of the
+   visible area instead), so a flush-bottom bar always risked reading as
+   "cut off" by whatever margin the device reserves down there. A floating
+   pill with its own margin below it turns that same margin into ordinary
+   breathing room around a self-contained element -- normal regardless of
+   its exact size, the way floating tab bars read in other apps. */
 .bottom-nav {
   display: flex;
   flex-shrink: 0;
+  gap: 4px;
+  margin: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   background: var(--surface);
-  border-top: 1px solid var(--border);
-  /* max() instead of relying on env() alone -- a defensive floor in case
-     safe-area-inset-bottom itself under-reports in standalone mode on some
-     devices, on top of the -webkit-fill-available height fix (index.css). */
-  padding: 4px 6px max(20px, calc(4px + env(safe-area-inset-bottom, 0px)));
+  box-shadow: var(--shadow-lg);
 }
 
 .bottom-nav__tab {
