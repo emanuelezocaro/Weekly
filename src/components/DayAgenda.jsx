@@ -95,6 +95,19 @@ function availableTimeOptions(options, ranges) {
   return options.filter((t) => !isMinuteCovered(timeToMinutes(t), ranges))
 }
 
+// The entry's own current value must always be selectable, even if it gets
+// filtered out as "covered" -- which happens for a start/end that actually
+// belongs to a DIFFERENT calendar day (e.g. "Inizio (giorno prima)"): the
+// coverage check only knows about the day being viewed, so a value like
+// "18:00" from yesterday can collide with an unrelated block that happens
+// to sit at 18:00 today. Without this, the <select> silently falls back to
+// its first option instead of the real value, with no visible sign anything
+// is wrong.
+function ensureTimeOption(options, value) {
+  if (!value || options.includes(value)) return options
+  return [...options, value].sort((a, b) => timeToMinutes(a) - timeToMinutes(b))
+}
+
 // A day that's "done" is locked 48h after it ends, so old history can't be
 // edited by accident. What counts as "done" depends on the tab: no gaps for
 // Calendario, a record for Sigarette, all fields for Cibo, at least one
@@ -150,21 +163,23 @@ function EntryEditor({ entry, activities, dayDate, items, onSave, onDelete, onCa
   // id), everyone else's doesn't, so you can't pick a time that would just
   // get silently trimmed by the overlap resolver.
   const ranges = coveredRanges(items, startOfDay(dayDate), entry.id)
-  const startOptions = availableTimeOptions(HALF_HOUR_OPTIONS, ranges)
-  const endOptions = availableTimeOptions(END_TIME_OPTIONS, ranges)
 
-  const [activityId, setActivityId] = useState(entry.activityId)
-  const [startTime, setStartTime] = useState(formatTimeRounded(startDate))
+  const rawStartTime = formatTimeRounded(startDate)
   // A block ending exactly at midnight of the next day must display as
   // "24:00", the picker's dedicated end-of-day option -- not "00:00", which
   // means minute zero of THIS day and gets filtered out of the options
   // whenever something else (e.g. Sleep) starts right at midnight, leaving
   // the select with no matching option and silently falling back to the
   // first one in the list.
-  const initialEndTime = endDate ? formatTimeRounded(endDate) : ''
-  const [endTime, setEndTime] = useState(
-    isStartDay && !isEndDay && initialEndTime === '00:00' ? '24:00' : initialEndTime,
-  )
+  const rawEndTime = endDate ? formatTimeRounded(endDate) : ''
+  const initialEndTime = isStartDay && !isEndDay && rawEndTime === '00:00' ? '24:00' : rawEndTime
+
+  const startOptions = ensureTimeOption(availableTimeOptions(HALF_HOUR_OPTIONS, ranges), rawStartTime)
+  const endOptions = ensureTimeOption(availableTimeOptions(END_TIME_OPTIONS, ranges), initialEndTime)
+
+  const [activityId, setActivityId] = useState(entry.activityId)
+  const [startTime, setStartTime] = useState(rawStartTime)
+  const [endTime, setEndTime] = useState(initialEndTime)
   // The picker only offers half-hour steps, so its initial value is a
   // rounded display of the real start/end -- if the field is never touched,
   // save must keep the exact original timestamp rather than the rounding.
