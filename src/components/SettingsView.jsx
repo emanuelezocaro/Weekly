@@ -71,6 +71,7 @@ export default function SettingsView({
   initialTab,
 }) {
   const [tab, setTab] = useState(initialTab || 'goals')
+  const [addOpen, setAddOpen] = useState(false)
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
   const [editingId, setEditingId] = useState(null)
@@ -84,7 +85,13 @@ export default function SettingsView({
     if (!name.trim()) return
     onAdd(name, colorSlot)
     setName('')
-    setColorSlot((s) => (s + 1) % 8)
+    setColorSlot((s) => (s + 1) % PALETTE_SIZE)
+    setAddOpen(false)
+  }
+
+  function handleCancelAdd() {
+    setAddOpen(false)
+    setName('')
   }
 
   function startEdit(activity) {
@@ -149,18 +156,31 @@ export default function SettingsView({
       {tab === 'activities' && (
         <section className="settings-card">
           <h2 className="settings-card__title">Nuova attività</h2>
-          <form className="add-activity" onSubmit={handleAdd}>
-            <div className="add-activity__row">
-              <input
-                type="text"
-                placeholder="Nuova attività (es. Meditazione)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <button type="submit">Aggiungi</button>
-            </div>
-            <ColorPicker value={colorSlot} onChange={setColorSlot} />
-          </form>
+          {!addOpen ? (
+            <button type="button" className="add-activity__toggle" onClick={() => setAddOpen(true)}>
+              <span className="add-activity__toggle-icon">+</span>
+              Aggiungi attività
+            </button>
+          ) : (
+            <form className="add-activity" onSubmit={handleAdd}>
+              <div className="add-activity__row">
+                <input
+                  type="text"
+                  placeholder="Nuova attività (es. Meditazione)"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <ColorPicker value={colorSlot} onChange={setColorSlot} />
+              <div className="add-activity__actions">
+                <button type="submit">Salva</button>
+                <button type="button" onClick={handleCancelAdd}>
+                  Annulla
+                </button>
+              </div>
+            </form>
+          )}
 
           <ul className="activity-manage-list">
             {activities.map((activity) => (

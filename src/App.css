@@ -1434,6 +1434,64 @@
   cursor: pointer;
 }
 
+/* Collapsed by default -- tap to reveal name + color + save, same
+   expand-on-tap pattern used for the Dashboard goal cards and the Report
+   trend charts, instead of always showing the full form. */
+.add-activity__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--accent-strong);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.add-activity__toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.add-activity__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.add-activity__actions button {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-activity__actions button[type='submit'] {
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.add-activity__actions button[type='button'] {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
 .outputs-add-form {
   display: flex;
   flex-direction: column;
