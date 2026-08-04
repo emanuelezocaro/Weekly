@@ -1,22 +1,30 @@
-/* The main nav lives at the TOP now (see .top-nav, right after
-   .app-header), not fixed/floating at the bottom -- iOS standalone PWAs
-   turned out not to expose a reliably measurable "true bottom edge" on at
-   least one real device (dvh, position:fixed+inset:0, -webkit-fill-available,
+/* The main nav lives at the TOP now (see .top-nav, inside .app-topbar
+   below), not fixed/floating at the bottom -- iOS standalone PWAs turned
+   out not to expose a reliably measurable "true bottom edge" on at least
+   one real device (dvh, position:fixed+inset:0, -webkit-fill-available,
    and a floating overlay nav were all tried and each still left something
    broken there), so nothing here depends on pinning an element precisely
-   to it anymore. Content just flows normally in .app-main and scrolls to
-   wherever the bottom actually is -- a few px of slack there is invisible,
-   unlike a floating button landing out of reach. --app-height (from
-   App.jsx) still sizes .app to the real viewport so .app-main doesn't run
-   short, but nothing above breaks if it's slightly off. */
+   to it anymore. The page scrolls as a normal document (see index.css) --
+   .app has no explicit height and no overflow of its own, so there's
+   nothing to run short or overflow; content just continues until it
+   actually ends, and the native overscroll bounce takes over from there. */
 .app {
-  height: var(--app-height, 100%);
   display: flex;
   flex-direction: column;
   max-width: 480px;
   margin: 0 auto;
   background: var(--bg);
-  overflow: hidden;
+}
+
+/* Header + top nav stay pinned together as one unit while the page
+   scrolls underneath -- wrapped together (rather than each sticky on its
+   own) so nothing needs to know the header's exact height, which varies
+   with env(safe-area-inset-top) across devices. */
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
 }
 
 .app-header {
@@ -24,7 +32,6 @@
   align-items: center;
   gap: 12px;
   padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px;
-  flex-shrink: 0;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
@@ -75,16 +82,13 @@
 }
 
 .app-main {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
   /* As little trailing padding as still feels intentional -- the content
      should read as continuing right up to the edge of the display, not
      stopping short and leaving a dead strip of blank background before
-     the true bottom. */
+     the true bottom, and the page's own natural overscroll bounce takes
+     over from there instead of hitting a hard programmatic boundary. */
   padding: 10px 16px max(8px, env(safe-area-inset-bottom, 0px));
 }
 
@@ -340,7 +344,6 @@
    its own at all. */
 .top-nav {
   display: flex;
-  flex-shrink: 0;
   gap: 4px;
   padding: 6px 10px;
   background: var(--surface);
@@ -393,8 +396,12 @@
   position: sticky;
   /* No padding/margin of its own -- .view's own flex gap spaces it exactly
      like the bare .segmented used directly in Add/Settings, so the gap
-     above and below the sub-menu matches across every section. */
-  top: 0;
+     above and below the sub-menu matches across every section.
+     --topbar-height (measured in App.jsx) is the real, safe-area-aware
+     height of the pinned header + top nav above it -- sticking at top: 0
+     here would stack this UNDER that fixed bar instead of right below it,
+     since the page itself scrolls now instead of an inner container. */
+  top: var(--topbar-height, 0px);
   z-index: 4;
   background: var(--bg);
 }

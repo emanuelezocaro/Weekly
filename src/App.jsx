@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import TopNav from './components/TopNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -7,31 +7,27 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-/* window.innerHeight (the layout viewport) is what's used here, not
-   visualViewport.height -- the two matched exactly (793px) in real-device
-   testing on this app's target device while the keyboard was closed, but
-   only innerHeight stays put while the on-screen keyboard is open.
-   visualViewport.height shrinks for the keyboard, which would otherwise
-   shrink .app every time a text field was focused -- innerHeight
-   sidesteps that entirely instead of trying to detect and ignore the
-   shrink after the fact. iOS already scrolls the focused input above the
-   keyboard on its own, so .app doesn't need to shrink for that at all. */
-function useAppHeightVar() {
+/* The page now scrolls naturally (see App.css/index.css), with the header
+   and top nav pinned via position: sticky instead of living outside a
+   fixed-height scroll container. Each view's own segmented tab strip is
+   also sticky, and needs to stop right below the topbar rather than
+   underneath it -- but the topbar's height isn't a fixed number (it grows
+   with env(safe-area-inset-top), which varies by device), so it's
+   measured directly and exposed as --topbar-height for that sticky offset
+   to use instead of a guessed constant. */
+function useTopbarHeightVar(topbarRef) {
   useLayoutEffect(() => {
+    const el = topbarRef.current
+    if (!el) return
     const root = document.documentElement
-    const setAppHeight = () => {
-      root.style.setProperty('--app-height', `${window.innerHeight}px`)
+    const setTopbarHeight = () => {
+      root.style.setProperty('--topbar-height', `${el.getBoundingClientRect().height}px`)
     }
-    setAppHeight()
-    window.addEventListener('resize', setAppHeight)
-    window.addEventListener('orientationchange', setAppHeight)
-    window.addEventListener('pageshow', setAppHeight)
-    return () => {
-      window.removeEventListener('resize', setAppHeight)
-      window.removeEventListener('orientationchange', setAppHeight)
-      window.removeEventListener('pageshow', setAppHeight)
-    }
-  }, [])
+    setTopbarHeight()
+    const observer = new ResizeObserver(setTopbarHeight)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [topbarRef])
 }
 
 function SettingsIcon() {
@@ -48,7 +44,8 @@ function SettingsIcon() {
 }
 
 function App() {
-  useAppHeightVar()
+  const topbarRef = useRef(null)
+  useTopbarHeightVar(topbarRef)
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
   const [settingsInitialTab, setSettingsInitialTab] = useState('goals')
@@ -79,24 +76,26 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
-          <h1 className="app-header__brand">
-            Weekl<span className="app-header__brand-accent">y</span>
-          </h1>
-        </button>
-        <p className="app-header__period">{periodLabel || (tab === 'settings' ? 'Impostazioni' : '')}</p>
-        <button
-          type="button"
-          className={`header-settings-btn ${tab === 'settings' ? 'is-active' : ''}`}
-          onClick={() => setTab('settings')}
-          aria-label="Impostazioni"
-        >
-          <SettingsIcon />
-        </button>
-      </header>
+      <div className="app-topbar" ref={topbarRef}>
+        <header className="app-header">
+          <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
+            <h1 className="app-header__brand">
+              Weekl<span className="app-header__brand-accent">y</span>
+            </h1>
+          </button>
+          <p className="app-header__period">{periodLabel || (tab === 'settings' ? 'Impostazioni' : '')}</p>
+          <button
+            type="button"
+            className={`header-settings-btn ${tab === 'settings' ? 'is-active' : ''}`}
+            onClick={() => setTab('settings')}
+            aria-label="Impostazioni"
+          >
+            <SettingsIcon />
+          </button>
+        </header>
 
-      <TopNav active={tab} onChange={setTab} />
+        <TopNav active={tab} onChange={setTab} />
+      </div>
 
       <main className="app-main">
         {tab === 'dashboard' && (

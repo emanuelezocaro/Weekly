@@ -110,23 +110,19 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Without this, the OUTER page (not just .app-main) can still rubber-band
-   on iOS -- a scroll gesture that runs out of content inside .app-main
-   bubbles up and bounces the whole html/body, briefly revealing blank
-   space below the fixed-height .app shell and making the bottom nav look
-   like it's floating above the real edge of the screen. Locking html/body
-   to exactly the viewport with no scroll/bounce of their own, and stopping
-   scroll-chaining at .app-main's own boundary, keeps the nav pinned. */
-html {
-  height: 100%;
-  overflow: hidden;
-}
-
+/* The page scrolls naturally now -- no fixed-height shell, no internal
+   scroll container (see App.css: .app-main is normal flow, header + nav
+   stay pinned via position: sticky). That means the native elastic
+   overscroll at the true bottom edge is free to happen, which is exactly
+   what makes the content feel like it keeps going instead of stopping at
+   a hard, visible boundary. This used to be deliberately locked down
+   (html/body pinned to exactly the viewport, no bounce) back when a
+   floating bottom nav needed the page to stay perfectly still underneath
+   it -- nothing needs that anymore now that the nav lives in the normal
+   flow at the top. */
+html,
 body {
   margin: 0;
-  height: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
 }
 
 button,
@@ -138,26 +134,6 @@ select {
 
 button {
   touch-action: manipulation;
-}
-
-#root {
-  height: 100%;
-}
-
-/* Confirmed by the user: this app anchors correctly to the true bottom edge
-   in a normal Safari tab, but leaves a gap below the nav specifically when
-   launched from the home-screen icon (display-mode: standalone) -- a
-   long-documented iOS Safari bug where percentage/vh heights don't fully
-   account for the home indicator safe area in standalone mode specifically.
-   -webkit-fill-available is Apple's own long-standing workaround for
-   exactly this, scoped narrowly to standalone so it can't affect the
-   already-correct browser-tab case. */
-@media (display-mode: standalone) {
-  html,
-  body,
-  #root {
-    height: -webkit-fill-available;
-  }
 }
 
 ::selection {
