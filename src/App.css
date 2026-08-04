@@ -22,6 +22,10 @@
   overflow: hidden;
 }
 
+/* Header, content and nav bar all share the active tab's own pale tint as
+   one continuous fill -- no border between them, so the color visibly runs
+   from the top bar, through the page, down into the active tab button
+   without a seam anywhere along the way. */
 .app-header {
   display: flex;
   align-items: center;
@@ -29,7 +33,23 @@
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 10px;
   flex-shrink: 0;
   background: var(--bg);
-  border-bottom: 1px solid var(--border);
+  transition: background 0.2s ease;
+}
+
+.app--dashboard .app-header {
+  background: var(--tab-dashboard-bg);
+}
+
+.app--calendar .app-header {
+  background: var(--tab-add-bg);
+}
+
+.app--report .app-header {
+  background: var(--tab-report-bg);
+}
+
+.app--settings .app-header {
+  background: var(--tab-settings-bg);
 }
 
 .app-header__left {
@@ -77,13 +97,6 @@
   text-overflow: ellipsis;
 }
 
-/* Only one thing is ever colored: the active tab. The content area itself
-   stays plain -- what marks it as "belonging" to that tab is a border in
-   the tab's own color, wrapping the whole section, with no border where it
-   meets the active tab below (the tab's own top edge is flat and
-   borderless -- see .bottom-nav__tab -- and paints over this box's bottom
-   edge at that spot since it comes later in the DOM), so the outline reads
-   as one continuous shape running from the section down into the tab. */
 .app-main {
   flex: 1;
   display: flex;
@@ -92,24 +105,23 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding: 10px 16px 20px;
-  border: 1.5px solid transparent;
-  transition: border-color 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .app--dashboard .app-main {
-  border-color: var(--tab-dashboard-fg);
+  background: var(--tab-dashboard-bg);
 }
 
 .app--calendar .app-main {
-  border-color: var(--tab-add-fg);
+  background: var(--tab-add-bg);
 }
 
 .app--report .app-main {
-  border-color: var(--tab-report-fg);
+  background: var(--tab-report-bg);
 }
 
 .app--settings .app-main {
-  border-color: var(--tab-settings-fg);
+  background: var(--tab-settings-bg);
 }
 
 .view {
@@ -320,23 +332,35 @@
   border-color: var(--tab-settings-fg);
 }
 
-/* Bottom nav stays a plain neutral bar -- only the active tab itself is ever
-   colored, never the whole strip, so exactly one thing reads as "on" at a
-   time. Only 3 items, so each gets to be short and wide (icon and label
-   side by side, not stacked) instead of tall -- reclaims real height for
-   content above. The active tab is a literal folder-tab shape (flat,
-   borderless top; rounded, bordered bottom) that overlaps upward into
-   .app-main via a negative margin, painting over that section's border at
-   its own position -- from the section's own colored outline (see
-   .app-main above) down through the tab, it reads as one continuous
-   outlined shape, open only where the tab sits. .bottom-nav stays
-   overflow:visible (the default) so that overlap actually shows. */
+/* Same fill as the header and .app-main, no border of its own -- header,
+   content and nav read as one continuously colored surface. Only the active
+   tab button gets its own outline, as a small accent, not a dividing line.
+   Only 3 items, so each gets to be short and wide (icon and label side by
+   side, not stacked) instead of tall, and padding is kept minimal -- this
+   bar should take as little vertical space as it can. */
 .bottom-nav {
   display: flex;
   align-items: flex-end;
   flex-shrink: 0;
   background: var(--bg);
-  padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px));
+  padding: 2px 8px calc(2px + env(safe-area-inset-bottom, 0px));
+  transition: background 0.2s ease;
+}
+
+.app--dashboard .bottom-nav {
+  background: var(--tab-dashboard-bg);
+}
+
+.app--calendar .bottom-nav {
+  background: var(--tab-add-bg);
+}
+
+.app--report .bottom-nav {
+  background: var(--tab-report-bg);
+}
+
+.app--settings .bottom-nav {
+  background: var(--tab-settings-bg);
 }
 
 .bottom-nav__tab {
@@ -347,13 +371,12 @@
   justify-content: center;
   gap: 7px;
   border: 1.5px solid transparent;
-  border-top: none;
   background: none;
-  padding: 10px 4px;
-  border-radius: 0 0 14px 14px;
+  padding: 8px 4px;
+  border-radius: 12px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, margin 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .bottom-nav__tab svg {
@@ -368,17 +391,9 @@
   transition: color 0.15s ease;
 }
 
-/* The active tab pokes up above the bar into the content area's own border
-   via a negative margin -- growing out of the section it represents. Its
-   top edge is flat and borderless (merges seamlessly into that section, no
-   seam, and paints over the section's bottom border at this exact spot),
-   while the rounded, bordered bottom is what reads as a distinct tab shape
-   sitting in the bar. */
-.bottom-nav__tab.is-active {
-  margin-top: -10px;
-  padding-top: 12px;
-}
-
+/* The active tab's own fill matches everything around it (header, page,
+   bar are all the same color already) -- its border is the only thing that
+   marks it out, a small accent rather than a highlight or a seam. */
 .bottom-nav__tab--dashboard.is-active {
   background: var(--tab-dashboard-bg);
   color: var(--tab-dashboard-fg);
