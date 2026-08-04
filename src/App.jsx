@@ -7,24 +7,18 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-/* Confirmed on the user's real device via a diagnostic readout: in standalone
-   mode, window.innerHeight / visualViewport.height permanently under-report
-   the true screen height by ~59px (852 real vs 793 reported) -- not a
-   momentary cold-launch glitch, it never self-corrects. That's exactly the
-   gap that was showing up below the nav. screen.height is the true physical
-   height, so it's used whenever the shortfall looks like this quirk (under
-   120px); a much bigger shortfall means the on-screen keyboard has opened,
-   and then the real (shrunk) measurement is used so focused inputs stay
-   visible above it. */
+/* screen.height was tried as a floor in standalone mode (on the theory that
+   window.innerHeight/visualViewport.height under-report the true screen
+   height), but on the real device it made things worse: the actual
+   paintable/interactive canvas genuinely tops out at the measured value, so
+   stretching .app past it pushed the nav below the real visible area
+   instead of closing the gap above it. visualViewport is the correct,
+   trustworthy measurement -- back to using it directly. */
 function useAppHeightVar() {
   useLayoutEffect(() => {
     const root = document.documentElement
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
     const setAppHeight = () => {
-      const measured = window.visualViewport?.height ?? window.innerHeight
-      const deficit = window.screen.height - measured
-      const height = isStandalone && deficit < 120 ? window.screen.height : measured
+      const height = window.visualViewport?.height ?? window.innerHeight
       root.style.setProperty('--app-height', `${height}px`)
     }
     setAppHeight()
