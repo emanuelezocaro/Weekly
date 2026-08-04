@@ -3,16 +3,32 @@ import { colorVar } from '../utils/palette'
 
 const SIZE = 300
 const CENTER = SIZE / 2
-// The ring is deliberately smaller than the canvas (rather than edge-to-edge)
-// so the 24 hour labels around it have real room to breathe instead of
-// getting clipped by the SVG viewBox at the top/left/right/bottom.
+// The activity pie is deliberately smaller than the canvas (rather than
+// edge-to-edge) so the 24 hour labels around it have real room to breathe
+// instead of getting clipped by the SVG viewBox at the top/left/right/bottom.
 const RADIUS = 100
+// Kept only as a geometry reference for the day-part band/ticks/numbers
+// further out -- the activity wedges themselves are filled all the way to
+// the center now, not a ring, so nothing draws with this as a stroke width.
 const STROKE = 30
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 // Below this share of the day, a wedge is too thin to hold a readable label
 // on the face itself -- it's still drawn and still tappable, it just relies
 // on the caption instead of a permanent label.
 const LABEL_MIN_FRACTION = 90 / (24 * 60)
+
+function wedgePath(startFrac, endFrac, r) {
+  // A full day as one entry needs special-casing: an SVG arc can't have
+  // identical start/end points, so a single 360° slice is split into two.
+  if (endFrac - startFrac >= 0.999) {
+    const p0 = pointAt(startFrac, r)
+    const pMid = pointAt(startFrac + 0.5, r)
+    return `M ${p0.x} ${p0.y} A ${r} ${r} 0 1 1 ${pMid.x} ${pMid.y} A ${r} ${r} 0 1 1 ${p0.x} ${p0.y} Z`
+  }
+  const start = pointAt(startFrac, r)
+  const end = pointAt(endFrac, r)
+  const largeArc = endFrac - startFrac > 0.5 ? 1 : 0
+  return `M ${CENTER} ${CENTER} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y} Z`
+}
 
 // The day-part band sits just outside the ring, underneath the hour ticks
 // and numbers -- notte (22-06) / mattina (06-13) / pomeriggio (13-18) /
@@ -165,40 +181,33 @@ export default function DayClock({ segments, nowFrac, selectedId, onSelect }) {
         <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
           <DaypartBand />
         </g>
-        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--surface-2)" strokeWidth={STROKE} />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="var(--surface-2)" />
+        {segments.map((seg) => {
+          const isSelected = seg.id === selectedId
+          // A selected slice pushes out a few px past the plain disc, like a
+          // pulled pie slice, instead of just changing its own opacity.
+          const r = isSelected ? RADIUS + 6 : RADIUS
+          return (
+            <path
+              key={seg.id}
+              d={wedgePath(seg.startFrac, seg.endFrac, r)}
+              fill={seg.colorSlot != null ? colorVar(seg.colorSlot) : 'var(--gap)'}
+              stroke="var(--bg)"
+              strokeWidth="2"
+              strokeLinejoin="round"
+              opacity={selectedId && !isSelected ? 0.45 : 1}
+              className="day-clock__segment"
+              onClick={() => onSelect(isSelected ? null : seg.id)}
+            />
+          )
+        })}
         <HourMarks />
-        <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
-          {segments.map((seg) => {
-            const frac = seg.endFrac - seg.startFrac
-            const rawLen = frac * CIRCUMFERENCE
-            const gap = segments.length > 1 ? 2 : 0
-            const len = Math.max(0, rawLen - gap)
-            const dashoffset = -(seg.startFrac * CIRCUMFERENCE)
-            const isSelected = seg.id === selectedId
-            return (
-              <circle
-                key={seg.id}
-                cx={CENTER}
-                cy={CENTER}
-                r={RADIUS}
-                fill="none"
-                stroke={seg.colorSlot != null ? colorVar(seg.colorSlot) : 'var(--gap)'}
-                strokeWidth={isSelected ? STROKE + 6 : STROKE}
-                strokeDasharray={`${len} ${CIRCUMFERENCE - len}`}
-                strokeDashoffset={dashoffset}
-                opacity={selectedId && !isSelected ? 0.45 : 1}
-                className="day-clock__segment"
-                onClick={() => onSelect(isSelected ? null : seg.id)}
-              />
-            )
-          })}
-        </g>
         {nowFrac != null && <NowHand frac={nowFrac} />}
         {segments
           .filter((seg) => seg.endFrac - seg.startFrac >= LABEL_MIN_FRACTION)
           .map((seg) => {
             const midFrac = (seg.startFrac + seg.endFrac) / 2
-            const pt = pointAt(midFrac, RADIUS)
+            const pt = pointAt(midFrac, RADIUS * 0.62)
             return (
               <text
                 key={`lbl-${seg.id}`}
