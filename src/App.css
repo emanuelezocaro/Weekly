@@ -290,16 +290,17 @@
    strip (.segmented-sticky-wrap, right below) are one continuous rounded
    card split into two rows, not two differently-shaped, differently-sized
    pieces -- same width (inset like every other card in the app, see
-   --radius-lg elsewhere), same background, rounded only at the very top
-   and very bottom, flush with no gap where they meet in the middle. Which
-   tab/sub-tab is active is shown with text color alone (no separate inner
-   pill), since the shared card background already carries the highlight. */
+   --radius-lg elsewhere), same plain background, rounded only at the very
+   top and very bottom, flush with no gap where they meet in the middle.
+   Within that shared card, only the ACTIVE tab gets its own colored pill
+   (tab-style: selected = filled, everything else = plain text) -- the
+   card itself just supplies the unified outline, it isn't the highlight. */
 .top-nav {
   display: flex;
   gap: 4px;
   margin: 8px 16px 0;
   padding: 4px 6px;
-  background: var(--tab-highlight-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-bottom: none;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -315,9 +316,10 @@
   border: none;
   background: none;
   padding: 9px 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--text-muted);
-  transition: color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .top-nav__tab svg {
@@ -334,6 +336,7 @@
 
 .top-nav__tab.is-active {
   color: var(--accent-strong);
+  background: var(--tab-highlight-bg);
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
@@ -355,7 +358,7 @@
   top: var(--topbar-height, 0px);
   z-index: 4;
   padding: 0 10px;
-  background: var(--tab-highlight-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
