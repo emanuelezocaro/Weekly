@@ -49,6 +49,14 @@
   --tab-report-fg: #1a9c6c;
   --tab-settings-bg: #f3f0fe;
   --tab-settings-fg: #6a4ccf;
+  /* Solid versions of the same four hues, for the active nav item's own
+     fill -- no border anywhere, just white text/icon on a real color, vs.
+     plain white for every inactive item. Same value in both themes: a
+     saturated color reads fine as a filled button on light or dark. */
+  --tab-dashboard-solid: #2e6ff2;
+  --tab-add-solid: #c23b8f;
+  --tab-report-solid: #1a9c6c;
+  --tab-settings-solid: #6a4ccf;
   --shadow: 0 1px 3px rgba(20, 20, 26, 0.06);
   --shadow-lg: 0 8px 24px rgba(20, 20, 26, 0.08);
   --radius-sm: 10px;

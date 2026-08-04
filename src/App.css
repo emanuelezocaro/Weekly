@@ -306,19 +306,20 @@
   color: var(--accent-strong);
 }
 
-/* Header settings button */
+/* Header settings button -- no border anywhere, just background: plain when
+   off, a solid color fill with white icon when Impostazioni is active. */
 .header-settings-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid transparent;
+  border: none;
   background: none;
   padding: 8px;
   margin-left: auto;
   border-radius: 10px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .header-settings-btn svg {
@@ -327,17 +328,15 @@
 }
 
 .header-settings-btn.is-active {
-  color: var(--tab-settings-fg);
-  background: var(--tab-settings-bg);
-  border-color: var(--tab-settings-fg);
+  color: #fff;
+  background: var(--tab-settings-solid);
 }
 
-/* Same fill as the header and .app-main, no border of its own -- header,
-   content and nav read as one continuously colored surface. Only the active
-   tab button gets its own outline, as a small accent, not a dividing line.
-   Only 3 items, so each gets to be short and wide (icon and label side by
-   side, not stacked) instead of tall, and padding is kept minimal -- this
-   bar should take as little vertical space as it can. */
+/* Same fill as the header and .app-main -- header, content and nav read as
+   one continuously colored surface. Only 3 items, so each gets to be short
+   and wide (icon and label side by side, not stacked) instead of tall, and
+   padding is kept minimal -- this bar should take as little vertical space
+   as it can. */
 .bottom-nav {
   display: flex;
   align-items: flex-end;
@@ -363,6 +362,9 @@
   background: var(--tab-settings-bg);
 }
 
+/* No border anywhere: every tab is plain white by default (like every other
+   card in the app), and the active one is filled with its own solid color
+   with white text/icon -- color alone marks it out. */
 .bottom-nav__tab {
   flex: 1;
   display: flex;
@@ -370,13 +372,14 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1.5px solid transparent;
-  background: none;
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--shadow);
   padding: 8px 4px;
   border-radius: 12px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .bottom-nav__tab svg {
@@ -391,25 +394,19 @@
   transition: color 0.15s ease;
 }
 
-/* The active tab's own fill matches everything around it (header, page,
-   bar are all the same color already) -- its border is the only thing that
-   marks it out, a small accent rather than a highlight or a seam. */
 .bottom-nav__tab--dashboard.is-active {
-  background: var(--tab-dashboard-bg);
-  color: var(--tab-dashboard-fg);
-  border-color: var(--tab-dashboard-fg);
+  background: var(--tab-dashboard-solid);
+  color: #fff;
 }
 
 .bottom-nav__tab--calendar.is-active {
-  background: var(--tab-add-bg);
-  color: var(--tab-add-fg);
-  border-color: var(--tab-add-fg);
+  background: var(--tab-add-solid);
+  color: #fff;
 }
 
 .bottom-nav__tab--report.is-active {
-  background: var(--tab-report-bg);
-  color: var(--tab-report-fg);
-  border-color: var(--tab-report-fg);
+  background: var(--tab-report-solid);
+  color: #fff;
 }
 
 /* Segmented control */
