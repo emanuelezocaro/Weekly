@@ -133,6 +133,22 @@ button {
   height: 100%;
 }
 
+/* Confirmed by the user: this app anchors correctly to the true bottom edge
+   in a normal Safari tab, but leaves a gap below the nav specifically when
+   launched from the home-screen icon (display-mode: standalone) -- a
+   long-documented iOS Safari bug where percentage/vh heights don't fully
+   account for the home indicator safe area in standalone mode specifically.
+   -webkit-fill-available is Apple's own long-standing workaround for
+   exactly this, scoped narrowly to standalone so it can't affect the
+   already-correct browser-tab case. */
+@media (display-mode: standalone) {
+  html,
+  body,
+  #root {
+    height: -webkit-fill-available;
+  }
+}
+
 ::selection {
   background: var(--accent-bg);
 }

@@ -20,6 +20,16 @@
   overflow: hidden;
 }
 
+/* See index.css: confirmed the gap below the nav only happens when this app
+   is launched from its home-screen icon (standalone), not in a normal
+   Safari tab -- -webkit-fill-available is Apple's own fix for exactly that
+   iOS-standalone-mode height bug. */
+@media (display-mode: standalone) {
+  .app {
+    height: -webkit-fill-available;
+  }
+}
+
 .app-header {
   display: flex;
   align-items: center;
