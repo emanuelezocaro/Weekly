@@ -148,17 +148,19 @@ export default function DashboardView({
       {showBackupReminder && <BackupReminder onOpenSettings={onOpenSettings} />}
       <p className="dash-motivation">{dashboardMotivation({ behind, failed, onTrack })}</p>
 
-      <div className="segmented">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`segmented__item ${tab === t.id ? 'is-active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="segmented-sticky-wrap">
+        <div className="segmented">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`segmented__item ${tab === t.id ? 'is-active' : ''}`}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {activeItems.length === 0 ? (

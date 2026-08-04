@@ -473,18 +473,20 @@ export default function DayAgenda({
 
   return (
     <div className="panel" {...swipeHandlers}>
-      <div className="segmented">
-        {DAY_TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`segmented__item ${activeTab === t.id ? 'is-active' : ''}`}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.label}
-            {missingByTab[t.id] && <span className="segmented__dot" aria-label="Dati mancanti" />}
-          </button>
-        ))}
+      <div className="segmented-sticky-wrap">
+        <div className="segmented">
+          {DAY_TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`segmented__item ${activeTab === t.id ? 'is-active' : ''}`}
+              onClick={() => setActiveTab(t.id)}
+            >
+              {t.label}
+              {missingByTab[t.id] && <span className="segmented__dot" aria-label="Dati mancanti" />}
+            </button>
+          ))}
+        </div>
       </div>
 
       <>
