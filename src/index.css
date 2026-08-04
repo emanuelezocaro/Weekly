@@ -28,6 +28,11 @@
   --accent: #f2a93b;
   --accent-strong: #a3650a;
   --accent-bg: rgba(242, 169, 59, 0.16);
+  /* Solid (not semi-transparent) equivalent of --accent-bg, for the one
+     spot (the active top-nav tab + its sub-tab strip) that needs to look
+     identical across two elements sitting on different backgrounds --
+     see the comment on .segmented-sticky-wrap in App.css. */
+  --tab-highlight-bg: color-mix(in srgb, var(--accent) 16%, var(--surface));
   /* Amber is a light hue in both themes, so white text on it (the old
      green-button pattern) fails contrast -- dark text reads correctly on
      --accent regardless of light/dark mode, so this stays fixed. */
@@ -82,6 +87,7 @@
     --accent: #f2b355;
     --accent-strong: #f2c988;
     --accent-bg: rgba(242, 179, 85, 0.18);
+    --tab-highlight-bg: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #ff453a;
     --danger-bg: rgba(255, 69, 58, 0.16);
     --warn: #eda100;

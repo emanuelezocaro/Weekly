@@ -330,15 +330,21 @@
 
 .top-nav__tab.is-active {
   color: var(--accent-strong);
-  background: var(--accent-bg);
+  background: var(--tab-highlight-bg);
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
    active (Recuperare/Successi/Falliti under Dashboard, and so on). Tinted
-   the same accent color as the active .top-nav__tab above it (which has a
-   flat bottom edge, no gap here) so the active top tab and its whole
-   sub-tab strip read as one highlighted, open "tab + drawer" unit, not
-   two separately-styled menus that happen to be stacked. */
+   the exact same solid color as the active .top-nav__tab above it (which
+   has a flat bottom edge, no gap here) so the active top tab and its
+   whole sub-tab strip read as one highlighted, open "tab + drawer" unit,
+   not two separately-styled menus that happen to be stacked. --tab-
+   highlight-bg (below) is a solid, opaque color rather than --accent-bg's
+   semi-transparent one on purpose: --accent-bg blended to two visibly
+   different shades here because .top-nav sits on --surface while this
+   wrap sits on --bg underneath -- same rgba, different result. A solid
+   color mixed in sRGB always renders identically regardless of what's
+   behind it. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -349,7 +355,7 @@
   z-index: 4;
   margin: 0 -16px;
   padding: 0 10px;
-  background: var(--accent-bg);
+  background: var(--tab-highlight-bg);
   border-bottom: 1px solid var(--border);
 }
 

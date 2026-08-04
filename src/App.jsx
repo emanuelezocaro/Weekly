@@ -69,7 +69,7 @@ function App() {
               Weekl<span className="app-header__brand-accent">y</span>
             </h1>
           </button>
-          <p className="app-header__period">{periodLabel || (tab === 'settings' ? 'Impostazioni' : '')}</p>
+          <p className="app-header__period">{periodLabel}</p>
         </header>
 
         <TopNav active={tab} onChange={setTab} />
