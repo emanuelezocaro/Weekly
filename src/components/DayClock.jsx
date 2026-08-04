@@ -15,8 +15,8 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 const LABEL_MIN_FRACTION = 90 / (24 * 60)
 
 // The day-part band sits just outside the ring, underneath the hour ticks
-// and numbers -- notte (21-06) / mattina (06-13) / pomeriggio (13-18) /
-// sera (18-21) as four clearly distinct colors, each a flat plateau with a
+// and numbers -- notte (22-06) / mattina (06-13) / pomeriggio (13-18) /
+// sera (18-22) as four clearly distinct colors, each a flat plateau with a
 // short blend only right at the boundary, so it reads as four moments of
 // the day rather than a slow continuous drift. The activity ring itself
 // stays a plain neutral track so logged blocks are what stands out there.
@@ -33,8 +33,8 @@ const DAYPART_STOPS = [
   { h: 13 + RAMP, rgb: POMERIGGIO },
   { h: 18 - RAMP, rgb: POMERIGGIO },
   { h: 18 + RAMP, rgb: SERA },
-  { h: 21 - RAMP, rgb: SERA },
-  { h: 21 + RAMP, rgb: NOTTE },
+  { h: 22 - RAMP, rgb: SERA },
+  { h: 22 + RAMP, rgb: NOTTE },
   { h: 24, rgb: NOTTE },
 ]
 
