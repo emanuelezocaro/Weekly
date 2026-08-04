@@ -297,7 +297,6 @@
   display: flex;
   gap: 4px;
   padding: 8px 10px 0;
-  background: var(--surface);
 }
 
 .top-nav__tab {
@@ -344,7 +343,9 @@
    different shades here because .top-nav sits on --surface while this
    wrap sits on --bg underneath -- same rgba, different result. A solid
    color mixed in sRGB always renders identically regardless of what's
-   behind it. */
+   behind it. Inset the same as the content below it (no full-bleed
+   negative margin) so the highlight ends at the same edge as everything
+   else, instead of stretching all the way to the physical screen edge. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -353,8 +354,6 @@
      since the page itself scrolls now instead of an inner container. */
   top: var(--topbar-height, 0px);
   z-index: 4;
-  margin: 0 -16px;
-  padding: 0 10px;
   background: var(--tab-highlight-bg);
   border-bottom: 1px solid var(--border);
 }
