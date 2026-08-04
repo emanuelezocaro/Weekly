@@ -296,7 +296,7 @@
 .top-nav {
   display: flex;
   gap: 4px;
-  padding: 6px 10px 0;
+  padding: 8px 10px 0;
   background: var(--surface);
 }
 
@@ -306,10 +306,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
   border: none;
   background: none;
-  padding: 8px 4px;
+  padding: 11px 4px;
   border-radius: 10px 10px 0 0;
   cursor: pointer;
   color: var(--text-muted);
@@ -317,13 +317,13 @@
 }
 
 .top-nav__tab svg {
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
   flex-shrink: 0;
 }
 
 .top-nav__tab span {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
   transition: color 0.15s ease;
 }
