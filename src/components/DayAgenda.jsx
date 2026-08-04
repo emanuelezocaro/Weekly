@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   addDays,
   APP_START_DATE,
@@ -17,6 +17,7 @@ import {
 } from '../utils/date'
 import { DAY_MS, entriesForDay, findGapsForDay } from '../utils/entries'
 import { buildClockSegments, buildDayBreakdown } from '../utils/dayClock'
+import { useClickOutside } from '../hooks/useClickOutside'
 import { useSwipeNav } from '../hooks/useSwipeNav'
 import CigarettesCard from './CigarettesCard'
 import DayBreakdownChart from './DayBreakdownChart'
@@ -402,6 +403,11 @@ export default function DayAgenda({
   const [expandedGap, setExpandedGap] = useState(null)
   const [addingManual, setAddingManual] = useState(false)
 
+  // Tapping a wedge on the clock opens its editor below it -- tapping
+  // anywhere else on the screen (not just the wedge again) dismisses it.
+  const clockAreaRef = useRef(null)
+  useClickOutside(clockAreaRef, () => setExpandedId(null), expandedId != null)
+
   const now = new Date()
   const items = entriesForDay(entries, cursor, now)
   const gaps = findGapsForDay(entries, cursor, now)
@@ -557,29 +563,31 @@ export default function DayAgenda({
 
               {items.length > 0 && (
                 <>
-                  <DayClock
-                    segments={clockSegments}
-                    nowFrac={nowFrac}
-                    selectedId={expandedId}
-                    onSelect={isLocked ? () => {} : setExpandedId}
-                  />
-                  {expandedId &&
-                    (() => {
-                      const row = items.find((it) => it.entry.id === expandedId)
-                      if (!row) return null
-                      return (
-                        <EntryEditor
-                          entry={row.entry}
-                          activities={activities}
-                          dayDate={cursor}
-                          items={items}
-                          onSave={(patch) => handleSaveEdit(row.entry.id, patch)}
-                          onDelete={() => handleDelete(row.entry.id)}
-                          onCancel={() => setExpandedId(null)}
-                          onCloseNow={() => handleSaveEdit(row.entry.id, { end: nowISODateTime() })}
-                        />
-                      )
-                    })()}
+                  <div ref={clockAreaRef}>
+                    <DayClock
+                      segments={clockSegments}
+                      nowFrac={nowFrac}
+                      selectedId={expandedId}
+                      onSelect={isLocked ? () => {} : setExpandedId}
+                    />
+                    {expandedId &&
+                      (() => {
+                        const row = items.find((it) => it.entry.id === expandedId)
+                        if (!row) return null
+                        return (
+                          <EntryEditor
+                            entry={row.entry}
+                            activities={activities}
+                            dayDate={cursor}
+                            items={items}
+                            onSave={(patch) => handleSaveEdit(row.entry.id, patch)}
+                            onDelete={() => handleDelete(row.entry.id)}
+                            onCancel={() => setExpandedId(null)}
+                            onCloseNow={() => handleSaveEdit(row.entry.id, { end: nowISODateTime() })}
+                          />
+                        )
+                      })()}
+                  </div>
                   <DayBreakdownChart
                     rows={dayBreakdown.rows}
                     notDoneMs={dayBreakdown.notDoneMs}

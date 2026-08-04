@@ -3,6 +3,7 @@ import {
   closeStaleOpenEntries,
   deleteEntry,
   makeEntryId,
+  mergeAdjacentSameActivity,
   resolveAllOverlaps,
   resolveOverlaps,
   updateEntry,
@@ -116,7 +117,7 @@ export function useHabitData() {
   // --- Entries (continuous time blocks) ---
 
   const editEntry = useCallback((id, patch) => {
-    setEntriesMeta((prev) => resolveOverlaps(updateEntry(prev, id, patch), id))
+    setEntriesMeta((prev) => mergeAdjacentSameActivity(resolveOverlaps(updateEntry(prev, id, patch), id), id))
   }, [])
 
   const removeEntry = useCallback((id) => {
@@ -133,7 +134,7 @@ export function useHabitData() {
         ...prev,
         { id, activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
       ]
-      return resolveOverlaps(withNew, id)
+      return mergeAdjacentSameActivity(resolveOverlaps(withNew, id), id)
     })
   }, [])
 

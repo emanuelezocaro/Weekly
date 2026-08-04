@@ -74,6 +74,55 @@ export function resolveAllOverlaps(entries, now = new Date()) {
   return entries.map((e) => byId.get(e.id) ?? e)
 }
 
+// If the just-changed entry now sits exactly back-to-back with another entry
+// of the SAME activity (its end matches a neighbor's start, or vice versa),
+// fold them into a single entry instead of leaving two that just happen to
+// touch -- so "Free 00:00-02:05" followed by adding "Free" starting exactly
+// at 02:05 reads (and counts) as one continuous block, not two. Only exact
+// touches merge; a real gap between them is left alone since that's
+// genuinely untracked time, not a rounding artifact.
+export function mergeAdjacentSameActivity(entries, changedId, now = new Date()) {
+  let list = entries
+  let current = list.find((e) => e.id === changedId)
+  if (!current || current.deleted) return list
+
+  function findTouchingNeighbor(entry) {
+    const start = parseISODateTime(entry.start)
+    const end = entry.end !== null ? parseISODateTime(entry.end) : null
+    return list.find((e) => {
+      if (e.id === entry.id || e.deleted || e.activityId !== entry.activityId) return false
+      const eStart = parseISODateTime(e.start)
+      const eEnd = e.end !== null ? parseISODateTime(e.end) : null
+      return (end !== null && eStart.getTime() === end.getTime()) || (eEnd !== null && eEnd.getTime() === start.getTime())
+    })
+  }
+
+  let neighbor = findTouchingNeighbor(current)
+  while (neighbor) {
+    const currentStart = parseISODateTime(current.start)
+    const currentEnd = current.end !== null ? parseISODateTime(current.end) : now
+    const neighborStart = parseISODateTime(neighbor.start)
+    const neighborEnd = neighbor.end !== null ? parseISODateTime(neighbor.end) : now
+
+    const mergedStart = currentStart <= neighborStart ? current.start : neighbor.start
+    const mergedEnd =
+      current.end === null || neighbor.end === null ? null : currentEnd >= neighborEnd ? current.end : neighbor.end
+    const nowMs = Date.now()
+    const merged = { ...current, start: mergedStart, end: mergedEnd, updatedAt: nowMs }
+
+    list = list.map((e) => {
+      if (e.id === current.id) return merged
+      if (e.id === neighbor.id) return { ...e, deleted: true, updatedAt: nowMs }
+      return e
+    })
+
+    current = merged
+    neighbor = findTouchingNeighbor(current)
+  }
+
+  return list
+}
+
 function effectiveEnd(entry, now) {
   return entry.end ? parseISODateTime(entry.end) : now
 }
