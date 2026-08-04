@@ -32,13 +32,18 @@ export function buildDayBreakdown(items, activities, accountedMs) {
     totalsById.set(id, (totalsById.get(id) || 0) + ms)
   }
 
-  const rows = activities
-    .map((a) => ({ id: a.id, name: a.name, colorSlot: a.colorSlot, totalMs: totalsById.get(a.id) || 0 }))
-    .filter((r) => r.totalMs > 0)
-    .sort((a, b) => b.totalMs - a.totalMs)
+  const withTotals = activities.map((a) => ({
+    id: a.id,
+    name: a.name,
+    colorSlot: a.colorSlot,
+    totalMs: totalsById.get(a.id) || 0,
+  }))
+
+  const rows = withTotals.filter((r) => r.totalMs > 0).sort((a, b) => b.totalMs - a.totalMs)
+  const zeroActivities = withTotals.filter((r) => r.totalMs === 0)
 
   const trackedMs = rows.reduce((sum, r) => sum + r.totalMs, 0)
   const notDoneMs = Math.max(0, accountedMs - trackedMs)
 
-  return { rows, notDoneMs }
+  return { rows, notDoneMs, zeroActivities }
 }

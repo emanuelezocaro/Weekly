@@ -584,6 +584,7 @@ export default function DayAgenda({
                     rows={dayBreakdown.rows}
                     notDoneMs={dayBreakdown.notDoneMs}
                     accountedMs={dayElapsedMs}
+                    zeroActivities={dayBreakdown.zeroActivities}
                   />
                 </>
               )}

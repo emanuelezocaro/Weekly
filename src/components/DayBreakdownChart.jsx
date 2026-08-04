@@ -20,17 +20,22 @@ function Row({ name, colorSlot, pct, isNotDone }) {
 // blocks fold into a single percentage here, unlike the clock face above
 // which still shows every individual block. Whatever wasn't logged always
 // comes last, regardless of its own share of the day.
-export default function DayBreakdownChart({ rows, notDoneMs, accountedMs }) {
+export default function DayBreakdownChart({ rows, notDoneMs, accountedMs, zeroActivities = [] }) {
   const pct = (ms) => (accountedMs > 0 ? Math.round((ms / accountedMs) * 100) : 0)
 
   if (rows.length === 0 && notDoneMs <= 0) return null
 
   return (
-    <ul className="day-breakdown">
-      {rows.map((r) => (
-        <Row key={r.id} name={r.name} colorSlot={r.colorSlot} pct={pct(r.totalMs)} />
-      ))}
-      {notDoneMs > 0 && <Row name="Non fatto" pct={pct(notDoneMs)} isNotDone />}
-    </ul>
+    <>
+      <ul className="day-breakdown">
+        {rows.map((r) => (
+          <Row key={r.id} name={r.name} colorSlot={r.colorSlot} pct={pct(r.totalMs)} />
+        ))}
+        {notDoneMs > 0 && <Row name="Non fatto" pct={pct(notDoneMs)} isNotDone />}
+      </ul>
+      {zeroActivities.length > 0 && (
+        <p className="day-donut__zero">A zero: {zeroActivities.map((a) => a.name).join(', ')}</p>
+      )}
+    </>
   )
 }

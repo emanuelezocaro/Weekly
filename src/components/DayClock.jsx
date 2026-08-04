@@ -133,7 +133,7 @@ function NowHand({ frac }) {
 }
 
 function captionFor(seg) {
-  if (!seg) return 'Tocca un blocco per i dettagli'
+  if (!seg) return ''
   const range = `${formatTime(seg.start)} – ${seg.isOpen ? 'ora' : formatTime(seg.end)}`
   return `${seg.name} · ${range} · ${formatDuration(seg.durationMs)}`
 }
