@@ -11,10 +11,12 @@ const RADIUS = 100
 // further out -- the activity wedges themselves are filled all the way to
 // the center now, not a ring, so nothing draws with this as a stroke width.
 const STROKE = 30
-// Below this share of the day, a wedge is too thin to hold a readable label
-// on the face itself -- it's still drawn and still tappable, it just relies
-// on the caption instead of a permanent label.
-const LABEL_MIN_FRACTION = 90 / (24 * 60)
+// Below this share of the day, a wedge doesn't have enough arc length to
+// hold two readable lines of text (name + duration) without truncating or
+// overlapping its neighbors -- forcing it in looks worse than not trying.
+// It's still fully drawn and tappable; a small dot marks it instead, and
+// the caption below the clock shows its details on tap.
+const LABEL_MIN_FRACTION = 150 / (24 * 60)
 
 function wedgePath(startFrac, endFrac, r) {
   // A full day as one entry needs special-casing: an SVG arc can't have
@@ -203,6 +205,13 @@ export default function DayClock({ segments, nowFrac, selectedId, onSelect }) {
         })}
         <HourMarks />
         {nowFrac != null && <NowHand frac={nowFrac} />}
+        {segments
+          .filter((seg) => seg.endFrac - seg.startFrac < LABEL_MIN_FRACTION)
+          .map((seg) => {
+            const midFrac = (seg.startFrac + seg.endFrac) / 2
+            const pt = pointAt(midFrac, RADIUS - 10)
+            return <circle key={`dot-${seg.id}`} cx={pt.x} cy={pt.y} r="2.5" fill="#fff" opacity="0.85" pointerEvents="none" />
+          })}
         {segments
           .filter((seg) => seg.endFrac - seg.startFrac >= LABEL_MIN_FRACTION)
           .map((seg) => {
