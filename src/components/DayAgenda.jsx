@@ -407,11 +407,15 @@ export default function DayAgenda({
 
   // Reports the current day up to the app header, which shows it in place
   // of the day-switcher (removed in favor of the swipe gesture below).
+  // Arrows show which swipe directions are actually available (only left,
+  // only right, or both), always ahead of the date text itself.
   useEffect(() => {
     if (!onPeriodLabel) return
-    onPeriodLabel(isToday ? `Today · ${formatFullDate(cursor)}` : formatFullDate(cursor))
+    const arrows = [!prevDisabled && '←', !nextDisabled && '→'].filter(Boolean).join(' ')
+    const label = isToday ? `Today · ${formatFullDate(cursor)}` : formatFullDate(cursor)
+    onPeriodLabel(arrows ? `${arrows} ${label}` : label)
     return () => onPeriodLabel(null)
-  }, [isToday, cursor, onPeriodLabel])
+  }, [isToday, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   const [expandedId, setExpandedId] = useState(null)
   const [expandedGap, setExpandedGap] = useState(null)

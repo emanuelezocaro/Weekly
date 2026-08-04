@@ -108,11 +108,15 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
 
   // Reports the current period up to the app header, which shows it in
   // place of the day-switcher (removed in favor of the swipe gesture below).
+  // Arrows show which swipe directions are actually available (only left,
+  // only right, or both), always ahead of the period text itself.
   useEffect(() => {
     if (!onPeriodLabel) return
-    onPeriodLabel(periodHeaderLabel(period, cursor))
+    const arrows = [!prevDisabled && '←', !nextDisabled && '→'].filter(Boolean).join(' ')
+    const label = periodHeaderLabel(period, cursor)
+    onPeriodLabel(arrows ? `${arrows} ${label}` : label)
     return () => onPeriodLabel(null)
-  }, [period, cursor, onPeriodLabel])
+  }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
     const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
