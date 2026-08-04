@@ -212,13 +212,12 @@ function EntryEditor({ entry, activities, dayDate, items, onSave, onDelete, onCa
 
   return (
     <div className="entry-editor">
-      <label className="entry-editor__field">
-        <span>Attività</span>
-        <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
-      </label>
-
-      <div className="entry-editor__times">
-        <label>
+      <div className="entry-editor__row">
+        <label className="entry-editor__field entry-editor__field--activity">
+          <span>Attività</span>
+          <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
+        </label>
+        <label className="entry-editor__field">
           <span>Inizio{startsPrevDay ? ' (giorno prima)' : ''}</span>
           <HalfHourSelect
             value={startTime}
@@ -234,7 +233,7 @@ function EntryEditor({ entry, activities, dayDate, items, onSave, onDelete, onCa
             Termina ora
           </button>
         ) : (
-          <label>
+          <label className="entry-editor__field">
             <span>Fine{endsNextDay ? ' (giorno dopo)' : ''}</span>
             <HalfHourSelect
               value={endTime}
@@ -624,16 +623,16 @@ function ManualAddForm({ activities, dayDate, items, onAdd, onCancel, initialSta
 
   return (
     <div className="entry-editor">
-      <label className="entry-editor__field">
-        <span>Attività</span>
-        <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
-      </label>
-      <div className="entry-editor__times">
-        <label>
+      <div className="entry-editor__row">
+        <label className="entry-editor__field entry-editor__field--activity">
+          <span>Attività</span>
+          <ActivitySelect activities={activities} value={activityId} onChange={setActivityId} />
+        </label>
+        <label className="entry-editor__field">
           <span>Inizio</span>
           <HalfHourSelect value={startTime} onChange={setStartTime} options={startOptions} />
         </label>
-        <label>
+        <label className="entry-editor__field">
           <span>Fine</span>
           <HalfHourSelect value={endTime} onChange={setEndTime} options={endOptions} />
         </label>

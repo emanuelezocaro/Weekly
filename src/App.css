@@ -646,13 +646,17 @@
   line-height: 1.5;
 }
 
-.entry-editor__times {
+.entry-editor__row {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
-.entry-editor__times label,
+.entry-editor__row > * {
+  flex: 1;
+  min-width: 0;
+}
+
 .entry-editor__field {
   display: flex;
   flex-direction: column;
@@ -660,7 +664,12 @@
   font-size: 12px;
   color: var(--text-muted);
   font-weight: 500;
-  flex: 1;
+}
+
+/* Activity names run longer than a time value, so it gets a bit more of
+   the row's width than Inizio/Fine, which stay short. */
+.entry-editor__field--activity {
+  flex: 1.4;
 }
 
 .entry-editor__actions {
