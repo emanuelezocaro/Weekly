@@ -44,10 +44,10 @@ function SettingsIcon() {
 }
 
 const TABS = [
-  { id: 'dashboard', label: 'Dashboard', Icon: HomeIcon },
+  { id: 'dashboard', label: 'Dash', Icon: HomeIcon },
   { id: 'calendar', label: 'Add', Icon: CalendarIcon },
   { id: 'report', label: 'Report', Icon: ReportIcon },
-  { id: 'settings', label: 'Impostazioni', Icon: SettingsIcon },
+  { id: 'settings', label: 'Set', Icon: SettingsIcon },
 ]
 
 export default function TopNav({ active, onChange }) {
