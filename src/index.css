@@ -99,8 +99,23 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Without this, the OUTER page (not just .app-main) can still rubber-band
+   on iOS -- a scroll gesture that runs out of content inside .app-main
+   bubbles up and bounces the whole html/body, briefly revealing blank
+   space below the fixed-height .app shell and making the bottom nav look
+   like it's floating above the real edge of the screen. Locking html/body
+   to exactly the viewport with no scroll/bounce of their own, and stopping
+   scroll-chaining at .app-main's own boundary, keeps the nav pinned. */
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 button,
@@ -115,7 +130,7 @@ button {
 }
 
 #root {
-  min-height: 100svh;
+  height: 100%;
 }
 
 ::selection {
