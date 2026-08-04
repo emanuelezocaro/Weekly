@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { buildDashboardItems, dashboardMotivation } from '../utils/dashboard'
-import { shouldShowBackupReminder } from '../utils/backupReminder'
+import { buildDashboardItems } from '../utils/dashboard'
 import { formatFullDate } from '../utils/date'
 
 const TABS = [
@@ -114,28 +113,6 @@ function MetCard({ item }) {
 
 const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 
-function MonthReminder({ onOpenSettings }) {
-  return (
-    <div className="dash-reminder">
-      <span>È il primo del mese: rivedi e aggiorna i tuoi obiettivi.</span>
-      <button type="button" className="text-btn" onClick={onOpenSettings}>
-        Vai a Impostazioni
-      </button>
-    </div>
-  )
-}
-
-function BackupReminder({ onOpenSettings }) {
-  return (
-    <div className="dash-reminder dash-reminder--danger">
-      <span>Non fai un backup da un po': esportalo per non rischiare di perdere i dati.</span>
-      <button type="button" className="text-btn" onClick={() => onOpenSettings('setup')}>
-        Vai a Setup
-      </button>
-    </div>
-  )
-}
-
 export default function DashboardView({
   activities,
   entries,
@@ -144,13 +121,10 @@ export default function DashboardView({
   food,
   goals,
   now = new Date(),
-  onOpenSettings,
   onPeriodLabel,
 }) {
   const { behind, failed, onTrack } = buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now })
   const [tab, setTab] = useState('behind')
-  const isFirstOfMonth = now.getDate() === 1
-  const showBackupReminder = activities.length > 0 && shouldShowBackupReminder(now)
 
   useEffect(() => {
     if (!onPeriodLabel) return
@@ -161,8 +135,6 @@ export default function DashboardView({
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
       <div className="view">
-        {isFirstOfMonth && <MonthReminder onOpenSettings={onOpenSettings} />}
-        {showBackupReminder && <BackupReminder onOpenSettings={onOpenSettings} />}
         <p className="empty-state">
           Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento della settimana.
         </p>
@@ -176,10 +148,6 @@ export default function DashboardView({
 
   return (
     <div className="view">
-      {isFirstOfMonth && <MonthReminder onOpenSettings={onOpenSettings} />}
-      {showBackupReminder && <BackupReminder onOpenSettings={onOpenSettings} />}
-      <p className="dash-motivation">{dashboardMotivation({ behind, failed, onTrack })}</p>
-
       <div className="segmented-sticky-wrap">
         <div className="segmented">
           {TABS.map((t) => (

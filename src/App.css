@@ -84,12 +84,15 @@
 .app-main {
   display: flex;
   flex-direction: column;
-  /* As little trailing padding as still feels intentional -- the content
+  /* No top padding -- every view starts with .segmented-sticky-wrap (see
+     below), which needs to sit flush against .top-nav above it to read as
+     one attached tab unit rather than two stacked, separated controls.
+     Bottom padding stays as little as still feels intentional -- content
      should read as continuing right up to the edge of the display, not
      stopping short and leaving a dead strip of blank background before
      the true bottom, and the page's own natural overscroll bounce takes
      over from there instead of hitting a hard programmatic boundary. */
-  padding: 10px 16px max(8px, env(safe-area-inset-bottom, 0px));
+  padding: 0 16px max(8px, env(safe-area-inset-bottom, 0px));
 }
 
 .view {
@@ -121,35 +124,6 @@
 }
 
 /* Dashboard ("Oggi") */
-.dash-motivation {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0 0 16px;
-  text-align: center;
-}
-
-.dash-reminder {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
-  margin: 0 0 14px;
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
-  background: var(--accent-bg);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-strong);
-}
-
-.dash-reminder--danger {
-  border-color: color-mix(in srgb, var(--danger) 35%, var(--border));
-  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
-  color: var(--danger);
-}
-
 .dash-card {
   border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
   border-radius: var(--radius-lg);
@@ -347,7 +321,6 @@
   gap: 4px;
   padding: 6px 10px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
 }
 
 .top-nav__tab {
@@ -383,50 +356,51 @@
   background: var(--accent-bg);
 }
 
-/* Segmented control */
-.segmented {
-  display: flex;
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 3px;
-}
-
+/* Segmented control -- the sub-tabs for whichever top-level section is
+   active (Recuperare/Successi/Falliti under Dashboard, and so on). Shares
+   .top-nav's background and sits flush against it (no gap, see
+   .app-main's padding) with no pill/card styling of its own, so the two
+   rows read as one attached tab unit: tap "Dashboard" above and its own
+   sub-tabs open directly underneath it, instead of looking like a second,
+   unrelated menu floating below the first. */
 .segmented-sticky-wrap {
   position: sticky;
-  /* No padding/margin of its own -- .view's own flex gap spaces it exactly
-     like the bare .segmented used directly in Add/Settings, so the gap
-     above and below the sub-menu matches across every section.
-     --topbar-height (measured in App.jsx) is the real, safe-area-aware
+  /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
      height of the pinned header + top nav above it -- sticking at top: 0
      here would stack this UNDER that fixed bar instead of right below it,
      since the page itself scrolls now instead of an inner container. */
   top: var(--topbar-height, 0px);
   z-index: 4;
-  background: var(--bg);
+  margin: 0 -16px;
+  padding: 0 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
 }
 
 .segmented__item {
   position: relative;
   flex: 1;
   border: none;
+  border-bottom: 2px solid transparent;
   background: none;
-  padding: 8px 0;
-  border-radius: 8px;
+  padding: 10px 0 8px;
   cursor: pointer;
   font-size: 13px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .segmented__item.is-active {
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
-  box-shadow: var(--shadow);
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
 }
 
 .segmented__dot {

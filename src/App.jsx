@@ -48,7 +48,6 @@ function App() {
   useTopbarHeightVar(topbarRef)
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
-  const [settingsInitialTab, setSettingsInitialTab] = useState('goals')
   const {
     activities,
     entries,
@@ -106,10 +105,6 @@ function App() {
             outputs={outputs}
             food={food}
             goals={goals}
-            onOpenSettings={(subtab) => {
-              setSettingsInitialTab(subtab || 'goals')
-              setTab('settings')
-            }}
             onPeriodLabel={setPeriodLabel}
           />
         )}
@@ -154,7 +149,7 @@ function App() {
             onImport={importData}
             goals={goals}
             onSetGoal={setGoal}
-            initialTab={settingsInitialTab}
+            initialTab="goals"
           />
         )}
       </main>
