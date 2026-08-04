@@ -1,4 +1,4 @@
-import { endOfDay, parseISODateTime, startOfDay, toISODateTime } from './date'
+import { endOfDay, parseISODateTime, startOfDay, toISODate, toISODateTime } from './date'
 
 export const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -121,6 +121,51 @@ export function mergeAdjacentSameActivity(entries, changedId, now = new Date()) 
   }
 
   return list
+}
+
+// A day just closes: no entry is allowed to span two calendar days. Any
+// entry whose start and (effective) end fall on different days is split into
+// consecutive single-day fragments at each midnight it crosses, each clipped
+// to that day's [00:00, 24:00) boundary. The open (end === null) state, if
+// any, only ever survives on the final fragment. Called on load, import, and
+// every create/edit so this invariant holds regardless of entry point --
+// including an entry that was open and simply rolled past midnight since it
+// was last touched.
+export function splitEntriesAtMidnight(entries, now = new Date()) {
+  let changed = false
+  const result = []
+  for (const e of entries) {
+    if (e.deleted) {
+      result.push(e)
+      continue
+    }
+    const start = parseISODateTime(e.start)
+    const end = e.end ? parseISODateTime(e.end) : null
+    const lastMoment = end ?? now
+    if (toISODate(start) === toISODate(lastMoment)) {
+      result.push(e)
+      continue
+    }
+
+    changed = true
+    let cursor = start
+    let isFirst = true
+    for (;;) {
+      const dayEnd = endOfDay(cursor)
+      const isLastFragment = dayEnd >= lastMoment
+      const fragmentEnd = isLastFragment ? end : dayEnd
+      result.push({
+        ...e,
+        id: isFirst ? e.id : makeEntryId(),
+        start: toISODateTime(cursor),
+        end: fragmentEnd ? toISODateTime(fragmentEnd) : null,
+      })
+      if (isLastFragment) break
+      cursor = dayEnd
+      isFirst = false
+    }
+  }
+  return changed ? result : entries
 }
 
 function effectiveEnd(entry, now) {

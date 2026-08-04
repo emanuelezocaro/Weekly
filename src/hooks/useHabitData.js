@@ -6,6 +6,7 @@ import {
   mergeAdjacentSameActivity,
   resolveAllOverlaps,
   resolveOverlaps,
+  splitEntriesAtMidnight,
   updateEntry,
 } from '../utils/entries'
 import { APP_START_DATE, parseISODateTime } from '../utils/date'
@@ -65,7 +66,9 @@ export function useHabitData() {
   const [activitiesMeta, setActivitiesMeta] = useState(() =>
     loadJSON(ACTIVITIES_KEY, DEFAULT_ACTIVITIES),
   )
-  const [entriesMeta, setEntriesMeta] = useState(() => closeStaleOpenEntries(loadJSON(ENTRIES_KEY, [])))
+  const [entriesMeta, setEntriesMeta] = useState(() =>
+    closeStaleOpenEntries(splitEntriesAtMidnight(loadJSON(ENTRIES_KEY, []))),
+  )
   const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
   const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
@@ -117,7 +120,9 @@ export function useHabitData() {
   // --- Entries (continuous time blocks) ---
 
   const editEntry = useCallback((id, patch) => {
-    setEntriesMeta((prev) => mergeAdjacentSameActivity(resolveOverlaps(updateEntry(prev, id, patch), id), id))
+    setEntriesMeta((prev) =>
+      splitEntriesAtMidnight(mergeAdjacentSameActivity(resolveOverlaps(updateEntry(prev, id, patch), id), id)),
+    )
   }, [])
 
   const removeEntry = useCallback((id) => {
@@ -134,7 +139,7 @@ export function useHabitData() {
         ...prev,
         { id, activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
       ]
-      return mergeAdjacentSameActivity(resolveOverlaps(withNew, id), id)
+      return splitEntriesAtMidnight(mergeAdjacentSameActivity(resolveOverlaps(withNew, id), id))
     })
   }, [])
 
@@ -302,7 +307,7 @@ export function useHabitData() {
       throw new Error('File di backup non valido')
     }
     setActivitiesMeta(parsed.activities)
-    setEntriesMeta(closeStaleOpenEntries(resolveAllOverlaps(parsed.entries)))
+    setEntriesMeta(closeStaleOpenEntries(splitEntriesAtMidnight(resolveAllOverlaps(parsed.entries))))
     setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
     setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
