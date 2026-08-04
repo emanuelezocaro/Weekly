@@ -14,55 +14,68 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 // on the caption instead of a permanent label.
 const LABEL_MIN_FRACTION = 90 / (24 * 60)
 
-// A continuous "sky" backdrop for the ring track, standing in for the flat
-// gray it used to have -- it shows through wherever a part of the day isn't
-// covered by a logged block, giving an at-a-glance sense of what time of day
-// that gap is in. Anchors roughly follow notte (21-06) / mattina (06-13) /
-// pomeriggio (13-18) / sera (18-21), blended smoothly between them rather
-// than as hard-edged sectors.
-const SKY_STOPS = [
-  { h: 0, rgb: [24, 27, 58] }, // notte fonda
-  { h: 6, rgb: [246, 200, 147] }, // alba, inizio mattina
-  { h: 13, rgb: [231, 244, 251] }, // pieno giorno, inizio pomeriggio
-  { h: 18, rgb: [242, 147, 90] }, // tramonto, inizio sera
-  { h: 19.5, rgb: [193, 86, 124] }, // crepuscolo rosato
-  { h: 21, rgb: [74, 56, 104] }, // sera che sfuma in notte
-  { h: 24, rgb: [24, 27, 58] }, // notte fonda, richiude il ciclo
+// The day-part band sits just outside the ring, underneath the hour ticks
+// and numbers -- notte (21-06) / mattina (06-13) / pomeriggio (13-18) /
+// sera (18-21) as four clearly distinct colors, each a flat plateau with a
+// short blend only right at the boundary, so it reads as four moments of
+// the day rather than a slow continuous drift. The activity ring itself
+// stays a plain neutral track so logged blocks are what stands out there.
+const NOTTE = [35, 41, 74]
+const MATTINA = [201, 143, 69]
+const POMERIGGIO = [70, 133, 168]
+const SERA = [151, 74, 99]
+const RAMP = 0.35 // hours of blend on each side of a boundary -- keeps plateaus mostly flat
+const DAYPART_STOPS = [
+  { h: 0, rgb: NOTTE },
+  { h: 6 - RAMP, rgb: NOTTE },
+  { h: 6 + RAMP, rgb: MATTINA },
+  { h: 13 - RAMP, rgb: MATTINA },
+  { h: 13 + RAMP, rgb: POMERIGGIO },
+  { h: 18 - RAMP, rgb: POMERIGGIO },
+  { h: 18 + RAMP, rgb: SERA },
+  { h: 21 - RAMP, rgb: SERA },
+  { h: 21 + RAMP, rgb: NOTTE },
+  { h: 24, rgb: NOTTE },
 ]
 
-function skyColorAt(hour) {
+function daypartColorAt(hour) {
   const h = ((hour % 24) + 24) % 24
-  for (let i = 0; i < SKY_STOPS.length - 1; i++) {
-    const a = SKY_STOPS[i]
-    const b = SKY_STOPS[i + 1]
+  for (let i = 0; i < DAYPART_STOPS.length - 1; i++) {
+    const a = DAYPART_STOPS[i]
+    const b = DAYPART_STOPS[i + 1]
     if (h >= a.h && h <= b.h) {
-      const t = (h - a.h) / (b.h - a.h)
+      const t = b.h === a.h ? 0 : (h - a.h) / (b.h - a.h)
       const [r, g, bl] = a.rgb.map((c, idx) => Math.round(c + (b.rgb[idx] - c) * t))
       return `rgb(${r}, ${g}, ${bl})`
     }
   }
-  return `rgb(${SKY_STOPS[0].rgb.join(', ')})`
+  return `rgb(${DAYPART_STOPS[0].rgb.join(', ')})`
 }
 
-const SKY_SEGMENTS = 96 // 15-minute resolution -- fine enough to read as a smooth gradient
+const DAYPART_SEGMENTS = 96 // 15-minute resolution -- enough to read the boundary blends as smooth
+const BAND_INNER = RADIUS + STROKE / 2 + 2
+const BAND_OUTER = RADIUS + STROKE / 2 + 29
+const BAND_RADIUS = (BAND_INNER + BAND_OUTER) / 2
+const BAND_WIDTH = BAND_OUTER - BAND_INNER
+const BAND_CIRCUMFERENCE = 2 * Math.PI * BAND_RADIUS
 
-function SkyBackground() {
+function DaypartBand() {
   const wedges = []
-  for (let i = 0; i < SKY_SEGMENTS; i++) {
-    const startFrac = i / SKY_SEGMENTS
-    const midHour = ((i + 0.5) / SKY_SEGMENTS) * 24
-    const len = CIRCUMFERENCE / SKY_SEGMENTS + 0.6 // tiny overlap so wedges don't leave hairline seams
+  for (let i = 0; i < DAYPART_SEGMENTS; i++) {
+    const startFrac = i / DAYPART_SEGMENTS
+    const midHour = ((i + 0.5) / DAYPART_SEGMENTS) * 24
+    const len = BAND_CIRCUMFERENCE / DAYPART_SEGMENTS + 0.6 // tiny overlap so wedges don't leave hairline seams
     wedges.push(
       <circle
-        key={`sky-${i}`}
+        key={`daypart-${i}`}
         cx={CENTER}
         cy={CENTER}
-        r={RADIUS}
+        r={BAND_RADIUS}
         fill="none"
-        stroke={skyColorAt(midHour)}
-        strokeWidth={STROKE}
-        strokeDasharray={`${len} ${CIRCUMFERENCE - len}`}
-        strokeDashoffset={-(startFrac * CIRCUMFERENCE)}
+        stroke={daypartColorAt(midHour)}
+        strokeWidth={BAND_WIDTH}
+        strokeDasharray={`${len} ${BAND_CIRCUMFERENCE - len}`}
+        strokeDashoffset={-(startFrac * BAND_CIRCUMFERENCE)}
       />,
     )
   }
@@ -78,6 +91,10 @@ function pointAt(frac, radius) {
   return { x: CENTER + radius * Math.cos(a), y: CENTER + radius * Math.sin(a) }
 }
 
+// Ticks and numbers sit on top of the colored day-part band, so they use a
+// fixed white-on-dark-outline treatment instead of the theme's text color --
+// that stays legible against all four band colors, in both light and dark
+// mode, instead of only against the plain app background.
 function HourMarks() {
   const marks = []
   for (let h = 0; h < 24; h++) {
@@ -92,9 +109,9 @@ function HourMarks() {
         y1={inner.y}
         x2={outer.x}
         y2={outer.y}
-        stroke="var(--text-muted)"
-        strokeWidth={isMajor ? 1.6 : 1}
-        opacity={isMajor ? 0.75 : 0.4}
+        stroke="#fff"
+        strokeWidth={isMajor ? 1.8 : 1.2}
+        opacity={isMajor ? 0.9 : 0.55}
       />,
     )
     const labelPt = pointAt(frac, RADIUS + STROKE / 2 + (isMajor ? 20 : 17))
@@ -105,8 +122,11 @@ function HourMarks() {
         y={labelPt.y}
         fontSize={isMajor ? '12' : '8.5'}
         fontWeight={isMajor ? '800' : '600'}
-        fill={isMajor ? 'var(--text)' : 'var(--text-muted)'}
-        opacity={isMajor ? 1 : 0.8}
+        fill="#fff"
+        opacity={isMajor ? 1 : 0.85}
+        stroke="rgba(0,0,0,0.35)"
+        strokeWidth="2.5"
+        paintOrder="stroke"
         textAnchor="middle"
         dominantBaseline="middle"
       >
@@ -122,8 +142,6 @@ function NowHand({ frac }) {
   const base = pointAt(frac, RADIUS - STROKE / 2 - 6)
   return (
     <>
-      {/* White halo underneath so the red hand stays visible over the sky
-          gradient's darker/warmer tones (night navy, sunset orange). */}
       <line x1={base.x} y1={base.y} x2={tip.x} y2={tip.y} stroke="#fff" strokeWidth="4" opacity="0.9" />
       <line x1={base.x} y1={base.y} x2={tip.x} y2={tip.y} stroke="var(--danger)" strokeWidth="2" />
       <circle cx={tip.x} cy={tip.y} r="4" fill="#fff" opacity="0.9" />
@@ -145,8 +163,9 @@ export default function DayClock({ segments, nowFrac, selectedId, onSelect }) {
     <div className="day-clock">
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="day-clock__svg" role="img" aria-label="Blocchi della giornata">
         <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
-          <SkyBackground />
+          <DaypartBand />
         </g>
+        <circle cx={CENTER} cy={CENTER} r={RADIUS} fill="none" stroke="var(--surface-2)" strokeWidth={STROKE} />
         <HourMarks />
         <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
           {segments.map((seg) => {
