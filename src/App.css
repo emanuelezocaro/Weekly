@@ -286,18 +286,23 @@
   color: var(--accent-strong);
 }
 
-/* The primary nav (Dashboard/Add/Report/Impostazioni), now living right
-   below the header instead of fixed/floating at the bottom -- see .app
-   for why. A plain row in normal document flow, so it needs no
-   positioning logic of its own at all. No bottom padding: the active
-   tab's highlight (flat-bottomed, see below) sits flush against the sub-
-   tab strip beneath it instead of floating above it as a separate pill,
-   so picking a tab reads as opening a drawer attached to it rather than
-   highlighting two unrelated rows. */
+/* The primary nav (Dashboard/Add/Report/Impostazioni) and its sub-tab
+   strip (.segmented-sticky-wrap, right below) are one continuous rounded
+   card split into two rows, not two differently-shaped, differently-sized
+   pieces -- same width (inset like every other card in the app, see
+   --radius-lg elsewhere), same background, rounded only at the very top
+   and very bottom, flush with no gap where they meet in the middle. Which
+   tab/sub-tab is active is shown with text color alone (no separate inner
+   pill), since the shared card background already carries the highlight. */
 .top-nav {
   display: flex;
   gap: 4px;
-  padding: 8px 10px 0;
+  margin: 8px 16px 0;
+  padding: 4px 6px;
+  background: var(--tab-highlight-bg);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .top-nav__tab {
@@ -309,10 +314,10 @@
   gap: 7px;
   border: none;
   background: none;
-  padding: 11px 4px;
+  padding: 9px 4px;
   cursor: pointer;
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .top-nav__tab svg {
@@ -329,23 +334,13 @@
 
 .top-nav__tab.is-active {
   color: var(--accent-strong);
-  background: var(--tab-highlight-bg);
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
-   active (Recuperare/Successi/Falliti under Dashboard, and so on). Tinted
-   the exact same solid color as the active .top-nav__tab above it (which
-   has a flat bottom edge, no gap here) so the active top tab and its
-   whole sub-tab strip read as one highlighted, open "tab + drawer" unit,
-   not two separately-styled menus that happen to be stacked. --tab-
-   highlight-bg (below) is a solid, opaque color rather than --accent-bg's
-   semi-transparent one on purpose: --accent-bg blended to two visibly
-   different shades here because .top-nav sits on --surface while this
-   wrap sits on --bg underneath -- same rgba, different result. A solid
-   color mixed in sRGB always renders identically regardless of what's
-   behind it. Inset the same as the content below it (no full-bleed
-   negative margin) so the highlight ends at the same edge as everything
-   else, instead of stretching all the way to the physical screen edge. */
+   active (Recuperare/Successi/Falliti under Dashboard, and so on). Second
+   (bottom) half of the unified nav card described above -- same width,
+   same background, rounded only at the bottom, flush against .top-nav
+   with no gap or border between them. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -354,8 +349,12 @@
      since the page itself scrolls now instead of an inner container. */
   top: var(--topbar-height, 0px);
   z-index: 4;
+  margin: 0 16px;
+  padding: 0 10px;
   background: var(--tab-highlight-bg);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .segmented {
