@@ -286,24 +286,18 @@
   color: var(--accent-strong);
 }
 
-/* The primary nav (Dashboard/Add/Report/Impostazioni) and its sub-tab
-   strip (.segmented-sticky-wrap, right below) are one continuous rounded
-   card split into two rows, not two differently-shaped, differently-sized
-   pieces -- same width (inset like every other card in the app, see
-   --radius-lg elsewhere), same plain background, rounded only at the very
-   top and very bottom, flush with no gap where they meet in the middle.
-   Within that shared card, only the ACTIVE tab gets its own colored pill
-   (tab-style: selected = filled, everything else = plain text) -- the
-   card itself just supplies the unified outline, it isn't the highlight. */
+/* Classic "folder tab" pattern (reference: real file-folder tabs, the
+   selected one merges into the page beneath it, the rest recede behind
+   it). Each tab is its own slanted-edge shape; the active one matches the
+   panel below exactly (same background, sits taller/forward, no border
+   between it and the panel), while inactive tabs are a visibly different,
+   muted shade sitting shorter/behind -- not one uniformly-colored bar
+   with a highlighted slice, but genuinely separate tab shapes. */
 .top-nav {
   display: flex;
-  gap: 4px;
-  margin: 8px 16px 0;
-  padding: 4px 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  align-items: flex-end;
+  gap: 3px;
+  margin: 10px 16px 0;
 }
 
 .top-nav__tab {
@@ -312,38 +306,44 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   border: none;
-  background: none;
-  padding: 9px 4px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  background: var(--surface-2);
   color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease;
+  padding: 8px 4px;
+  margin-top: 8px;
+  clip-path: polygon(12% 0%, 88% 0%, 100% 100%, 0% 100%);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, margin-top 0.15s ease, padding-top 0.15s ease;
 }
 
 .top-nav__tab svg {
-  width: 23px;
-  height: 23px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
 .top-nav__tab span {
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   transition: color 0.15s ease;
 }
 
 .top-nav__tab.is-active {
+  position: relative;
+  z-index: 2;
   color: var(--accent-strong);
-  background: var(--tab-highlight-bg);
+  background: var(--surface);
+  margin-top: 0;
+  padding-top: 13px;
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
-   active (Recuperare/Successi/Falliti under Dashboard, and so on). Second
-   (bottom) half of the unified nav card described above -- same width,
-   same background, rounded only at the bottom, flush against .top-nav
-   with no gap or border between them. */
+   active (Recuperare/Successi/Falliti under Dashboard, and so on). Same
+   background as the active folder tab above it and flush against it (no
+   gap, no border between them) so the two read as one merged panel that
+   the active tab opens into -- the inactive tabs, in a different shade,
+   are visibly outside this panel instead. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -351,12 +351,9 @@
      here would stack this UNDER that fixed bar instead of right below it,
      since the page itself scrolls now instead of an inner container.
      No side margin here -- .app-main already insets everything by 16px,
-     so adding another 16px margin on top of that (as this used to) made
-     this card 32px narrower than .top-nav (which sits in .app-topbar,
-     with no extra ancestor padding), leaving mismatched, jagged edges
-     instead of one continuous outline. */
+     matching .top-nav's own margin, so both line up exactly. */
   top: var(--topbar-height, 0px);
-  z-index: 4;
+  z-index: 1;
   padding: 0 10px;
   background: var(--surface);
   border: 1px solid var(--border);
