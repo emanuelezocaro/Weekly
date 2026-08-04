@@ -82,6 +82,25 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
   padding: 10px 16px 20px;
+  transition: background 0.2s ease;
+}
+
+/* The content area picks up the same very-pale tint as the active tab's own
+   button, so the color reads as continuing up from the nav into the page. */
+.app--dashboard .app-main {
+  background: var(--tab-dashboard-bg);
+}
+
+.app--calendar .app-main {
+  background: var(--tab-add-bg);
+}
+
+.app--report .app-main {
+  background: var(--tab-report-bg);
+}
+
+.app--settings .app-main {
+  background: var(--tab-settings-bg);
 }
 
 .view {
@@ -287,8 +306,8 @@
 }
 
 .header-settings-btn.is-active {
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: var(--tab-settings-fg);
+  background: var(--tab-settings-bg);
 }
 
 /* Bottom nav */
@@ -305,20 +324,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
   border: none;
   background: none;
-  padding: 6px 0 4px;
+  padding: 8px 0 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   color: var(--text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .bottom-nav__tab svg {
   width: 22px;
   height: 22px;
-  padding: 4px;
-  border-radius: 12px;
-  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .bottom-nav__tab span {
@@ -327,13 +346,22 @@
   transition: color 0.15s ease;
 }
 
-.bottom-nav__tab.is-active {
-  color: var(--accent-strong);
+/* Each tab keeps its own quiet tint -- the active tab's button and the page
+   content behind it use the exact same color, so the button reads as the
+   page "continuing" down into the nav bar rather than just a highlight. */
+.bottom-nav__tab--dashboard.is-active {
+  background: var(--tab-dashboard-bg);
+  color: var(--tab-dashboard-fg);
 }
 
-.bottom-nav__tab.is-active svg {
-  background: var(--accent-bg);
-  color: var(--accent);
+.bottom-nav__tab--calendar.is-active {
+  background: var(--tab-add-bg);
+  color: var(--tab-add-fg);
+}
+
+.bottom-nav__tab--report.is-active {
+  background: var(--tab-report-bg);
+  color: var(--tab-report-fg);
 }
 
 /* Segmented control */

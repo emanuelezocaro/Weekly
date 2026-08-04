@@ -33,6 +33,19 @@
   --danger-bg: rgba(255, 59, 48, 0.1);
   --warn: #c98500;
   --warn-bg: rgba(237, 161, 0, 0.14);
+  /* One very pale tint per bottom-nav tab -- different hues, all pushed
+     equally close to --bg so they read as a quiet, coherent family rather
+     than four separate "colors". The active tab's own button AND the page
+     content behind it share the exact same value, so the tab visually
+     "continues" upward into the page instead of just being highlighted. */
+  --tab-dashboard-bg: #eef4fe;
+  --tab-dashboard-fg: #2e6ff2;
+  --tab-add-bg: #fdf3e3;
+  --tab-add-fg: #a3650a;
+  --tab-report-bg: #eaf7f1;
+  --tab-report-fg: #1a9c6c;
+  --tab-settings-bg: #f3f0fe;
+  --tab-settings-fg: #6a4ccf;
   --shadow: 0 1px 3px rgba(20, 20, 26, 0.06);
   --shadow-lg: 0 8px 24px rgba(20, 20, 26, 0.08);
   --radius-sm: 10px;
@@ -79,6 +92,14 @@
     --danger-bg: rgba(255, 69, 58, 0.16);
     --warn: #eda100;
     --warn-bg: rgba(237, 161, 0, 0.18);
+    --tab-dashboard-bg: #10151f;
+    --tab-dashboard-fg: #6c9bff;
+    --tab-add-bg: #1c160c;
+    --tab-add-fg: #f2b355;
+    --tab-report-bg: #0e1a15;
+    --tab-report-fg: #3ecd93;
+    --tab-settings-bg: #17131f;
+    --tab-settings-fg: #a996ff;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.55);
 

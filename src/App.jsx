@@ -50,7 +50,7 @@ function App() {
   } = useHabitData()
 
   return (
-    <div className="app">
+    <div className={`app app--${tab}`}>
       <header className="app-header">
         <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
           <h1 className="app-header__brand">

@@ -43,7 +43,7 @@ export default function BottomNav({ active, onChange }) {
         <button
           key={id}
           type="button"
-          className={`bottom-nav__tab ${active === id ? 'is-active' : ''}`}
+          className={`bottom-nav__tab bottom-nav__tab--${id} ${active === id ? 'is-active' : ''}`}
           onClick={() => onChange(id)}
         >
           <Icon />
