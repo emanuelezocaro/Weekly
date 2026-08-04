@@ -418,12 +418,15 @@
   color: var(--accent-strong);
 }
 
+/* Inline right after the label text (not position:absolute pinned to the
+   button's own corner) so it sits right next to the word regardless of
+   how wide the tab column is or where the text lands inside it. */
 .segmented__dot {
-  position: absolute;
-  top: 4px;
-  right: 8px;
+  display: inline-block;
   width: 6px;
   height: 6px;
+  margin-left: 4px;
+  vertical-align: top;
   border-radius: 50%;
   background: var(--danger);
 }
