@@ -313,7 +313,10 @@
   flex-shrink: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px));
+  /* max() instead of relying on env() alone -- a defensive floor in case
+     safe-area-inset-bottom itself under-reports in standalone mode on some
+     devices, on top of the -webkit-fill-available height fix (index.css). */
+  padding: 4px 6px max(20px, calc(4px + env(safe-area-inset-bottom, 0px)));
 }
 
 .bottom-nav__tab {
