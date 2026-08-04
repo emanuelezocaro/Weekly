@@ -115,38 +115,41 @@ export default function ActivityStatsSummary({
 
   return (
     <div className="stats-summary">
-      {donutSegments.length > 0 && (
-        <div className="day-donut">
-          <DonutChart segments={donutSegments} />
-          <ul className="day-donut__legend">
-            {donutSegments.map((s) => (
-              <li key={s.id}>
-                <span className="day-donut__swatch" style={{ background: s.color }} />
-                <span className="day-donut__name">{s.name}</span>
-                <span className="day-donut__pct">{formatPct(s.fraction)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {zeroActivities.length > 0 && (
-        <p className="day-donut__zero">A zero: {zeroActivities.map((a) => a.name).join(', ')}</p>
-      )}
-      {canDrillDown && periodPhrase && (
-        <p className="stats-summary__progress">
-          {elapsedPct}% {periodPhrase}
-          {elapsedPct < 100 && ` · ${100 - elapsedPct}% rimanente`}
-        </p>
-      )}
-
-      <div className="report-summary">
-        <span>
-          Tracciato: <strong>{formatDuration(trackedMs)}</strong>
-        </span>
-        {hasUntracked && (
-          <span className="report-summary__missing">Non registrato: {formatDuration(untrackedMs)}</span>
+      <section className="settings-card">
+        <h2 className="settings-card__title">Attività</h2>
+        {donutSegments.length > 0 && (
+          <div className="day-donut">
+            <DonutChart segments={donutSegments} />
+            <ul className="day-donut__legend">
+              {donutSegments.map((s) => (
+                <li key={s.id}>
+                  <span className="day-donut__swatch" style={{ background: s.color }} />
+                  <span className="day-donut__name">{s.name}</span>
+                  <span className="day-donut__pct">{formatPct(s.fraction)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-      </div>
+        {zeroActivities.length > 0 && (
+          <p className="day-donut__zero">A zero: {zeroActivities.map((a) => a.name).join(', ')}</p>
+        )}
+        {canDrillDown && periodPhrase && (
+          <p className="stats-summary__progress">
+            {elapsedPct}% {periodPhrase}
+            {elapsedPct < 100 && ` · ${100 - elapsedPct}% rimanente`}
+          </p>
+        )}
+
+        <div className="report-summary">
+          <span>
+            Tracciato: <strong>{formatDuration(trackedMs)}</strong>
+          </span>
+          {hasUntracked && (
+            <span className="report-summary__missing">Non registrato: {formatDuration(untrackedMs)}</span>
+          )}
+        </div>
+      </section>
 
       <ul className="report-list">
         {stats.map((activity) => {
