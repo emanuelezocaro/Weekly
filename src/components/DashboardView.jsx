@@ -128,7 +128,7 @@ export default function DashboardView({
 
   useEffect(() => {
     if (!onPeriodLabel) return
-    onPeriodLabel(`Today · ${formatFullDate(now)}`)
+    onPeriodLabel({ label: `Today · ${formatFullDate(now)}` })
     return () => onPeriodLabel(null)
   }, [now, onPeriodLabel])
 

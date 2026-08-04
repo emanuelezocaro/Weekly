@@ -30,6 +30,26 @@ function useTopbarHeightVar(topbarRef) {
   }, [topbarRef])
 }
 
+/* Media-player "skip" glyph (triangle + bar) instead of a plain arrow --
+   filled with the logo's own oxblood (#57101f, see .app-header__brand) so
+   it reads as tied to the brand, not a generic system icon. Mirrored via
+   scaleX for the "prev" direction rather than drawn twice. */
+function SkipIcon({ direction }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="16"
+      height="16"
+      fill="#57101f"
+      aria-hidden="true"
+      style={{ transform: direction === 'prev' ? 'scaleX(-1)' : undefined }}
+    >
+      <path d="M6 5h2.2v14H6z" />
+      <path d="M9.6 5.5 19 12 9.6 18.5z" />
+    </svg>
+  )
+}
+
 function App() {
   const topbarRef = useRef(null)
   useTopbarHeightVar(topbarRef)
@@ -69,7 +89,15 @@ function App() {
               Weekl<span className="app-header__brand-accent">y</span>
             </h1>
           </button>
-          <p className="app-header__period">{periodLabel}</p>
+          <div className="app-header__period-group">
+            <span className="app-header__arrow-slot">
+              {periodLabel?.prevAvailable && <SkipIcon direction="prev" />}
+            </span>
+            <p className="app-header__period">{periodLabel?.label}</p>
+            <span className="app-header__arrow-slot">
+              {periodLabel?.nextAvailable && <SkipIcon direction="next" />}
+            </span>
+          </div>
         </header>
 
         <TopNav active={tab} onChange={setTab} />

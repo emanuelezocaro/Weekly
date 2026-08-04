@@ -108,13 +108,12 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
 
   // Reports the current period up to the app header, which shows it in
   // place of the day-switcher (removed in favor of the swipe gesture below).
-  // Arrows show which swipe directions are actually available (only left,
-  // only right, or both), always ahead of the period text itself.
+  // prevAvailable/nextAvailable let the header show which swipe directions
+  // actually work right now, one arrow flanking each side of the label.
   useEffect(() => {
     if (!onPeriodLabel) return
-    const arrows = [!prevDisabled && '←', !nextDisabled && '→'].filter(Boolean).join(' ')
     const label = periodHeaderLabel(period, cursor)
-    onPeriodLabel(arrows ? `${arrows} ${label}` : label)
+    onPeriodLabel({ label, prevAvailable: !prevDisabled, nextAvailable: !nextDisabled })
     return () => onPeriodLabel(null)
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 

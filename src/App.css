@@ -69,8 +69,30 @@
   color: #f2a93b;
 }
 
-.app-header__period {
+/* Arrow-flanked period label: fixed-width slots on each side keep the
+   text sandwiched between them whether one, both, or neither arrow is
+   actually showing, instead of the text jumping around depending on
+   which directions happen to be available. The group as a whole still
+   sits at the right edge of the header, matching the rest of it. */
+.app-header__period-group {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.app-header__arrow-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.app-header__period {
   min-width: 0;
   margin: 0;
   font-size: 13px;
@@ -79,7 +101,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: right;
 }
 
 .app-main {
