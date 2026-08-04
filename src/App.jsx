@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import BottomNav from './components/BottomNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -6,6 +6,29 @@ import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
+
+/* visualViewport tracks the *actual* visible height on iOS (accounting for
+   the home indicator / safe areas in standalone PWA mode) more reliably
+   than any CSS unit tried so far -- see App.css for why this replaced the
+   CSS-only attempts. */
+function useAppHeightVar() {
+  useLayoutEffect(() => {
+    const root = document.documentElement
+    const setAppHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight
+      root.style.setProperty('--app-height', `${height}px`)
+    }
+    setAppHeight()
+    window.addEventListener('resize', setAppHeight)
+    window.addEventListener('orientationchange', setAppHeight)
+    window.visualViewport?.addEventListener('resize', setAppHeight)
+    return () => {
+      window.removeEventListener('resize', setAppHeight)
+      window.removeEventListener('orientationchange', setAppHeight)
+      window.visualViewport?.removeEventListener('resize', setAppHeight)
+    }
+  }, [])
+}
 
 function SettingsIcon() {
   return (
@@ -21,6 +44,7 @@ function SettingsIcon() {
 }
 
 function App() {
+  useAppHeightVar()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
   const [settingsInitialTab, setSettingsInitialTab] = useState('goals')

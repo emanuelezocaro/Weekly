@@ -1,33 +1,20 @@
-/* Fills the screen via a plain height:100% chain from html down through
-   body, #root and .app (see index.css) -- no position:fixed, no viewport
-   units (dvh/svh), no JS-measured height. This is the plainest possible way
-   to size a full-screen app shell, and deliberately so: dvh and
-   position:fixed+inset:0 both failed to reliably reach the true bottom edge
-   on at least one real iOS home-screen install, despite working correctly
-   in every local/automated check -- there's no way to test Mobile Safari's
-   specific quirks from here, so this sticks to the one technique with the
-   longest, most boring track record instead of another clever fix that
-   might just be wrong in some other way. Only reliable because html/body
-   don't scroll or rubber-band (see index.css) and nothing in this chain has
-   its own height that could disagree with its parent's. */
+/* Base fallback is a plain height:100% chain (html down through body, #root,
+   see index.css) so there's always a sane height before JS runs. --app-height
+   is then set in App.jsx from window.visualViewport (falling back to
+   window.innerHeight), re-measured on resize/orientationchange -- this is
+   the one technique that reliably reached the true bottom edge on real iOS
+   home-screen installs; dvh, position:fixed+inset:0, and CSS-only
+   -webkit-fill-available were all tried first and each still left a gap
+   below the nav on at least one real device despite working in every
+   local/automated check. */
 .app {
-  height: 100%;
+  height: var(--app-height, 100%);
   display: flex;
   flex-direction: column;
   max-width: 480px;
   margin: 0 auto;
   background: var(--bg);
   overflow: hidden;
-}
-
-/* See index.css: confirmed the gap below the nav only happens when this app
-   is launched from its home-screen icon (standalone), not in a normal
-   Safari tab -- -webkit-fill-available is Apple's own fix for exactly that
-   iOS-standalone-mode height bug. */
-@media (display-mode: standalone) {
-  .app {
-    height: -webkit-fill-available;
-  }
 }
 
 .app-header {
