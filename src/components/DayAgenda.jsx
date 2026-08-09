@@ -419,6 +419,12 @@ export default function DayAgenda({
   const [expandedId, setExpandedId] = useState(null)
   const [expandedGap, setExpandedGap] = useState(null)
   const [addingManual, setAddingManual] = useState(false)
+  // The 48h lock is just a guardrail against editing old history by
+  // accident -- an explicit tap on "Sblocca per modificare" overrides it for
+  // this one day. Resets on every day change so the override never quietly
+  // carries over to a different day.
+  const [forceUnlock, setForceUnlock] = useState(false)
+  useEffect(() => setForceUnlock(false), [cursor])
 
   // Tapping a wedge on the clock opens its editor below it -- tapping
   // anywhere else, INCLUDING elsewhere on the clock face itself (an
@@ -438,10 +444,11 @@ export default function DayAgenda({
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
-  const isLocked = isDayLocked(isToday, gaps.length === 0, cursor, now)
-  const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now)
-  const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now)
-  const foodLocked = isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now)
+  const isLocked = isDayLocked(isToday, gaps.length === 0, cursor, now) && !forceUnlock
+  const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now) && !forceUnlock
+  const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now) && !forceUnlock
+  const foodLocked =
+    isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
@@ -532,10 +539,22 @@ export default function DayAgenda({
               )}
 
               {!isToday && gaps.length === 0 && (
-                <p className="day-status day-status--complete">
-                  Giornata già completa, dalle 00:00 alle 24:00.
-                  {isLocked && ' Non più modificabile.'}
-                </p>
+                <>
+                  <p className="day-status day-status--complete">
+                    Giornata già completa, dalle 00:00 alle 24:00.
+                    {isLocked && ' Non più modificabile.'}
+                  </p>
+                  {isLocked && (
+                    <button
+                      type="button"
+                      className="text-btn"
+                      style={{ marginBottom: 12 }}
+                      onClick={() => setForceUnlock(true)}
+                    >
+                      Sblocca per modificare
+                    </button>
+                  )}
+                </>
               )}
 
               {/* "Aggiungi blocco" and the gap-fill prompt are alternatives: a
