@@ -540,10 +540,7 @@ export default function DayAgenda({
 
               {!isToday && gaps.length === 0 && (
                 <>
-                  <p className="day-status day-status--complete">
-                    Giornata già completa, dalle 00:00 alle 24:00.
-                    {isLocked && ' Non più modificabile.'}
-                  </p>
+                  <p className="day-status day-status--complete">Completata</p>
                   {isLocked && (
                     <button
                       type="button"
