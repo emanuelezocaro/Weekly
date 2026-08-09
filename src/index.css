@@ -136,6 +136,12 @@
 html,
 body {
   margin: 0;
+  /* A few px of horizontal overflow (chart rounding, a wide row of many
+     small columns) used to be invisible for free when html/body were
+     pinned exactly to the viewport (see above) -- now that they aren't,
+     the same rounding shows up as an actual sideways-scrollable page
+     unless something still clips it here. */
+  overflow-x: hidden;
 }
 
 button,

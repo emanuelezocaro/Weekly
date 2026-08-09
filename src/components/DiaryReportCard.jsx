@@ -32,32 +32,39 @@ function buildDiaryListText(grouped) {
 }
 
 // One dot per day (or, for a quarter, one dot per week) -- filled if a note
-// was written, empty if not. Mirrors Alimentazione's day-by-day rows, but a
-// plain on/off dot instead of a rated bar since Diary has no rating, just
-// "did I write something".
+// was written, empty if not. Sits in the same trend-chart__row/yaxis/
+// bars-wrap scaffolding Uscite's bar chart uses (empty yaxis, since there's
+// no number scale here) rather than Alimentazione's mini-row -- otherwise
+// the day columns end up a different width than Uscite's, since mini-row
+// reserves an 84px label gutter meant for "Colazione"/"Pranzo" text that
+// Diary doesn't have.
 function DotsRow({ isOnByKey }) {
   return (
-    <div className="mini-row">
-      <span className="mini-row__label" />
-      <div className="mini-row__dots">
-        {isOnByKey.map(({ key, isOn }) => (
-          <span key={key} className={isOn ? 'is-on' : ''} />
-        ))}
+    <div className="trend-chart__row">
+      <div className="mini-row__gutter" />
+      <div className="trend-chart__bars-wrap">
+        <div className="mini-row__dots">
+          {isOnByKey.map(({ key, isOn }) => (
+            <span key={key} className={isOn ? 'is-on' : ''} />
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
 // Day labels aligned under each dot, only meaningful for a week view (7
-// columns) -- mirrors FoodReportCard's WeekAxisRow.
+// columns) -- same scaffolding as DotsRow, so the labels line up under it.
 function WeekAxisRow({ days }) {
   return (
-    <div className="mini-row">
-      <span className="mini-row__label" />
-      <div className="mini-row__axis">
-        {days.map((d) => (
-          <span key={toISODate(d)}>{dayLabel(d)}</span>
-        ))}
+    <div className="trend-chart__row">
+      <div className="mini-row__gutter" />
+      <div className="trend-chart__bars-wrap">
+        <div className="mini-row__axis">
+          {days.map((d) => (
+            <span key={toISODate(d)}>{dayLabel(d)}</span>
+          ))}
+        </div>
       </div>
     </div>
   )

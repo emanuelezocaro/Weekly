@@ -1082,6 +1082,15 @@
   background: var(--accent-strong);
 }
 
+/* Stand-in for .trend-chart__yaxis's reserved width (Diary's dots have no
+   number scale to show) so its day columns land the same width as Uscite's
+   bar columns, instead of the much wider 84px gutter .mini-row__label
+   reserves for Alimentazione's row labels. */
+.mini-row__gutter {
+  flex-shrink: 0;
+  width: 13px;
+}
+
 /* Y-axis (max value + zero) next to the bar area */
 .trend-chart__row {
   display: flex;
