@@ -9,6 +9,12 @@ function formatPct(fraction) {
   return `${Math.round(fraction * 100)}%`
 }
 
+// A regular space collapses to zero height when it's a block element's only
+// content -- this reserves the delta row's height even with nothing to say,
+// so swiping between periods doesn't shift every chart below it up or down
+// depending on whether that period happens to have a delta to show.
+const NBSP = String.fromCharCode(160)
+
 const PERIOD_PHRASE = {
   week: 'della settimana trascorsa',
   month: 'del mese trascorso',
@@ -177,12 +183,9 @@ export default function ActivityStatsSummary({
                 <span className="report-card__avg">{formatDuration(activity.avgMsPerDay)}/giorno</span>
                 <span className="report-card__pct">{formatPct(activity.pctOfDay)}</span>
               </div>
-              {delta !== null && (
-                <p className="report-card__delta">
-                  {delta > 0 ? '+' : ''}
-                  {delta}% rispetto al periodo precedente
-                </p>
-              )}
+              <p className="report-card__delta">
+                {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
+              </p>
               {canDrillDown && (
                 <ActivityTrendChart
                   activity={activity}

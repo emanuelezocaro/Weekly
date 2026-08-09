@@ -2,6 +2,11 @@ import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 
+// A regular space collapses to zero height when it's a block element's only
+// content -- this reserves the delta row's height even with nothing to say,
+// so swiping between periods doesn't shift the chart below it.
+const NBSP = String.fromCharCode(160)
+
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
 const EXTRA_LABELS = { yes: 'Sì', no: 'No' }
@@ -237,12 +242,9 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
       <p className="trend-chart__caption">
         {summary.good} buono · {summary.mid} medio · {summary.bad} male · Extra {summary.extraYes}/{days.length} giorni
       </p>
-      {delta !== null && (
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta > 0 ? '+' : ''}
-          {delta}% buono rispetto al periodo precedente
-        </p>
-      )}
+      <p className="report-card__delta" style={{ textAlign: 'center' }}>
+        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% buono rispetto al periodo precedente` : NBSP}
+      </p>
     </>
   )
 

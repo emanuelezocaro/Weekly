@@ -7,6 +7,11 @@ import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
+// A regular space collapses to zero height when it's a block element's only
+// content -- this reserves a row's height even with nothing to say, so
+// swiping between periods doesn't shift every chart below it up or down.
+const NBSP = String.fromCharCode(160)
+
 const COPY_MESSAGES = {
   copied: 'Elenco copiato ✓',
   shared: 'Elenco condiviso ✓',
@@ -94,12 +99,9 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
       <p className="trend-chart__caption">
         {daysWithOutputs}/{days.length} giorni con almeno un'uscita
       </p>
-      {delta !== null && (
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta > 0 ? '+' : ''}
-          {delta}% rispetto al periodo precedente
-        </p>
-      )}
+      <p className="report-card__delta" style={{ textAlign: 'center' }}>
+        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
+      </p>
       <button
         type="button"
         className="trend-chart__toggle"
@@ -132,11 +134,13 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
             </div>
           </div>
         </div>
-        {grouped.length > 0 && (
-          <span className="trend-chart__toggle-hint">
-            {expanded ? '▴ Nascondi elenco giornaliero' : '▾ Tocca per l\'elenco giornaliero'}
-          </span>
-        )}
+        <span className="trend-chart__toggle-hint">
+          {grouped.length === 0
+            ? NBSP
+            : expanded
+              ? '▴ Nascondi elenco giornaliero'
+              : "▾ Tocca per l'elenco giornaliero"}
+        </span>
       </button>
 
       {expanded && grouped.length > 0 && (
