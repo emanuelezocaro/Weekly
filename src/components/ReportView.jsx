@@ -16,6 +16,7 @@ import ActivityStatsSummary from './ActivityStatsSummary'
 import OutputsWeekCard from './OutputsWeekCard'
 import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
+import DiaryReportCard from './DiaryReportCard'
 
 const SUMMARY_MESSAGES = {
   copied: 'Riepilogo copiato ✓',
@@ -88,7 +89,7 @@ function isPrevDisabled(period, cursor) {
   return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries, outputs, cigarettes, food, goals, onPeriodLabel }) {
+export default function ReportView({ activities, entries, outputs, cigarettes, food, diary, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
@@ -156,6 +157,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
         <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
         <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
         <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
+        <DiaryReportCard diary={diary} days={days} />
 
         <hr className="report-divider" />
 

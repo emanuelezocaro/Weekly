@@ -74,6 +74,8 @@ function App() {
     setCigarettes,
     food,
     setFoodField,
+    diary,
+    setDiaryEntry,
     goals,
     setGoal,
     exportData,
@@ -123,6 +125,7 @@ function App() {
             outputsSkipped={outputsSkipped}
             cigarettes={cigarettes}
             food={food}
+            diary={diary}
             onEditEntry={editEntry}
             onRemoveEntry={removeEntry}
             onAddManualEntry={addManualEntry}
@@ -132,6 +135,7 @@ function App() {
             onUndoNoOutputs={undoNoOutputs}
             onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
+            onSetDiaryEntry={setDiaryEntry}
             onPeriodLabel={setPeriodLabel}
           />
         )}
@@ -142,6 +146,7 @@ function App() {
             outputs={outputs}
             cigarettes={cigarettes}
             food={food}
+            diary={diary}
             goals={goals}
             onPeriodLabel={setPeriodLabel}
           />

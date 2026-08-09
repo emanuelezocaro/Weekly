@@ -23,12 +23,14 @@ import CigarettesCard from './CigarettesCard'
 import DayBreakdownChart from './DayBreakdownChart'
 import DayClock from './DayClock'
 import FoodCard from './FoodCard'
+import DiaryCard from './DiaryCard'
 
 const DAY_TABS = [
   { id: 'calendar', label: 'Attività' },
   { id: 'outputs', label: 'Uscite' },
   { id: 'cigarettes', label: 'Sigarette' },
   { id: 'food', label: 'Cibo' },
+  { id: 'diary', label: 'Diary' },
 ]
 
 const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
@@ -375,6 +377,7 @@ export default function DayAgenda({
   outputsSkipped,
   cigarettes,
   food,
+  diary,
   onEditEntry,
   onRemoveEntry,
   onAddManualEntry,
@@ -384,6 +387,7 @@ export default function DayAgenda({
   onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
+  onSetDiaryEntry,
   onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
@@ -444,11 +448,13 @@ export default function DayAgenda({
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
+  const dayDiaryRecord = diary.find((d) => d.date === dayIso)
   const isLocked = isDayLocked(isToday, gaps.length === 0, cursor, now) && !forceUnlock
   const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now) && !forceUnlock
   const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now) && !forceUnlock
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
+  const diaryLocked = isDayLocked(isToday, !!dayDiaryRecord?.text?.trim(), cursor, now) && !forceUnlock
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
@@ -458,6 +464,7 @@ export default function DayAgenda({
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
     cigarettes: isToday && !dayCigaretteRecord,
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
+    diary: isToday && !dayDiaryRecord?.text?.trim(),
   }
 
   const dayStart = startOfDay(cursor)
@@ -484,7 +491,7 @@ export default function DayAgenda({
   return (
     <div className="panel" {...swipeHandlers}>
       <div className="segmented-sticky-wrap">
-        <div className="segmented">
+        <div className="segmented segmented--compact">
           {DAY_TABS.map((t) => (
             <button
               key={t.id}
@@ -526,6 +533,15 @@ export default function DayAgenda({
             food={dayFoodRecord}
             onChange={(field, value) => onSetFoodField(dayIso, field, value)}
             locked={foodLocked}
+          />
+        )}
+
+        {activeTab === 'diary' && (
+          <DiaryCard
+            key={dayIso}
+            text={dayDiaryRecord?.text || ''}
+            onSave={(text) => onSetDiaryEntry(dayIso, text)}
+            locked={diaryLocked}
           />
         )}
 
