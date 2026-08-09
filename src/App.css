@@ -25,62 +25,25 @@
   top: 0;
   z-index: 10;
   background: var(--bg);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
-.app-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
+/* Collapses to nothing on scroll-down (see useHideTopbarOnScroll) --
+   max-height rather than a transform, so the space it frees up is real:
+   --topbar-height (measured live off .app-topbar's own rect, which shrinks
+   along with this) makes .segmented-sticky-wrap's sticky offset follow
+   right up to the top of the screen instead of leaving an empty gap. Lives
+   on its own inner wrapper, not .app-topbar itself, so the collapse
+   animation's own overflow/max-height never interferes with the sticky
+   positioning of the element that's actually pinned to the viewport. */
+.app-topbar__inner {
+  max-height: 200px;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
 }
 
-.app-header__left {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  padding: 0;
-  text-align: left;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-/* Echoes the app icon's own palette (oxblood badge, cream glyph, amber
-   accent) so the wordmark reads as the same mark, not just styled text --
-   fixed hex values on purpose, not theme variables, to match the icon
-   exactly in both light and dark mode. */
-.app-header__brand {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.1px;
-  line-height: 1;
-  color: #f3e9da;
-  background: #57101f;
-  padding: 6px 9px;
-  border-radius: 8px;
-}
-
-.app-header__brand-accent {
-  color: #f2a93b;
-}
-
-/* Arrow-flanked period label: fixed-width slots on each side keep the
-   text sandwiched between them whether one, both, or neither arrow is
-   actually showing, instead of the text jumping around depending on
-   which directions happen to be available. The group as a whole still
-   sits at the right edge of the header, matching the rest of it. */
-.app-header__period-group {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
+.app-topbar__inner--hidden {
+  max-height: 0;
 }
 
 .app-header__arrow-slot {
@@ -101,6 +64,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Period label lives on its own, non-sticky row now -- there's no longer a
+   separate header bar to sit inside. Scrolls away with the content instead
+   of staying fixed at the very top. */
+.app-period-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
 }
 
 .app-main {

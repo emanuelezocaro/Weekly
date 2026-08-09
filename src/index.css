@@ -32,7 +32,7 @@
      tab + its sub-tab strip) that needs to look identical across two
      elements sitting on different backgrounds -- see the comment on
      .segmented-sticky-wrap in App.css. Mixed from the wordmark's own
-     oxblood badge color (#57101f, see .app-header__brand) rather than the
+     oxblood badge color (#57101f, the wordmark's own background) rather than the
      amber accent, so the menu reads as tied to the logo. */
   --tab-highlight-bg: color-mix(in srgb, #57101f 14%, var(--surface));
   /* Amber is a light hue in both themes, so white text on it (the old
@@ -140,8 +140,15 @@ body {
      small columns) used to be invisible for free when html/body were
      pinned exactly to the viewport (see above) -- now that they aren't,
      the same rounding shows up as an actual sideways-scrollable page
-     unless something still clips it here. */
-  overflow-x: hidden;
+     unless something still clips it here. `clip` rather than `hidden`:
+     `hidden` (or any value other than the default `visible`) forces the
+     OTHER axis to compute as `auto` too per the overflow spec, turning
+     html/body into their own scroll container and breaking position:
+     sticky for .app-topbar/.segmented-sticky-wrap (their "nearest
+     scrolling ancestor" stops being the real viewport) -- `clip` doesn't
+     establish a scroll container at all, so it dodges that side effect
+     entirely while still cutting off the same stray horizontal overflow. */
+  overflow-x: clip;
 }
 
 button,

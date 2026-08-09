@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import TopNav from './components/TopNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -7,14 +7,15 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-/* The page now scrolls naturally (see App.css/index.css), with the header
-   and top nav pinned via position: sticky instead of living outside a
-   fixed-height scroll container. Each view's own segmented tab strip is
-   also sticky, and needs to stop right below the topbar rather than
-   underneath it -- but the topbar's height isn't a fixed number (it grows
-   with env(safe-area-inset-top), which varies by device), so it's
-   measured directly and exposed as --topbar-height for that sticky offset
-   to use instead of a guessed constant. */
+/* The page now scrolls naturally (see App.css/index.css), with the top nav
+   pinned via position: sticky instead of living outside a fixed-height
+   scroll container. Each view's own segmented tab strip is also sticky,
+   and needs to stop right below the topbar rather than underneath it --
+   but the topbar's height isn't a fixed number (it grows with
+   env(safe-area-inset-top), which varies by device, and now also
+   collapses to 0 on scroll-down, see useHideTopbarOnScroll below), so
+   it's measured directly and exposed as --topbar-height for that sticky
+   offset to use instead of a guessed constant. */
 function useTopbarHeightVar(topbarRef) {
   useLayoutEffect(() => {
     const el = topbarRef.current
@@ -30,10 +31,54 @@ function useTopbarHeightVar(topbarRef) {
   }, [topbarRef])
 }
 
+/* Collapses the top nav out of the way while scrolling down (reclaiming
+   its space for content), and brings it right back on any upward scroll --
+   the standard "hide on scroll down, show on scroll up" toolbar behavior.
+   The reference point only moves once a scroll has actually covered
+   MIN_DELTA_PX -- comparing every single scroll tick to the immediately
+   preceding one is sensitive enough to flip-flop (hide, then immediately
+   show again) on the small back-and-forth jitter a real touch scroll
+   produces, instead of reacting to the overall direction the page is
+   actually moving in. Read at most once per animation frame (rAF-throttled)
+   rather than on every 'scroll' event, which can fire many times faster
+   than the page can usefully react to. */
+const MIN_DELTA_PX = 24
+
+function useHideTopbarOnScroll() {
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => {
+    let lastY = window.scrollY
+    let ticking = false
+    function evaluate() {
+      ticking = false
+      const y = window.scrollY
+      const delta = y - lastY
+      if (y <= 40) {
+        setHidden(false)
+        lastY = y
+      } else if (delta > MIN_DELTA_PX) {
+        setHidden(true)
+        lastY = y
+      } else if (delta < -MIN_DELTA_PX) {
+        setHidden(false)
+        lastY = y
+      }
+    }
+    function onScroll() {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(evaluate)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return hidden
+}
+
 /* Media-player "skip" glyph (triangle + bar) instead of a plain arrow --
-   filled with the logo's own oxblood (#57101f, see .app-header__brand) so
-   it reads as tied to the brand, not a generic system icon. Mirrored via
-   scaleX for the "prev" direction rather than drawn twice. */
+   filled with the app icon's own oxblood (#57101f) so it reads as tied to
+   the brand, not a generic system icon. Mirrored via scaleX for the "prev"
+   direction rather than drawn twice. */
 function SkipIcon({ direction }) {
   return (
     <svg
@@ -53,6 +98,7 @@ function SkipIcon({ direction }) {
 function App() {
   const topbarRef = useRef(null)
   useTopbarHeightVar(topbarRef)
+  const topbarHidden = useHideTopbarOnScroll()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
   const {
@@ -85,25 +131,22 @@ function App() {
   return (
     <div className="app">
       <div className="app-topbar" ref={topbarRef}>
-        <header className="app-header">
-          <button type="button" className="app-header__left" onClick={() => setTab('dashboard')}>
-            <h1 className="app-header__brand">
-              Weekl<span className="app-header__brand-accent">y</span>
-            </h1>
-          </button>
-          <div className="app-header__period-group">
-            <span className="app-header__arrow-slot">
-              {periodLabel?.prevAvailable && <SkipIcon direction="prev" />}
-            </span>
-            <p className="app-header__period">{periodLabel?.label}</p>
-            <span className="app-header__arrow-slot">
-              {periodLabel?.nextAvailable && <SkipIcon direction="next" />}
-            </span>
-          </div>
-        </header>
-
-        <TopNav active={tab} onChange={setTab} />
+        <div className={`app-topbar__inner ${topbarHidden ? 'app-topbar__inner--hidden' : ''}`}>
+          <TopNav active={tab} onChange={setTab} />
+        </div>
       </div>
+
+      {periodLabel && (
+        <div className="app-period-row">
+          <span className="app-header__arrow-slot">
+            {periodLabel?.prevAvailable && <SkipIcon direction="prev" />}
+          </span>
+          <p className="app-header__period">{periodLabel?.label}</p>
+          <span className="app-header__arrow-slot">
+            {periodLabel?.nextAvailable && <SkipIcon direction="next" />}
+          </span>
+        </div>
+      )}
 
       <main className="app-main">
         {tab === 'dashboard' && (
