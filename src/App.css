@@ -66,9 +66,9 @@
   text-overflow: ellipsis;
 }
 
-/* Period label lives on its own, non-sticky row now -- there's no longer a
-   separate header bar to sit inside. Scrolls away with the content instead
-   of staying fixed at the very top. */
+/* Lives inside .app-topbar (sticky), but outside .app-topbar__inner --
+   so it stays visible and pinned to the top even while the nav above it
+   collapses away on scroll-down (see useHideTopbarOnScroll). */
 .app-period-row {
   display: flex;
   align-items: center;

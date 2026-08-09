@@ -12,8 +12,9 @@ import './App.css'
    scroll container. Each view's own segmented tab strip is also sticky,
    and needs to stop right below the topbar rather than underneath it --
    but the topbar's height isn't a fixed number (it grows with
-   env(safe-area-inset-top), which varies by device, and now also
-   collapses to 0 on scroll-down, see useHideTopbarOnScroll below), so
+   env(safe-area-inset-top), which varies by device, and now also shrinks
+   on scroll-down as the nav itself collapses away -- see
+   useHideTopbarOnScroll below -- while the period label stays put), so
    it's measured directly and exposed as --topbar-height for that sticky
    offset to use instead of a guessed constant. */
 function useTopbarHeightVar(topbarRef) {
@@ -134,19 +135,19 @@ function App() {
         <div className={`app-topbar__inner ${topbarHidden ? 'app-topbar__inner--hidden' : ''}`}>
           <TopNav active={tab} onChange={setTab} />
         </div>
-      </div>
 
-      {periodLabel && (
-        <div className="app-period-row">
-          <span className="app-header__arrow-slot">
-            {periodLabel?.prevAvailable && <SkipIcon direction="prev" />}
-          </span>
-          <p className="app-header__period">{periodLabel?.label}</p>
-          <span className="app-header__arrow-slot">
-            {periodLabel?.nextAvailable && <SkipIcon direction="next" />}
-          </span>
-        </div>
-      )}
+        {periodLabel && (
+          <div className="app-period-row">
+            <span className="app-header__arrow-slot">
+              {periodLabel?.prevAvailable && <SkipIcon direction="prev" />}
+            </span>
+            <p className="app-header__period">{periodLabel?.label}</p>
+            <span className="app-header__arrow-slot">
+              {periodLabel?.nextAvailable && <SkipIcon direction="next" />}
+            </span>
+          </div>
+        )}
+      </div>
 
       <main className="app-main">
         {tab === 'dashboard' && (
