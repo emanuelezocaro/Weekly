@@ -74,10 +74,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin: 10px 16px 0;
-  padding: 9px 16px;
-  background: var(--tab-highlight-bg);
-  border-radius: var(--radius);
+  padding: 10px 16px;
 }
 
 .app-main {
