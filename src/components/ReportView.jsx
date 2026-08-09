@@ -154,13 +154,6 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
           </div>
         )}
 
-        <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
-        <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
-        <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
-        <DiaryReportCard diary={diary} days={days} period={period} />
-
-        <hr className="report-divider" />
-
         <ActivityStatsSummary
           activities={activities}
           entries={entries}
@@ -172,6 +165,13 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
           period={period}
           goals={goals}
         />
+
+        <hr className="report-divider" />
+
+        <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
+        <DiaryReportCard diary={diary} days={days} period={period} />
+        <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
+        <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
       </>
     </div>
   )

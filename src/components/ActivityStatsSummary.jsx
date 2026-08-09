@@ -15,6 +15,23 @@ function formatPct(fraction) {
 // depending on whether that period happens to have a delta to show.
 const NBSP = String.fromCharCode(160)
 
+// Fixed reading order for the per-activity list below the donut, chosen by
+// hand rather than sorted by tracked time -- an activity not in this list
+// (renamed, or newly added) just falls back after these, in whatever order
+// activityStats already sorted it (biggest tracked time first).
+const ACTIVITY_ORDER = ['Work', 'Growth', 'Sleep', 'Body', 'Free', 'Put off']
+
+function sortByCustomOrder(stats) {
+  return [...stats].sort((a, b) => {
+    const ia = ACTIVITY_ORDER.indexOf(a.name)
+    const ib = ACTIVITY_ORDER.indexOf(b.name)
+    if (ia === -1 && ib === -1) return 0
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
+}
+
 const PERIOD_PHRASE = {
   week: 'della settimana trascorsa',
   month: 'del mese trascorso',
@@ -158,7 +175,7 @@ export default function ActivityStatsSummary({
       </section>
 
       <ul className="report-list">
-        {stats.map((activity) => {
+        {sortByCustomOrder(stats).map((activity) => {
           const prev = prevStatsById.get(activity.id)
           const delta =
             prev && prev.totalMs > 0
