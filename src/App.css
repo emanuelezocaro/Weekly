@@ -1056,6 +1056,32 @@
   color: var(--text-muted);
 }
 
+.mini-row__dots {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+}
+
+.mini-row__dots > span {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.mini-row__dots > span::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.mini-row__dots > span.is-on::after {
+  background: var(--accent-strong);
+}
+
 /* Y-axis (max value + zero) next to the bar area */
 .trend-chart__row {
   display: flex;

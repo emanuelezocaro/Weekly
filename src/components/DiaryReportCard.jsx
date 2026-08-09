@@ -1,6 +1,14 @@
 import { useState } from 'react'
-import { formatFullDate, toISODate } from '../utils/date'
+import { dayLabel, formatFullDate, groupDaysByWeek, toISODate } from '../utils/date'
 import { copyOrShareText } from '../utils/shareFile'
+
+// Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
+// each weekday for a week, otherwise just the date range (too many days to
+// label individually).
+function axisLegend(days) {
+  if (days.length <= 7) return days.map((d) => dayLabel(d)).join(' · ')
+  return `${String(days[0].getDate())} – ${String(days[days.length - 1].getDate())}`
+}
 
 const COPY_MESSAGES = {
   copied: 'Elenco copiato ✓',
@@ -23,14 +31,47 @@ function buildDiaryListText(grouped) {
   return grouped.map((d) => `${formatFullDate(d.date)}\n${d.text}`).join('\n\n')
 }
 
+// One dot per day (or, for a quarter, one dot per week) -- filled if a note
+// was written, empty if not. Mirrors Alimentazione's day-by-day rows, but a
+// plain on/off dot instead of a rated bar since Diary has no rating, just
+// "did I write something".
+function DotsRow({ isOnByKey }) {
+  return (
+    <div className="mini-row">
+      <span className="mini-row__label" />
+      <div className="mini-row__dots">
+        {isOnByKey.map(({ key, isOn }) => (
+          <span key={key} className={isOn ? 'is-on' : ''} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Day labels aligned under each dot, only meaningful for a week view (7
+// columns) -- mirrors FoodReportCard's WeekAxisRow.
+function WeekAxisRow({ days }) {
+  return (
+    <div className="mini-row">
+      <span className="mini-row__label" />
+      <div className="mini-row__axis">
+        {days.map((d) => (
+          <span key={toISODate(d)}>{dayLabel(d)}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // Unlike the other Report cards, Diary is never tracked as a goal -- this
 // just says whether a note exists per day, with the same "expand for the
 // dated list, then copy" pattern as Uscite, minus the chart.
-export default function DiaryReportCard({ diary, days }) {
+export default function DiaryReportCard({ diary, days, period }) {
   const [expanded, setExpanded] = useState(false)
   const [copyMessage, setCopyMessage] = useState('')
 
   const grouped = diaryByDay(diary, days)
+  const notedIsoSet = new Set(grouped.map((d) => toISODate(d.date)))
 
   async function handleCopyList() {
     const result = await copyOrShareText(buildDiaryListText(grouped), 'diary.txt')
@@ -38,12 +79,32 @@ export default function DiaryReportCard({ diary, days }) {
     if (result !== 'failed') setTimeout(() => setCopyMessage(''), 2500)
   }
 
+  const dotsRow =
+    period === 'quarter' ? (
+      <DotsRow
+        isOnByKey={groupDaysByWeek(days).map((w) => ({
+          key: toISODate(w.weekStart),
+          isOn: w.days.some((d) => notedIsoSet.has(toISODate(d))),
+        }))}
+      />
+    ) : (
+      <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: notedIsoSet.has(toISODate(d)) }))} />
+    )
+
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Diary</h2>
       <p className="trend-chart__caption">
         {grouped.length}/{days.length} giorni con una nota
       </p>
+      {dotsRow}
+      {days.length <= 7 && period !== 'quarter' ? (
+        <WeekAxisRow days={days} />
+      ) : (
+        <p className="trend-chart__caption" style={{ marginTop: 4 }}>
+          {period === 'quarter' ? `${axisLegend(days)} · un pallino per settimana` : axisLegend(days)}
+        </p>
+      )}
       <button
         type="button"
         className="trend-chart__toggle"
