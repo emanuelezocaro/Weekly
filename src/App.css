@@ -414,20 +414,6 @@
   transition: color 0.15s ease;
 }
 
-/* Used where the segmented strip has enough items (5, for the Add section's
-   day tabs) that the default font-size would wrap "Sigarette" onto its own
-   line and throw off the row's height. */
-.segmented--compact {
-  gap: 2px;
-}
-
-.segmented--compact .segmented__item {
-  padding-left: 2px;
-  padding-right: 2px;
-  font-size: 11.5px;
-  white-space: nowrap;
-}
-
 .segmented__item.is-active {
   color: var(--accent-strong);
 }

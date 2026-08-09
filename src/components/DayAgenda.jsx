@@ -26,10 +26,10 @@ import FoodCard from './FoodCard'
 import DiaryCard from './DiaryCard'
 
 const DAY_TABS = [
-  { id: 'calendar', label: 'Attività' },
-  { id: 'outputs', label: 'Uscite' },
-  { id: 'cigarettes', label: 'Sigarette' },
-  { id: 'food', label: 'Cibo' },
+  { id: 'calendar', label: 'Act' },
+  { id: 'outputs', label: 'Exit' },
+  { id: 'cigarettes', label: 'Cig' },
+  { id: 'food', label: 'Food' },
   { id: 'diary', label: 'Diary' },
 ]
 
@@ -491,7 +491,7 @@ export default function DayAgenda({
   return (
     <div className="panel" {...swipeHandlers}>
       <div className="segmented-sticky-wrap">
-        <div className="segmented segmented--compact">
+        <div className="segmented">
           {DAY_TABS.map((t) => (
             <button
               key={t.id}
