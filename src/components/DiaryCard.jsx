@@ -40,6 +40,19 @@ export default function DiaryCard({ text: savedText, onSave, locked }) {
         </>
       )}
       {saved && <p className="backup-card__message">Salvato ✓</p>}
+      <p className="settings-card__hint">
+        - Cosa è partito da me oggi? (l'ho iniziato io, nessuno me l'aveva chiesto)
+        <br />
+        - Cosa ho fatto solo perché è arrivato da fuori? (mail, telefonate, richieste degli altri)
+        <br />
+        - Cosa ho rimandato, e perché?
+        <br />
+        <br />
+        Chiudi sempre con una riga:
+        <br />
+        SCALPELLO DI DOMANI → la cosa che riprende in mano la giornata. Una sola. Poi mettila
+        subito in calendario con lo slot.
+      </p>
     </section>
   )
 }
