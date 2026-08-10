@@ -120,7 +120,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const ctx = { activities, entries, outputs, cigarettes, food, goals }
+    const ctx = { activities, entries, outputs, cigarettes, food, diary, goals }
     const text =
       period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
     const filename =

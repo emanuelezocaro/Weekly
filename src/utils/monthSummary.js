@@ -39,7 +39,7 @@ function goalPeriodLabel(goal) {
 
 // Lines for a single week within the month, one topic per line -- so
 // nothing is summed across weeks.
-function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, food, goals, monthIso }) {
+function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, food, diary, goals, monthIso }) {
   const lines = []
   const rangeStart = weekDays[0]
   const rangeEnd = addDays(weekDays[weekDays.length - 1], 1)
@@ -122,16 +122,29 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
     }
   }
 
+  const diaryRecords = weekDays
+    .map((d) => (diary ?? []).find((entry) => entry.date === toISODate(d) && entry.text.trim()))
+    .filter(Boolean)
+  if (diaryRecords.length > 0) {
+    lines.push(`Diary: ${diaryRecords.length}/${weekDays.length} giorni con una nota`)
+    for (const d of weekDays) {
+      const rec = diaryRecords.find((r) => r.date === toISODate(d))
+      if (!rec) continue
+      lines.push(formatFullDate(d))
+      lines.push(rec.text)
+    }
+  }
+
   return lines
 }
 
 // Same per-week breakdown as one week inside buildMonthSummaryText, but
 // standalone -- for when you want just that one week's summary, not the
 // whole month it falls in.
-export function buildWeekSummaryText(weekStart, { activities, entries, outputs, cigarettes, food, goals }) {
+export function buildWeekSummaryText(weekStart, { activities, entries, outputs, cigarettes, food, diary, goals }) {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const monthIso = toMonthISO(weekDays[weekDays.length - 1])
-  const ctx = { activities, entries, outputs, cigarettes, food, goals, monthIso }
+  const ctx = { activities, entries, outputs, cigarettes, food, diary, goals, monthIso }
   const label = formatDateRange(weekStart, addDays(weekStart, 7))
 
   const lines = [`Riepilogo settimana ${label}`, '']
@@ -141,11 +154,11 @@ export function buildWeekSummaryText(weekStart, { activities, entries, outputs, 
   return lines.join('\n').trimEnd()
 }
 
-export function buildMonthSummaryText(monthDate, { activities, entries, outputs, cigarettes, food, goals }) {
+export function buildMonthSummaryText(monthDate, { activities, entries, outputs, cigarettes, food, diary, goals }) {
   const days = monthDays(monthDate)
   const monthIso = toMonthISO(monthDate)
   const weeks = groupDaysByWeek(days)
-  const ctx = { activities, entries, outputs, cigarettes, food, goals, monthIso }
+  const ctx = { activities, entries, outputs, cigarettes, food, diary, goals, monthIso }
 
   const lines = [`Riepilogo ${formatMonthLabel(monthDate)}`, '']
 
