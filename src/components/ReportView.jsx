@@ -8,9 +8,10 @@ import {
   isFuture,
   startOfMonth,
   startOfWeek,
+  toISODate,
 } from '../utils/date'
 import { useSwipeNav } from '../hooks/useSwipeNav'
-import { buildMonthSummaryText } from '../utils/monthSummary'
+import { buildMonthSummaryText, buildWeekSummaryText } from '../utils/monthSummary'
 import { copyOrShareText } from '../utils/shareFile'
 import ActivityStatsSummary from './ActivityStatsSummary'
 import OutputsWeekCard from './OutputsWeekCard'
@@ -119,8 +120,12 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const text = buildMonthSummaryText(cursor, { activities, entries, outputs, cigarettes, food, goals })
-    const result = await copyOrShareText(text, `riepilogo-${formatMonthLabel(cursor)}.txt`)
+    const ctx = { activities, entries, outputs, cigarettes, food, goals }
+    const text =
+      period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
+    const filename =
+      period === 'week' ? `riepilogo-settimana-${toISODate(startOfWeek(cursor))}.txt` : `riepilogo-${formatMonthLabel(cursor)}.txt`
+    const result = await copyOrShareText(text, filename)
     setSummaryMessage(SUMMARY_MESSAGES[result] ?? '')
     if (result !== 'failed') setTimeout(() => setSummaryMessage(''), 2500)
   }
@@ -143,11 +148,12 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
       </div>
 
       <>
-        {period === 'month' && startOfMonth(cursor) < startOfMonth(new Date()) && (
+        {((period === 'month' && startOfMonth(cursor) < startOfMonth(new Date())) ||
+          (period === 'week' && startOfWeek(cursor) < startOfWeek(new Date()))) && (
           <div className="month-summary">
             <div className="backup-card__actions">
               <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
-                Copia riepilogo del mese
+                {period === 'week' ? 'Copia riepilogo della settimana' : 'Copia riepilogo del mese'}
               </button>
             </div>
             {summaryMessage && <p className="backup-card__message">{summaryMessage}</p>}

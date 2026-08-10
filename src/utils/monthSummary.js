@@ -125,6 +125,22 @@ function weekSummaryLines(weekDays, { activities, entries, outputs, cigarettes, 
   return lines
 }
 
+// Same per-week breakdown as one week inside buildMonthSummaryText, but
+// standalone -- for when you want just that one week's summary, not the
+// whole month it falls in.
+export function buildWeekSummaryText(weekStart, { activities, entries, outputs, cigarettes, food, goals }) {
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+  const monthIso = toMonthISO(weekDays[weekDays.length - 1])
+  const ctx = { activities, entries, outputs, cigarettes, food, goals, monthIso }
+  const label = formatDateRange(weekStart, addDays(weekStart, 7))
+
+  const lines = [`Riepilogo settimana ${label}`, '']
+  const weekLines = weekSummaryLines(weekDays, ctx)
+  lines.push(...(weekLines.length > 0 ? weekLines : ['Nessun dato']))
+
+  return lines.join('\n').trimEnd()
+}
+
 export function buildMonthSummaryText(monthDate, { activities, entries, outputs, cigarettes, food, goals }) {
   const days = monthDays(monthDate)
   const monthIso = toMonthISO(monthDate)
