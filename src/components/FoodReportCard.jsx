@@ -1,6 +1,5 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
-import TrendChartYAxis from './TrendChartYAxis'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
@@ -138,9 +137,9 @@ function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
 const POINT_VALUE = { bad: 0, mid: 1, good: 2 }
 const GAUGE_MAX = 12
 const GAUGE_ZONES = [
-  { key: 'bad', label: 'Male', upTo: 4 },
-  { key: 'mid', label: 'Medio', upTo: 9 },
-  { key: 'good', label: 'Buono', upTo: GAUGE_MAX },
+  { key: 'bad', label: 'Da migliorare', upTo: 4 },
+  { key: 'mid', label: 'Nella media', upTo: 9 },
+  { key: 'good', label: 'Ottimo', upTo: GAUGE_MAX },
 ]
 
 function dayPoints(record) {
@@ -175,9 +174,7 @@ function averageDayPoints(records) {
 }
 
 // Male fino a 1/3 della scala, buono da 3/4 in su, medio la fascia in mezzo
-// -- stessi confini proporzionali del gauge (4 e 9 su una scala 0-12),
-// riscalati su `max` cosi la stessa funzione serve sia per un punteggio
-// giornaliero (0-12) sia per la media di una singola categoria (0-2).
+// -- stessi confini proporzionali del gauge (4 e 9 su una scala 0-12).
 function clusterFor(value, max = GAUGE_MAX) {
   if (value <= max * (4 / 12)) return GAUGE_ZONES[0]
   if (value < max * (9 / 12)) return GAUGE_ZONES[1]
@@ -269,8 +266,13 @@ function FoodDailyChart({ days, records }) {
 }
 
 // Sempre visibile (non solo in settimana): non "quando", ma "quale delle 6
-// cose" -- una barra per categoria con la sua media in % (0-2 punti diventa
-// 0-100%), stesso sistema a punti e stessi colori per fascia del gauge.
+// cose" -- una barra impilata per categoria con le stesse proporzioni
+// buono/medio/male della sezione qui sopra (stessi colori, stesso stile a
+// segmenti), cosi le due sezioni si leggono allo stesso modo invece di
+// mescolare uno stile a punti con uno a proporzioni. Le proporzioni contano
+// solo i giorni in cui quella categoria è stata segnata: un giorno mai
+// segnato (es. prima di aver iniziato a tracciare) non entra né al
+// numeratore né al denominatore, non abbassa la fetta di nessun colore.
 const CATEGORY_FIELDS = [
   { key: 'colazione', label: 'Colazione' },
   { key: 'pranzo', label: 'Pranzo' },
@@ -279,53 +281,54 @@ const CATEGORY_FIELDS = [
   { key: 'dolci', label: 'Dolci' },
   { key: 'extra', label: 'Extra' },
 ]
-const CATEGORY_MAX = 2
 
-function categoryPoints(record, key) {
-  if (!record) return null
-  if (key === 'extra') {
-    if (!record.extra) return null
-    return record.extra === 'no' ? 2 : 0
-  }
-  const v = record[key]
-  return v ? POINT_VALUE[v] : null
-}
-
-function averageCategoryPoints(records, key) {
-  let total = 0
-  let n = 0
+function categoryCounts(records, key) {
+  const counts = { good: 0, mid: 0, bad: 0 }
   for (const r of records) {
-    const p = categoryPoints(r, key)
-    if (p === null) continue
-    total += p
-    n += 1
+    if (!r) continue
+    if (key === 'extra') {
+      if (!r.extra) continue
+      counts[r.extra === 'no' ? 'good' : 'bad'] += 1
+    } else if (r[key]) {
+      counts[r[key]] += 1
+    }
   }
-  return n > 0 ? total / n : null
+  return counts
 }
 
 function FoodCategoryChart({ records }) {
   return (
-    <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={100} formatValue={(v) => `${v}%`} />
-      <div className="trend-chart__bars-wrap">
-        <div className="trend-chart__bars">
-          {CATEGORY_FIELDS.map((f) => {
-            const avg = averageCategoryPoints(records, f.key)
-            const pct = avg === null ? 0 : (avg / CATEGORY_MAX) * 100
-            const heightPct = avg === null ? 2 : Math.max(2, pct)
-            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, CATEGORY_MAX).key]
-            return (
-              <div key={f.key} className="trend-chart__col">
-                <span className="trend-chart__bar-track">
-                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
-                </span>
-                <span className="trend-chart__label">{f.label}</span>
-              </div>
-            )
-          })}
+    <>
+      <ClusterLegend />
+      <div className="trend-chart__row">
+        <div className="trend-chart__bars-wrap">
+          <div className="trend-chart__bars">
+            {CATEGORY_FIELDS.map((f) => {
+              const counts = categoryCounts(records, f.key)
+              const total = counts.good + counts.mid + counts.bad
+              return (
+                <div key={f.key} className="trend-chart__col">
+                  <span className="trend-chart__bar-track">
+                    {total === 0 ? (
+                      <span className="trend-chart__stack">
+                        <span style={{ height: '100%', background: 'var(--border)' }} />
+                      </span>
+                    ) : (
+                      <span className="trend-chart__stack">
+                        <span style={{ height: `${(counts.good / total) * 100}%`, background: RATING_COLOR.good }} />
+                        <span style={{ height: `${(counts.mid / total) * 100}%`, background: RATING_COLOR.mid }} />
+                        <span style={{ height: `${(counts.bad / total) * 100}%`, background: RATING_COLOR.bad }} />
+                      </span>
+                    )}
+                  </span>
+                  <span className="trend-chart__label">{f.label}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -455,7 +458,6 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
         <h2 className="settings-card__title">Alimentazione</h2>
         <FoodGauge value={gaugeValue} />
         <hr className="report-divider" />
-        <h3 className="food-section-title">Obiettivi</h3>
         <RatingMiniRowGrouped label="Colazione" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
         <RatingMiniRowGrouped label="Pranzo" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
         <RatingMiniRowGrouped label="Cena" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
@@ -470,7 +472,7 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
             ))}
           </div>
         </div>
-        <h3 className="food-section-title">Statistiche</h3>
+        <hr className="report-divider" />
         <FoodCategoryChart records={records} />
       </section>
     )
@@ -482,7 +484,6 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
       <FoodGauge value={gaugeValue} />
       {period === 'week' && <FoodDailyChart days={days} records={records} />}
       <hr className="report-divider" />
-      <h3 className="food-section-title">Obiettivi</h3>
       <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
       <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
       <RatingMiniRow label="Cena" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
@@ -496,7 +497,7 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
           {axisLegend(days)}
         </p>
       )}
-      <h3 className="food-section-title">Statistiche</h3>
+      <hr className="report-divider" />
       <FoodCategoryChart records={records} />
     </section>
   )

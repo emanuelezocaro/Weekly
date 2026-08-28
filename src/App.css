@@ -957,6 +957,16 @@
   background: var(--series-1);
 }
 
+.trend-chart__stack {
+  width: 100%;
+  max-width: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
 .mini-row {
   display: flex;
   align-items: center;
@@ -1876,15 +1886,6 @@
 
 .gauge-scale span:last-child {
   transform: translateX(-100%);
-}
-
-.food-section-title {
-  margin: 2px 0 0;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .rating-legend {
