@@ -219,22 +219,11 @@ function FoodGauge({ value }) {
 // Solo per la settimana: una barra per giorno con il punteggio 0-12 di quel
 // giorno (non una media), colorata in base alla fascia in cui cade, cosi si
 // vede subito quale giorno ha tirato su o giù la media mostrata nel gauge
-// qui sopra. Le due righe tratteggiate segnano gli stessi confini del gauge.
-function FoodDailyYAxis() {
-  return (
-    <div className="food-daily-yaxis">
-      <span style={{ top: '0%' }}>{GAUGE_MAX}</span>
-      <span style={{ top: `${(1 - GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100}%` }}>{GAUGE_ZONES[1].upTo}</span>
-      <span style={{ top: `${(1 - GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100}%` }}>{GAUGE_ZONES[0].upTo}</span>
-      <span style={{ top: '100%' }}>0</span>
-    </div>
-  )
-}
-
+// qui sopra. Le due righe tratteggiate segnano gli stessi confini del gauge
+// (senza numeri sull'asse: il gauge sopra li mostra già).
 function FoodDailyChart({ days, records }) {
   return (
     <div className="trend-chart__row">
-      <FoodDailyYAxis />
       <div className="trend-chart__bars-wrap">
         <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100}%` }} />
         <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100}%` }} />
