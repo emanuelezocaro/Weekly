@@ -227,8 +227,12 @@ function PointZoneBackground() {
       <div className="goal-zone goal-zone--bad" style={{ bottom: 0, top: `${100 - BAD_BOUNDARY_PCT}%` }} />
       <div className="goal-zone goal-zone--mid" style={{ bottom: `${BAD_BOUNDARY_PCT}%`, top: `${100 - MID_BOUNDARY_PCT}%` }} />
       <div className="goal-zone goal-zone--good" style={{ bottom: `${MID_BOUNDARY_PCT}%`, top: 0 }} />
-      <div className="goal-line" style={{ bottom: `${MID_BOUNDARY_PCT}%` }} />
-      <div className="goal-line" style={{ bottom: `${BAD_BOUNDARY_PCT}%` }} />
+      <div className="goal-line" style={{ bottom: `${MID_BOUNDARY_PCT}%` }}>
+        <span className="goal-line__tag">Buono</span>
+      </div>
+      <div className="goal-line" style={{ bottom: `${BAD_BOUNDARY_PCT}%` }}>
+        <span className="goal-line__tag">Medio</span>
+      </div>
     </>
   )
 }
