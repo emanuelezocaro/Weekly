@@ -100,13 +100,18 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
   )
 }
 
-// Anno: un pallino per giorno (o uno per settimana) direbbe poco -- "almeno
-// un giorno su 7" è quasi sempre vero. E un conteggio grezzo per mese (0-31)
-// si è rivelato scomodo da leggere contro un obiettivo espresso a
-// settimana/giorno. Torna quindi alla stessa scala usata per Sonno/
-// Sigarette/Uscite: la media al giorno -- qui una % (quanti giorni su
-// quanti possibili), con l'obiettivo nella stessa unità (barGranularity
-// "day", come le altre card), non convertito su un mese medio.
+// Un'attività checklist ha un obiettivo numerico ("5 volte a settimana"),
+// non percentuale -- quindi anche il grafico deve restare un numero nella
+// stessa unità, non una %. Ogni barra è la media giornaliera del mese
+// (giorni fatti / giorni passati, cosi un mese ancora in corso non viene
+// diluito dai giorni futuri) convertita in "volte a settimana equivalenti",
+// e l'obiettivo è mostrato/disegnato nella stessa identica unità -- sempre a
+// settimana, indipendentemente dal periodo scelto per l'obiettivo (giorno o
+// settimana), cosi barre e linea si leggono sempre allo stesso modo.
+function formatWeeklyRate(v) {
+  return Number.isInteger(v) ? String(v) : v.toFixed(1)
+}
+
 function YearBars({ activity, days, doneSet, goals, color }) {
   const bars = groupDaysByMonth(days).map((m) => {
     const doneInMonth = m.days.filter((d) => doneSet.has(toISODate(d))).length
@@ -114,33 +119,31 @@ function YearBars({ activity, days, doneSet, goals, color }) {
     return {
       key: toMonthISO(m.monthStart),
       label: formatMonthShort(toMonthISO(m.monthStart)),
-      value: doneInMonth / elapsedDays,
+      value: (doneInMonth / elapsedDays) * 7,
     }
   })
+  const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
-  // Il tag va comunque riportato nella stessa unità della scala (%) --
-  // altrimenti torna il problema di prima ("5" vicino a una scala 0-100%
-  // non si capisce da solo).
   const goalForTag = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
-  const dayTarget = goalForTag ? goalPerBar(goalForTag, 'day') : null
-  const tagLabel = dayTarget !== null ? `Obiettivo ${Math.round(dayTarget * 100)}%` : undefined
+  const weekTarget = goalForTag ? goalPerBar(goalForTag, 'week') : null
+  const tagLabel = weekTarget !== null ? `Obiettivo ${formatWeeklyRate(weekTarget)}/sett` : undefined
 
   return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={1} formatValue={(v) => `${Math.round(v * 100)}%`} />
+      <TrendChartYAxis maxValue={maxValue} formatValue={formatWeeklyRate} />
       <div className="trend-chart__bars-wrap">
         <GoalLine
           goals={goals}
           itemKey={activity.id}
           monthIso={toMonthISO(days[days.length - 1])}
-          barGranularity="day"
-          maxValue={1}
+          barGranularity="week"
+          maxValue={maxValue}
           formatValue={(v) => String(v)}
           tagLabel={tagLabel}
         />
         <div className="trend-chart__bars">
           {bars.map((b) => {
-            const heightPct = Math.max(2, b.value * 100)
+            const heightPct = Math.max(2, (b.value / maxValue) * 100)
             return (
               <div key={b.key} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
