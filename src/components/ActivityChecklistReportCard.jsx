@@ -1,5 +1,5 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth, goalTargetForDays } from '../utils/goals'
+import { goalForMonth, goalPerBar, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
 import GoalLine from './GoalLine'
@@ -118,6 +118,14 @@ function YearBars({ activity, days, doneSet, goals, color }) {
   })
   const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
+  // The goal itself is set per giorno/settimana, but these bars are a raw
+  // count on a 0-31 scale -- showing "Obiettivo 5/sett" next to that scale
+  // reads as unrelated to what the eye sees. Converting it to the bar's own
+  // unit ("Obiettivo 22/mese") keeps the tag legible against the axis it's
+  // actually drawn on.
+  const goalForTag = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
+  const monthTarget = goalForTag ? Math.round(goalPerBar(goalForTag, 'month')) : null
+
   return (
     <div className="trend-chart__row">
       <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
@@ -129,6 +137,7 @@ function YearBars({ activity, days, doneSet, goals, color }) {
           barGranularity="month"
           maxValue={maxValue}
           formatValue={(v) => String(v)}
+          tagLabel={monthTarget !== null ? `Obiettivo ${monthTarget}/mese` : undefined}
         />
         <div className="trend-chart__bars">
           {bars.map((b) => {
