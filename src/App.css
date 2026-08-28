@@ -1214,6 +1214,13 @@
   border-radius: 4px 0 0 4px;
 }
 
+.food-hbars__gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border);
+}
+
 .food-hbars__vline {
   position: absolute;
   top: 0;

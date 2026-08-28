@@ -287,6 +287,7 @@ const CATEGORY_MAX = 2
 // cosi il numero in cima coincide con quello di cui parliamo di solito
 // (7 colazioni x 2 punti = 14) anche se qui è una media, non una somma.
 const CATEGORY_WEEK_MAX = 14
+const CATEGORY_TICKS = [0, 2, 4, 6, 8, 10, 12, 14]
 
 function categoryAverage(records, key) {
   let total = 0
@@ -315,6 +316,9 @@ function FoodCategoryChart({ records }) {
       </div>
       <div className="food-hbars__col">
         <div className="food-hbars__rows">
+          {CATEGORY_TICKS.map((t) => (
+            <div key={t} className="food-hbars__gridline" style={{ left: `${(t / CATEGORY_WEEK_MAX) * 100}%` }} />
+          ))}
           <div className="food-hbars__vline" style={{ left: `${BAD_BOUNDARY_PCT}%` }}>
             <span className="food-hbars__vline-tag">Medio</span>
           </div>
@@ -333,8 +337,9 @@ function FoodCategoryChart({ records }) {
           })}
         </div>
         <div className="food-hbars__axis">
-          <span>0</span>
-          <span>{CATEGORY_WEEK_MAX}</span>
+          {CATEGORY_TICKS.map((t) => (
+            <span key={t}>{t}</span>
+          ))}
         </div>
       </div>
     </div>
