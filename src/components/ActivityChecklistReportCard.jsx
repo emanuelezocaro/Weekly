@@ -1,6 +1,7 @@
 import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
+import { colorVar } from '../utils/palette'
 import GoalTrendIndicator from './GoalTrendIndicator'
 
 // A regular space collapses to zero height when it's a block element's only
@@ -20,16 +21,18 @@ function doneSetFor(checklist, activityId) {
   return new Set(checklist.filter((c) => c.activityId === activityId).map((c) => c.date))
 }
 
-// One dot per day (or, for a quarter, one dot per week) -- filled if done,
-// empty if not. Same scaffolding as DiaryReportCard's DotsRow.
-function DotsRow({ isOnByKey }) {
+// One dot per day (or, for a quarter, one dot per week) -- filled (in the
+// activity's own color) if done, empty if not. Same scaffolding as
+// DiaryReportCard's DotsRow. The color is set as a CSS variable on the span
+// rather than a direct style, since the dot itself is drawn by ::after.
+function DotsRow({ isOnByKey, color }) {
   return (
     <div className="trend-chart__row">
       <div className="mini-row__gutter" />
       <div className="trend-chart__bars-wrap">
         <div className="mini-row__dots">
           {isOnByKey.map(({ key, isOn }) => (
-            <span key={key} className={isOn ? 'is-on' : ''} />
+            <span key={key} className={isOn ? 'is-on' : ''} style={{ '--dot-color': color }} />
           ))}
         </div>
       </div>
@@ -58,6 +61,7 @@ function WeekAxisRow({ days }) {
 export default function ActivityChecklistReportCard({ activity, checklist, days, prevDays, period, goals }) {
   const doneSet = doneSetFor(checklist, activity.id)
   const doneCount = days.filter((d) => doneSet.has(toISODate(d))).length
+  const color = colorVar(activity.colorSlot)
 
   const goal = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
@@ -73,9 +77,13 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
           key: toISODate(w.weekStart),
           isOn: w.days.some((d) => doneSet.has(toISODate(d))),
         }))}
+        color={color}
       />
     ) : (
-      <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: doneSet.has(toISODate(d)) }))} />
+      <DotsRow
+        isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: doneSet.has(toISODate(d)) }))}
+        color={color}
+      />
     )
 
   return (

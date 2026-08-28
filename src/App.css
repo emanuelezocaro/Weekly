@@ -1053,7 +1053,10 @@
 }
 
 .mini-row__dots > span.is-on::after {
-  background: var(--accent-strong);
+  /* Diary's dots have no per-activity color to fall back to (--dot-color
+     isn't set there), so they keep the fixed accent; ActivityChecklist
+     ReportCard sets --dot-color to the activity's own chosen color. */
+  background: var(--dot-color, var(--accent-strong));
 }
 
 /* Stand-in for .trend-chart__yaxis's reserved width (Diary's dots have no

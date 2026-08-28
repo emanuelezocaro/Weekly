@@ -1,6 +1,7 @@
 import { dayLabel, formatDuration, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays, minutesToHours } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
+import { colorVar } from '../utils/palette'
 import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
@@ -98,7 +99,10 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
               return (
                 <div key={b.key} className="trend-chart__col">
                   <span className="trend-chart__bar-track">
-                    <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%` }} />
+                    <span
+                      className="cigarettes-chart__bar"
+                      style={{ height: `${heightPct}%`, background: colorVar(activity.colorSlot) }}
+                    />
                   </span>
                   <span className="trend-chart__label">{b.label}</span>
                 </div>
