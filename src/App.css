@@ -1155,6 +1155,97 @@
   white-space: nowrap;
 }
 
+/* Alimentazione: grafico per categoria a barre orizzontali (una riga per
+   categoria) invece che a colonne, con le due colonne label/traccia
+   allineate come nel resto della card. */
+.food-hbars {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.food-hbars__labels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 74px;
+}
+
+.food-hbars__labels span {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.food-hbars__col {
+  flex: 1;
+  min-width: 0;
+}
+
+.food-hbars__rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.food-hbars__track {
+  position: relative;
+  height: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--series-6) 14%, var(--surface-2)) 0 33.333%,
+    color-mix(in srgb, var(--series-3) 14%, var(--surface-2)) 33.333% 75%,
+    color-mix(in srgb, var(--series-2) 14%, var(--surface-2)) 75% 100%
+  );
+}
+
+.food-hbars__fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.food-hbars__vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 2px dashed var(--text);
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.food-hbars__vline-tag {
+  position: absolute;
+  top: -18px;
+  left: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface);
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.food-hbars__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* Goals settings card */
 .goal-row {
   display: flex;

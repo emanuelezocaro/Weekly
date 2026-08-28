@@ -269,11 +269,11 @@ function FoodDailyChart({ days, records }) {
 }
 
 // Sempre visibile (non solo in settimana): non "quando", ma "quale delle 6
-// cose" -- una barra per categoria, dello stesso colore a fascia e sullo
-// stesso sfondo a 3 zone del grafico giornaliero qui sopra, cosi i due
-// grafici si leggono allo stesso modo. La media conta solo i giorni in cui
-// quella categoria è stata segnata: un giorno mai segnato (es. prima di
-// aver iniziato a tracciare) non entra nel calcolo, non abbassa la media.
+// cose" -- a differenza del grafico giornaliero qui sopra (colonne verticali
+// nel tempo), qui le 6 categorie sono un elenco verticale e ogni barra è
+// orizzontale, colorata in base alla propria fascia. La media conta solo i
+// giorni in cui quella categoria è stata segnata: un giorno mai segnato
+// (es. prima di aver iniziato a tracciare) non entra nel calcolo.
 const CATEGORY_FIELDS = [
   { key: 'colazione', label: 'Colazione' },
   { key: 'pranzo', label: 'Pranzo' },
@@ -307,24 +307,34 @@ function categoryAverage(records, key) {
 
 function FoodCategoryChart({ records }) {
   return (
-    <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={CATEGORY_WEEK_MAX} formatValue={(v) => `${v}`} />
-      <div className="trend-chart__bars-wrap">
-        <PointZoneBackground />
-        <div className="trend-chart__bars">
+    <div className="food-hbars">
+      <div className="food-hbars__labels">
+        {CATEGORY_FIELDS.map((f) => (
+          <span key={f.key}>{f.label}</span>
+        ))}
+      </div>
+      <div className="food-hbars__col">
+        <div className="food-hbars__rows">
+          <div className="food-hbars__vline" style={{ left: `${BAD_BOUNDARY_PCT}%` }}>
+            <span className="food-hbars__vline-tag">Medio</span>
+          </div>
+          <div className="food-hbars__vline" style={{ left: `${MID_BOUNDARY_PCT}%` }}>
+            <span className="food-hbars__vline-tag">Buono</span>
+          </div>
           {CATEGORY_FIELDS.map((f) => {
             const avg = categoryAverage(records, f.key)
-            const heightPct = avg === null ? 2 : Math.max(2, (avg / CATEGORY_MAX) * 100)
+            const widthPct = avg === null ? 0 : Math.max(2, (avg / CATEGORY_MAX) * 100)
             const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, CATEGORY_MAX).key]
             return (
-              <div key={f.key} className="trend-chart__col">
-                <span className="trend-chart__bar-track">
-                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
-                </span>
-                <span className="trend-chart__label">{f.label}</span>
-              </div>
+              <span key={f.key} className="food-hbars__track">
+                <span className="food-hbars__fill" style={{ width: `${widthPct}%`, background: color }} />
+              </span>
             )
           })}
+        </div>
+        <div className="food-hbars__axis">
+          <span>0</span>
+          <span>{CATEGORY_WEEK_MAX}</span>
         </div>
       </div>
     </div>
