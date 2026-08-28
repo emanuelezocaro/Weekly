@@ -1,4 +1,4 @@
-import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import GoalLine from './GoalLine'
@@ -57,16 +57,19 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
   // mostrando la media giornaliera (non il totale del mese, che farebbe
   // sembrare un mese più lungo "peggiore" solo perché ha più giorni), cosi
   // il confronto con l'obiettivo resta lo stesso conto per-giorno usato
-  // nelle viste settimana/mese (vedi barGranularity più sotto).
+  // nelle viste settimana/mese (vedi barGranularity più sotto). La media è
+  // sui giorni con un record (anche uno 0 esplicito conta), non su tutti i
+  // giorni del mese -- stessa definizione di "tracked" della media qui sopra.
   const bars =
     period === 'year'
       ? groupDaysByMonth(days).map((m) => {
-          const monthTotal = countsForDays(cigarettes, m.days).reduce((sum, c) => sum + (c.count || 0), 0)
-          const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
+          const monthCounts = countsForDays(cigarettes, m.days)
+          const monthTotal = monthCounts.reduce((sum, c) => sum + (c.count || 0), 0)
+          const monthTracked = monthCounts.filter((c) => c.count !== null).length
           return {
             key: toMonthISO(m.monthStart),
             label: formatMonthShort(toMonthISO(m.monthStart)),
-            value: monthTotal / elapsedDays,
+            value: monthTracked > 0 ? monthTotal / monthTracked : 0,
           }
         })
       : counts.map((c, i) => ({

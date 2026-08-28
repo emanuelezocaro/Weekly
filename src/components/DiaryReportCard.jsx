@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { dayLabel, formatFullDate, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { copyOrShareText } from '../utils/shareFile'
+import TrendChartYAxis from './TrendChartYAxis'
 
 // Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
 // each weekday for a week, otherwise just the date range (too many days to
@@ -70,17 +71,35 @@ function WeekAxisRow({ days }) {
   )
 }
 
-// Same idea for a year view (12 dots): month labels underneath instead of
-// weekday letters.
-function MonthAxisRow({ months }) {
+// Anno: un pallino per mese (acceso se c'è almeno una nota quel mese)
+// direbbe poco -- scrivere anche solo ogni tanto lo terrebbe quasi sempre
+// acceso, stesso problema già visto per Lavoro. Al posto del sì/no, il
+// numero grezzo di giorni con una nota quel mese: niente obiettivo da
+// disegnare (Diary non ne ha mai avuti), solo un conteggio.
+function MonthBars({ months, notedIsoSet }) {
+  const bars = months.map((m) => ({
+    key: toMonthISO(m.monthStart),
+    label: formatMonthShort(toMonthISO(m.monthStart)),
+    value: m.days.filter((d) => notedIsoSet.has(toISODate(d))).length,
+  }))
+  const maxValue = Math.max(1, ...bars.map((b) => b.value))
+
   return (
     <div className="trend-chart__row">
-      <div className="mini-row__gutter" />
+      <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
       <div className="trend-chart__bars-wrap">
-        <div className="mini-row__axis">
-          {months.map((m) => (
-            <span key={toMonthISO(m.monthStart)}>{formatMonthShort(toMonthISO(m.monthStart))}</span>
-          ))}
+        <div className="trend-chart__bars">
+          {bars.map((b) => {
+            const heightPct = Math.max(2, (b.value / maxValue) * 100)
+            return (
+              <div key={b.key} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  <span className="outputs-chart__bar" style={{ height: `${heightPct}%` }} />
+                </span>
+                <span className="trend-chart__label">{b.label}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -105,32 +124,25 @@ export default function DiaryReportCard({ diary, days, period }) {
 
   const months = period === 'year' ? groupDaysByMonth(days) : null
 
-  const dotsRow = months ? (
-    <DotsRow
-      isOnByKey={months.map((m) => ({
-        key: toMonthISO(m.monthStart),
-        isOn: m.days.some((d) => notedIsoSet.has(toISODate(d))),
-      }))}
-    />
-  ) : (
-    <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: notedIsoSet.has(toISODate(d)) }))} />
-  )
-
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Diary</h2>
       <p className="trend-chart__caption">
         {grouped.length}/{days.length} giorni con una nota
       </p>
-      {dotsRow}
       {months ? (
-        <MonthAxisRow months={months} />
-      ) : days.length <= 7 ? (
-        <WeekAxisRow days={days} />
+        <MonthBars months={months} notedIsoSet={notedIsoSet} />
       ) : (
-        <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-          {axisLegend(days)}
-        </p>
+        <>
+          <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: notedIsoSet.has(toISODate(d)) }))} />
+          {days.length <= 7 ? (
+            <WeekAxisRow days={days} />
+          ) : (
+            <p className="trend-chart__caption" style={{ marginTop: 4 }}>
+              {axisLegend(days)}
+            </p>
+          )}
+        </>
       )}
       <button
         type="button"

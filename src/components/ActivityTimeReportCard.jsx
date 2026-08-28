@@ -1,12 +1,4 @@
-import {
-  dayLabel,
-  formatDuration,
-  formatMonthShort,
-  groupDaysByMonth,
-  isFuture,
-  toISODate,
-  toMonthISO,
-} from '../utils/date'
+import { dayLabel, formatDuration, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays, minutesToHours } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
@@ -52,15 +44,21 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
   // sembrare agosto "più attivo" di febbraio solo perché ha più giorni),
   // cosi il confronto con l'obiettivo resta lo stesso conto per-giorno
   // usato nelle viste settimana/mese (vedi barGranularity più sotto).
+  // La media è sui giorni EFFETTIVAMENTE registrati quel mese, non su
+  // tutti i giorni del mese -- un giorno non loggato non vuol dire "0 ore",
+  // vuol dire solo che non l'hai segnato, stessa logica della media in
+  // cima alla card qui sopra. Dividere per tutti i giorni rimetterebbe la
+  // pressione a tracciare ogni giorno che il redesign voleva togliere.
   const bars =
     period === 'year'
       ? groupDaysByMonth(days).map((m) => {
-          const monthTotal = minutesForDays(durations, activity.id, m.days).reduce((sum, d) => sum + d.minutes, 0)
-          const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
+          const monthDurations = minutesForDays(durations, activity.id, m.days)
+          const monthTotal = monthDurations.reduce((sum, d) => sum + d.minutes, 0)
+          const monthTrackedDays = monthDurations.filter((d) => d.minutes > 0).length
           return {
             key: toMonthISO(m.monthStart),
             label: formatMonthShort(toMonthISO(m.monthStart)),
-            value: monthTotal / elapsedDays,
+            value: monthTrackedDays > 0 ? monthTotal / monthTrackedDays : 0,
           }
         })
       : perDay.map((d, i) => ({
