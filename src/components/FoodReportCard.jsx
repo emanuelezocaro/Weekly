@@ -1,6 +1,7 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
+import TrendChartYAxis from './TrendChartYAxis'
 
 // A regular space collapses to zero height when it's a block element's only
 // content -- this reserves the delta row's height even with nothing to say,
@@ -169,6 +170,67 @@ function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
   )
 }
 
+// Sparse x-axis labels: every day for a week, every ~5th (plus first/last)
+// for a month -- mirrors CigarettesReportCard's axis logic.
+function shouldLabel(index, total) {
+  if (total <= 7) return true
+  if (index === 0 || index === total - 1) return true
+  return index % 5 === 0
+}
+
+function RatingLegend() {
+  return (
+    <div className="rating-legend">
+      {['good', 'mid', 'bad'].map((k) => (
+        <span key={k} className="rating-legend__item">
+          <span className="rating-legend__swatch" style={{ background: RATING_COLOR[k] }} />
+          {RATING_LABELS[k]}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// "Come sto andando" a colpo d'occhio: un grafico solo, non 6 righe da
+// decifrare -- una barra per giorno (o per mese, in Anno) con la quota di
+// pasti buoni/medi/male impilata, cosi il trend si vede a occhio (più verde
+// = meglio) invece di dover leggere numeri.
+function MealTrendChart({ bars }) {
+  return (
+    <>
+      <RatingLegend />
+      <div className="trend-chart__row">
+        <TrendChartYAxis maxValue={1} formatValue={(v) => `${Math.round(v * 100)}%`} />
+        <div className="trend-chart__bars-wrap">
+          <div className="trend-chart__bars">
+            {bars.map((b) => {
+              const total = b.good + b.mid + b.bad
+              return (
+                <div key={b.key} className="trend-chart__col">
+                  <span className="trend-chart__bar-track">
+                    <div className="mini-row__stack">
+                      {total === 0 ? (
+                        <span style={{ height: '100%', background: 'var(--border)' }} />
+                      ) : (
+                        <>
+                          <span style={{ height: `${(b.good / total) * 100}%`, background: RATING_COLOR.good }} />
+                          <span style={{ height: `${(b.mid / total) * 100}%`, background: RATING_COLOR.mid }} />
+                          <span style={{ height: `${(b.bad / total) * 100}%`, background: RATING_COLOR.bad }} />
+                        </>
+                      )}
+                    </div>
+                  </span>
+                  <span className="trend-chart__label">{b.label}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Day labels aligned under each bar column, instead of a single centered
 // string that drifts out of sync with the columns above it.
 function WeekAxisRow({ days }) {
@@ -334,11 +396,23 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
       }
       return { yes, total }
     })
+    const mealBars = months.map((m) => {
+      const counts = { good: 0, mid: 0, bad: 0 }
+      for (const d of m.days) {
+        const rec = food.find((f) => f.date === toISODate(d))
+        if (!rec) continue
+        for (const field of ['colazione', 'pranzo', 'cena']) {
+          if (rec[field]) counts[rec[field]] += 1
+        }
+      }
+      return { key: toMonthISO(m.monthStart), label: formatMonthShort(toMonthISO(m.monthStart)), ...counts }
+    })
 
     return (
       <section className="settings-card">
         <h2 className="settings-card__title">Alimentazione</h2>
         {caption}
+        <MealTrendChart bars={mealBars} />
         <RatingMiniRowGrouped label="Colazione" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
         <RatingMiniRowGrouped label="Pranzo" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
         <RatingMiniRowGrouped label="Cena" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
@@ -357,10 +431,26 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
     )
   }
 
+  const mealBars = days.map((d, i) => {
+    const r = records[i]
+    const counts = { good: 0, mid: 0, bad: 0 }
+    if (r) {
+      for (const field of ['colazione', 'pranzo', 'cena']) {
+        if (r[field]) counts[r[field]] += 1
+      }
+    }
+    return {
+      key: toISODate(d),
+      label: shouldLabel(i, days.length) ? (days.length <= 7 ? dayLabel(d) : String(d.getDate())) : '',
+      ...counts,
+    }
+  })
+
   return (
     <section className="settings-card">
       <h2 className="settings-card__title">Alimentazione</h2>
       {caption}
+      <MealTrendChart bars={mealBars} />
       <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
       <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
       <RatingMiniRow label="Cena" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
