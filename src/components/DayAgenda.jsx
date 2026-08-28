@@ -29,8 +29,6 @@ function isDayLocked(isToday, complete, cursor, now) {
   return !isToday && complete && now - endOfDay(cursor) >= LOCK_AFTER_MS
 }
 
-const QUICK_DURATIONS_MIN = [15, 30, 60, 120, 240]
-
 function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
   const [hours, setHours] = useState('')
   const [minutes, setMinutes] = useState('')
@@ -52,13 +50,6 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
         {totalMinutes > 0 && (
           <span className="day-activity-row__total">{formatDuration(totalMinutes * 60000)}</span>
         )}
-      </div>
-      <div className="chip-row">
-        {QUICK_DURATIONS_MIN.map((m) => (
-          <button key={m} type="button" className="chip" onClick={() => onAdd(m)}>
-            {formatDuration(m * 60000)}
-          </button>
-        ))}
       </div>
       <div className="day-activity-row__custom">
         <input
