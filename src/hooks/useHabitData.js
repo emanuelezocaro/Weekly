@@ -1,25 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  closeStaleOpenEntries,
-  deleteEntry,
-  makeEntryId,
-  mergeAdjacentSameActivity,
-  resolveAllOverlaps,
-  resolveOverlaps,
-  splitEntriesAtMidnight,
-  updateEntry,
-} from '../utils/entries'
-import { APP_START_DATE, parseISODateTime } from '../utils/date'
+import { closeStaleOpenEntries, resolveAllOverlaps, splitEntriesAtMidnight } from '../utils/entries'
+import { parseISODateTime } from '../utils/date'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
 const ENTRIES_KEY = 'weekly:v2:entriesMeta'
+const DURATIONS_KEY = 'weekly:v2:durationsMeta'
+const CHECKLIST_KEY = 'weekly:v2:checklistMeta'
 const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
 const DIARY_KEY = 'weekly:v2:diaryMeta'
 const GOALS_KEY = 'weekly:v2:goalsMeta'
+// One-time migration marker: once every activity's old time-blocks have been
+// folded into durationsMeta, this stops re-running on every load (which
+// would otherwise re-add the same totals again each time).
+const MIGRATED_FLAG_KEY = 'weekly:v2:migratedToDurations'
 
 const DEFAULT_ACTIVITIES = []
 
@@ -34,6 +31,14 @@ function loadJSON(key, fallback) {
 
 function makeActivityId() {
   return `a_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+function makeDurationId() {
+  return `du_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+function makeChecklistId() {
+  return `ck_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
 function makeOutputId() {
@@ -64,16 +69,64 @@ function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
     .sort((a, b) => a.order - b.order)
-    .map(({ id, name, colorSlot }) => ({ id, name, colorSlot }))
+    .map(({ id, name, colorSlot, mode }) => ({ id, name, colorSlot, mode: mode === 'checklist' ? 'checklist' : 'time' }))
+}
+
+// Sums an entry's start/end (or start/now, if still open) into whole minutes
+// -- entries are already single-day by the time this runs (see
+// splitEntriesAtMidnight), so the date is just the start's own date.
+function minutesForEntry(entry, now) {
+  const start = parseISODateTime(entry.start)
+  const end = entry.end ? parseISODateTime(entry.end) : now
+  return Math.max(0, Math.round((end - start) / 60000))
+}
+
+// Folds old time-block entries into "total minutes per (activity, day)" --
+// the shape every activity's data lives in now, orario or checklist alike.
+// Only what matters (how long, that day) survives; the exact clock time
+// doesn't, which is exactly the point of this whole switch.
+function migrateEntriesToDurations(entries, now) {
+  const totals = new Map()
+  for (const e of entries) {
+    if (e.deleted) continue
+    const date = e.start.slice(0, 10)
+    const key = `${e.activityId}|${date}`
+    totals.set(key, (totals.get(key) || 0) + minutesForEntry(e, now))
+  }
+  const nowMs = Date.now()
+  const result = []
+  for (const [key, minutes] of totals) {
+    if (minutes <= 0) continue
+    const [activityId, date] = key.split('|')
+    result.push({ id: makeDurationId(), activityId, date, minutes, updatedAt: nowMs, deleted: false })
+  }
+  return result
+}
+
+function loadEntries() {
+  return closeStaleOpenEntries(splitEntriesAtMidnight(loadJSON(ENTRIES_KEY, [])))
+}
+
+// Runs the entries -> durations fold exactly once, ever, per device: guarded
+// by MIGRATED_FLAG_KEY so re-loading the app doesn't keep re-adding the same
+// totals on top of themselves.
+function loadDurationsWithMigration(entries) {
+  const existing = loadJSON(DURATIONS_KEY, [])
+  if (localStorage.getItem(MIGRATED_FLAG_KEY)) return existing
+  const migrated = migrateEntriesToDurations(entries, new Date())
+  localStorage.setItem(MIGRATED_FLAG_KEY, '1')
+  return [...existing, ...migrated]
 }
 
 export function useHabitData() {
   const [activitiesMeta, setActivitiesMeta] = useState(() =>
     loadJSON(ACTIVITIES_KEY, DEFAULT_ACTIVITIES),
   )
-  const [entriesMeta, setEntriesMeta] = useState(() =>
-    closeStaleOpenEntries(splitEntriesAtMidnight(loadJSON(ENTRIES_KEY, []))),
-  )
+  // Kept only as a passive historical record now (still exported in
+  // backups) -- nothing edits time-blocks anymore, see durationsMeta below.
+  const [entriesMeta, setEntriesMeta] = useState(() => loadEntries())
+  const [durationsMeta, setDurationsMeta] = useState(() => loadDurationsWithMigration(entriesMeta))
+  const [checklistMeta, setChecklistMeta] = useState(() => loadJSON(CHECKLIST_KEY, []))
   const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
   const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
@@ -88,6 +141,14 @@ export function useHabitData() {
   useEffect(() => {
     localStorage.setItem(ENTRIES_KEY, JSON.stringify(entriesMeta))
   }, [entriesMeta])
+
+  useEffect(() => {
+    localStorage.setItem(DURATIONS_KEY, JSON.stringify(durationsMeta))
+  }, [durationsMeta])
+
+  useEffect(() => {
+    localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklistMeta))
+  }, [checklistMeta])
 
   useEffect(() => {
     localStorage.setItem(OUTPUTS_KEY, JSON.stringify(outputsMeta))
@@ -114,10 +175,8 @@ export function useHabitData() {
   }, [goalsMeta])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
-  const entries = useMemo(
-    () => entriesMeta.filter((e) => !e.deleted && parseISODateTime(e.start) >= APP_START_DATE),
-    [entriesMeta],
-  )
+  const durations = useMemo(() => durationsMeta.filter((d) => !d.deleted), [durationsMeta])
+  const checklist = useMemo(() => checklistMeta.filter((c) => !c.deleted), [checklistMeta])
   const outputs = useMemo(() => outputsMeta.filter((o) => !o.deleted), [outputsMeta])
   const outputsSkipped = useMemo(
     () => outputsSkippedMeta.filter((o) => !o.deleted),
@@ -128,35 +187,9 @@ export function useHabitData() {
   const diary = useMemo(() => diaryMeta.filter((d) => !d.deleted), [diaryMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
 
-  // --- Entries (continuous time blocks) ---
-
-  const editEntry = useCallback((id, patch) => {
-    setEntriesMeta((prev) =>
-      splitEntriesAtMidnight(mergeAdjacentSameActivity(resolveOverlaps(updateEntry(prev, id, patch), id), id)),
-    )
-  }, [])
-
-  const removeEntry = useCallback((id) => {
-    setEntriesMeta((prev) => deleteEntry(prev, id))
-  }, [])
-
-  // Add a self-contained block (start and end both given), for backfilling a
-  // past day without disturbing whatever is currently open today. Trims any
-  // existing block it overlaps so the timeline stays gap-free and non-overlapping.
-  const addManualEntry = useCallback((activityId, startISO, endISO) => {
-    setEntriesMeta((prev) => {
-      const id = makeEntryId()
-      const withNew = [
-        ...prev,
-        { id, activityId, start: startISO, end: endISO, updatedAt: Date.now(), deleted: false },
-      ]
-      return splitEntriesAtMidnight(mergeAdjacentSameActivity(resolveOverlaps(withNew, id), id))
-    })
-  }, [])
-
   // --- Activities ---
 
-  const addActivity = useCallback((name, colorSlot = 0) => {
+  const addActivity = useCallback((name, colorSlot = 0, mode = 'time') => {
     const trimmed = name.trim()
     if (!trimmed) return
     setActivitiesMeta((prev) => {
@@ -167,6 +200,7 @@ export function useHabitData() {
           id: makeActivityId(),
           name: trimmed,
           colorSlot,
+          mode: mode === 'checklist' ? 'checklist' : 'time',
           order: maxOrder + 1,
           updatedAt: Date.now(),
           deleted: false,
@@ -190,10 +224,65 @@ export function useHabitData() {
     )
   }, [])
 
+  // Switching an activity to checklist mode retroactively turns every day it
+  // already has tracked minutes for into a "done" checklist day, so its
+  // history in the new dot report doesn't start from a blank slate. Going
+  // the other way (checklist -> orario) has no such conversion -- there's no
+  // duration to recover from a plain yes/no, so those days just stay at 0.
+  const setActivityMode = useCallback(
+    (id, mode) => {
+      const nextMode = mode === 'checklist' ? 'checklist' : 'time'
+      setActivitiesMeta((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, mode: nextMode, updatedAt: Date.now() } : a)),
+      )
+      if (nextMode !== 'checklist') return
+
+      const doneDates = new Set(
+        durationsMeta.filter((d) => !d.deleted && d.activityId === id && d.minutes > 0).map((d) => d.date),
+      )
+      if (doneDates.size === 0) return
+      const already = new Set(checklistMeta.filter((c) => !c.deleted && c.activityId === id).map((c) => c.date))
+      const nowMs = Date.now()
+      const additions = [...doneDates]
+        .filter((date) => !already.has(date))
+        .map((date) => ({ id: makeChecklistId(), activityId: id, date, updatedAt: nowMs, deleted: false }))
+      if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
+    },
+    [durationsMeta, checklistMeta],
+  )
+
   const deleteActivity = useCallback((id) => {
     setActivitiesMeta((prev) =>
       prev.map((a) => (a.id === id ? { ...a, deleted: true, updatedAt: Date.now() } : a)),
     )
+  }, [])
+
+  // --- Durations (orario activities: one or more logged sessions a day) ---
+
+  const addDuration = useCallback((activityId, date, minutes) => {
+    if (!minutes || minutes <= 0) return
+    setDurationsMeta((prev) => [
+      ...prev,
+      { id: makeDurationId(), activityId, date, minutes: Math.round(minutes), updatedAt: Date.now(), deleted: false },
+    ])
+  }, [])
+
+  const removeDuration = useCallback((id) => {
+    setDurationsMeta((prev) => prev.map((d) => (d.id === id ? { ...d, deleted: true, updatedAt: Date.now() } : d)))
+  }, [])
+
+  // --- Checklist (checklist activities: done/not-done per day) ---
+
+  const toggleChecklist = useCallback((activityId, date) => {
+    setChecklistMeta((prev) => {
+      const idx = prev.findIndex((c) => !c.deleted && c.activityId === activityId && c.date === date)
+      if (idx === -1) {
+        return [...prev, { id: makeChecklistId(), activityId, date, updatedAt: Date.now(), deleted: false }]
+      }
+      const next = [...prev]
+      next[idx] = { ...next[idx], deleted: true, updatedAt: Date.now() }
+      return next
+    })
   }, [])
 
   // --- Outputs (per-day list of short "cosa e uscito oggi" strings) ---
@@ -311,10 +400,12 @@ export function useHabitData() {
     return JSON.stringify(
       {
         app: 'weekly-habit-tracker',
-        version: 3,
+        version: 4,
         exportedAt: new Date().toISOString(),
         activities: activitiesMeta,
         entries: entriesMeta,
+        durations: durationsMeta,
+        checklist: checklistMeta,
         outputs: outputsMeta,
         outputsSkipped: outputsSkippedMeta,
         cigarettes: cigarettesMeta,
@@ -328,6 +419,8 @@ export function useHabitData() {
   }, [
     activitiesMeta,
     entriesMeta,
+    durationsMeta,
+    checklistMeta,
     outputsMeta,
     outputsSkippedMeta,
     cigarettesMeta,
@@ -342,7 +435,15 @@ export function useHabitData() {
       throw new Error('File di backup non valido')
     }
     setActivitiesMeta(parsed.activities)
-    setEntriesMeta(closeStaleOpenEntries(splitEntriesAtMidnight(resolveAllOverlaps(parsed.entries))))
+    const cleanedEntries = closeStaleOpenEntries(splitEntriesAtMidnight(resolveAllOverlaps(parsed.entries)))
+    setEntriesMeta(cleanedEntries)
+    // Older backups (from before orario/checklist modes existed) have no
+    // durations/checklist of their own -- fold their entries the same way
+    // the one-time device migration does, instead of importing empty.
+    setDurationsMeta(
+      Array.isArray(parsed.durations) ? parsed.durations : migrateEntriesToDurations(cleanedEntries, new Date()),
+    )
+    setChecklistMeta(Array.isArray(parsed.checklist) ? parsed.checklist : [])
     setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
     setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
@@ -353,13 +454,15 @@ export function useHabitData() {
 
   return {
     activities,
-    entries,
-    editEntry,
-    removeEntry,
-    addManualEntry,
     addActivity,
     renameActivity,
+    setActivityMode,
     deleteActivity,
+    durations,
+    addDuration,
+    removeDuration,
+    checklist,
+    toggleChecklist,
     outputs,
     addOutput,
     removeOutput,

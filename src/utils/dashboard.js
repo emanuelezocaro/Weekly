@@ -1,5 +1,4 @@
 import { addDays, formatDuration, startOfWeek, toISODate, toMonthISO } from './date'
-import { aggregateDuration } from './entries'
 import { goalDirection, goalForMonth, isGoalMet, isGoalTracked } from './goals'
 import { colorVar } from './palette'
 
@@ -158,7 +157,7 @@ const roundMinutes = (n) => Math.round(n)
 // period against its full target with no notion of "so far"), this always
 // compares the week's cumulative total against a target scaled to how much
 // of the week has elapsed.
-export function buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now = new Date() }) {
+export function buildDashboardItems({ activities, durations, checklist, cigarettes, outputs, food, goals, now = new Date() }) {
   const monthIso = toMonthISO(now)
   const items = []
   const weekDays = daysSoFarThisWeek(now)
@@ -173,19 +172,34 @@ export function buildDashboardItems({ activities, entries, cigarettes, outputs, 
   for (const activity of activities) {
     const goal = goalForMonth(goals, activity.id, monthIso)
     if (!goal || !isGoalTracked(goal)) continue
-    const totals = aggregateDuration(entries, weekDays[0], addDays(weekDays[weekDays.length - 1], 1), now)
-    const actualMinutes = (totals.get(activity.id) || 0) / 60000
-    pushItem({
-      key: activity.id,
-      label: activity.name,
-      swatchColor: colorVar(activity.colorSlot),
-      goal,
-      actual: actualMinutes,
-      elapsedDaysThisWeek,
-      fallbackDirection: 'higher_is_better',
-      formatDiff: formatHours,
-      round: roundMinutes,
-    })
+    if (activity.mode === 'checklist') {
+      const actual = checklist.filter((c) => c.activityId === activity.id && isoWeekDays.has(c.date)).length
+      pushItem({
+        key: activity.id,
+        label: activity.name,
+        swatchColor: colorVar(activity.colorSlot),
+        goal,
+        actual,
+        elapsedDaysThisWeek,
+        fallbackDirection: 'higher_is_better',
+        formatDiff: formatCount,
+      })
+    } else {
+      const actualMinutes = durations
+        .filter((d) => d.activityId === activity.id && isoWeekDays.has(d.date))
+        .reduce((sum, d) => sum + d.minutes, 0)
+      pushItem({
+        key: activity.id,
+        label: activity.name,
+        swatchColor: colorVar(activity.colorSlot),
+        goal,
+        actual: actualMinutes,
+        elapsedDaysThisWeek,
+        fallbackDirection: 'higher_is_better',
+        formatDiff: formatHours,
+        round: roundMinutes,
+      })
+    }
   }
 
   const cigGoal = goalForMonth(goals, 'cigarettes', monthIso)

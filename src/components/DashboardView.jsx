@@ -115,15 +115,32 @@ const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 
 export default function DashboardView({
   activities,
-  entries,
+  durations,
+  checklist,
   cigarettes,
   outputs,
   food,
   goals,
-  now = new Date(),
+  now: nowProp,
   onPeriodLabel,
 }) {
-  const { behind, failed, onTrack } = buildDashboardItems({ activities, entries, cigarettes, outputs, food, goals, now })
+  // `now` defaults to "the moment this view first mounted" rather than a
+  // fresh `new Date()` on every render -- a new Date object every render
+  // would change on every render, which the effect below depends on, which
+  // would set off an infinite render loop (component re-renders -> new
+  // `now` -> effect re-fires -> setState in the parent -> re-render -> ...).
+  const [defaultNow] = useState(() => new Date())
+  const now = nowProp ?? defaultNow
+  const { behind, failed, onTrack } = buildDashboardItems({
+    activities,
+    durations,
+    checklist,
+    cigarettes,
+    outputs,
+    food,
+    goals,
+    now,
+  })
   const [tab, setTab] = useState('behind')
 
   useEffect(() => {

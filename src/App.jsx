@@ -104,12 +104,14 @@ function App() {
   const [periodLabel, setPeriodLabel] = useState(null)
   const {
     activities,
-    entries,
-    editEntry,
-    removeEntry,
-    addManualEntry,
+    durations,
+    addDuration,
+    removeDuration,
+    checklist,
+    toggleChecklist,
     addActivity,
     renameActivity,
+    setActivityMode,
     deleteActivity,
     outputs,
     addOutput,
@@ -153,7 +155,8 @@ function App() {
         {tab === 'dashboard' && (
           <DashboardView
             activities={activities}
-            entries={entries}
+            durations={durations}
+            checklist={checklist}
             cigarettes={cigarettes}
             outputs={outputs}
             food={food}
@@ -164,15 +167,16 @@ function App() {
         {tab === 'calendar' && (
           <DayAgenda
             activities={activities}
-            entries={entries}
+            durations={durations}
+            checklist={checklist}
             outputs={outputs}
             outputsSkipped={outputsSkipped}
             cigarettes={cigarettes}
             food={food}
             diary={diary}
-            onEditEntry={editEntry}
-            onRemoveEntry={removeEntry}
-            onAddManualEntry={addManualEntry}
+            onAddDuration={addDuration}
+            onRemoveDuration={removeDuration}
+            onToggleChecklist={toggleChecklist}
             onAddOutput={addOutput}
             onRemoveOutput={removeOutput}
             onConfirmNoOutputs={confirmNoOutputs}
@@ -186,7 +190,8 @@ function App() {
         {tab === 'report' && (
           <ReportView
             activities={activities}
-            entries={entries}
+            durations={durations}
+            checklist={checklist}
             outputs={outputs}
             cigarettes={cigarettes}
             food={food}
@@ -200,6 +205,7 @@ function App() {
             activities={activities}
             onAdd={addActivity}
             onRename={renameActivity}
+            onSetMode={setActivityMode}
             onDelete={deleteActivity}
             onExport={exportData}
             onImport={importData}

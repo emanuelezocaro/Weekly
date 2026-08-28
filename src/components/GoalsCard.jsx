@@ -160,16 +160,27 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
         conseguenza. Le modifiche valgono da questo mese in poi; i mesi passati mantengono
         l'obiettivo che avevano allora.
       </p>
-      {activities.map((a) => (
-        <DurationGoalRow
-          key={a.id}
-          itemKey={a.id}
-          label={a.name}
-          swatchColor={colorVar(a.colorSlot)}
-          goal={goalForMonth(goals, a.id, monthIso)}
-          onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-        />
-      ))}
+      {activities.map((a) =>
+        a.mode === 'checklist' ? (
+          <CountGoalRow
+            key={a.id}
+            itemKey={a.id}
+            label={a.name}
+            withDirection
+            goal={goalForMonth(goals, a.id, monthIso)}
+            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
+          />
+        ) : (
+          <DurationGoalRow
+            key={a.id}
+            itemKey={a.id}
+            label={a.name}
+            swatchColor={colorVar(a.colorSlot)}
+            goal={goalForMonth(goals, a.id, monthIso)}
+            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
+          />
+        ),
+      )}
       <CountGoalRow
         itemKey="cigarettes"
         label="Sigarette"

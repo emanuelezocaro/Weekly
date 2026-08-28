@@ -1589,6 +1589,16 @@
   font-size: 14px;
 }
 
+.activity-manage-row__mode {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface);
+}
+
 .activity-manage-row__actions {
   display: flex;
   gap: 4px;
@@ -1599,6 +1609,106 @@
   flex-direction: column;
   gap: 10px;
   width: 100%;
+}
+
+.activity-day-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-activity-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.day-activity-row__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-activity-row__swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-activity-row__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.day-activity-row__total {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.day-activity-row__custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.day-activity-row__custom input {
+  width: 64px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.day-activity-row__custom button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 9px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.day-activity-row--checklist {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  background: var(--surface);
+}
+
+.day-activity-row--checklist .day-activity-row__header {
+  padding: 12px;
+}
+
+.day-activity-row--checklist.is-done {
+  background: var(--accent-bg);
+}
+
+.day-activity-row__check-state {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.day-activity-row--checklist.is-done .day-activity-row__check-state {
+  color: var(--accent-strong);
 }
 
 .color-picker {

@@ -13,11 +13,29 @@ import {
 import { useSwipeNav } from '../hooks/useSwipeNav'
 import { buildMonthSummaryText, buildWeekSummaryText } from '../utils/monthSummary'
 import { copyOrShareText } from '../utils/shareFile'
-import ActivityStatsSummary from './ActivityStatsSummary'
+import ActivityTimeReportCard from './ActivityTimeReportCard'
+import ActivityChecklistReportCard from './ActivityChecklistReportCard'
 import OutputsWeekCard from './OutputsWeekCard'
 import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
 import DiaryReportCard from './DiaryReportCard'
+
+// Fixed reading order for the per-activity report cards, chosen by hand
+// rather than alphabetical -- an activity not in this list (renamed, or
+// newly added) just falls back after these, in whatever order `activities`
+// itself has them.
+const ACTIVITY_ORDER = ['Work', 'Growth', 'Sleep', 'Body', 'Free', 'Put off']
+
+function sortByCustomOrder(activities) {
+  return [...activities].sort((a, b) => {
+    const ia = ACTIVITY_ORDER.indexOf(a.name)
+    const ib = ACTIVITY_ORDER.indexOf(b.name)
+    if (ia === -1 && ib === -1) return 0
+    if (ia === -1) return 1
+    if (ib === -1) return -1
+    return ia - ib
+  })
+}
 
 const SUMMARY_MESSAGES = {
   copied: 'Riepilogo copiato ✓',
@@ -90,13 +108,11 @@ function isPrevDisabled(period, cursor) {
   return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
 }
 
-export default function ReportView({ activities, entries, outputs, cigarettes, food, diary, goals, onPeriodLabel }) {
+export default function ReportView({ activities, durations, checklist, outputs, cigarettes, food, diary, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
 
-  const [rangeStart, rangeEnd] = periodRange(period, cursor)
-  const [prevRangeStart, prevRangeEnd] = periodRange(period, shiftCursor(period, cursor, -1))
   const nextDisabled = isNextDisabled(period, cursor)
   const prevDisabled = isPrevDisabled(period, cursor)
   const days = periodDays(period, cursor)
@@ -120,7 +136,7 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const ctx = { activities, entries, outputs, cigarettes, food, diary, goals }
+    const ctx = { activities, durations, checklist, outputs, cigarettes, food, diary, goals }
     const text =
       period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
     const filename =
@@ -160,17 +176,33 @@ export default function ReportView({ activities, entries, outputs, cigarettes, f
           </div>
         )}
 
-        <ActivityStatsSummary
-          activities={activities}
-          entries={entries}
-          rangeStart={rangeStart}
-          rangeEnd={rangeEnd}
-          prevRangeStart={prevRangeStart}
-          prevRangeEnd={prevRangeEnd}
-          days={days}
-          period={period}
-          goals={goals}
-        />
+        {activities.length === 0 ? (
+          <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+        ) : (
+          sortByCustomOrder(activities).map((activity) =>
+            activity.mode === 'checklist' ? (
+              <ActivityChecklistReportCard
+                key={activity.id}
+                activity={activity}
+                checklist={checklist}
+                days={days}
+                prevDays={prevDays}
+                period={period}
+                goals={goals}
+              />
+            ) : (
+              <ActivityTimeReportCard
+                key={activity.id}
+                activity={activity}
+                durations={durations}
+                days={days}
+                prevDays={prevDays}
+                period={period}
+                goals={goals}
+              />
+            ),
+          )
+        )}
 
         <hr className="report-divider" />
 

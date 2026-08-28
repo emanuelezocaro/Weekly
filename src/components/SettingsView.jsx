@@ -5,6 +5,27 @@ import { toMonthISO } from '../utils/date'
 import { markBackupDone } from '../utils/backupReminder'
 import GoalsCard from './GoalsCard'
 
+const MODE_OPTIONS = [
+  { id: 'time', label: 'A tempo' },
+  { id: 'checklist', label: 'Checklist' },
+]
+
+function modeLabel(mode) {
+  return mode === 'checklist' ? 'Checklist' : 'A tempo'
+}
+
+function ModeSelect({ value, onChange }) {
+  return (
+    <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
+      {MODE_OPTIONS.map((m) => (
+        <option key={m.id} value={m.id}>
+          {m.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 function ColorPicker({ value, onChange }) {
   return (
     <div className="color-picker">
@@ -63,6 +84,7 @@ export default function SettingsView({
   activities,
   onAdd,
   onRename,
+  onSetMode,
   onDelete,
   onExport,
   onImport,
@@ -74,18 +96,21 @@ export default function SettingsView({
   const [addOpen, setAddOpen] = useState(false)
   const [name, setName] = useState('')
   const [colorSlot, setColorSlot] = useState(0)
+  const [mode, setMode] = useState('time')
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
   const [editColorSlot, setEditColorSlot] = useState(0)
+  const [editMode, setEditMode] = useState('time')
   const [backupMessage, setBackupMessage] = useState('')
   const fileInputRef = useRef(null)
 
   function handleAdd(e) {
     e.preventDefault()
     if (!name.trim()) return
-    onAdd(name, colorSlot)
+    onAdd(name, colorSlot, mode)
     setName('')
     setColorSlot((s) => (s + 1) % PALETTE_SIZE)
+    setMode('time')
     setAddOpen(false)
   }
 
@@ -98,10 +123,12 @@ export default function SettingsView({
     setEditingId(activity.id)
     setEditName(activity.name)
     setEditColorSlot(activity.colorSlot)
+    setEditMode(activity.mode)
   }
 
   function saveEdit(id) {
     onRename(id, editName, editColorSlot)
+    if (editMode !== activities.find((a) => a.id === id)?.mode) onSetMode(id, editMode)
     setEditingId(null)
   }
 
@@ -172,6 +199,7 @@ export default function SettingsView({
                   autoFocus
                 />
               </div>
+              <ModeSelect value={mode} onChange={setMode} />
               <ColorPicker value={colorSlot} onChange={setColorSlot} />
               <div className="add-activity__actions">
                 <button type="submit">Salva</button>
@@ -198,6 +226,7 @@ export default function SettingsView({
                         Salva
                       </button>
                     </div>
+                    <ModeSelect value={editMode} onChange={setEditMode} />
                     <ColorPicker value={editColorSlot} onChange={setEditColorSlot} />
                   </div>
                 ) : (
@@ -207,6 +236,7 @@ export default function SettingsView({
                       style={{ background: colorVar(activity.colorSlot) }}
                     />
                     <span className="activity-manage-row__name">{activity.name}</span>
+                    <span className="activity-manage-row__mode">{modeLabel(activity.mode)}</span>
                     <div className="activity-manage-row__actions">
                       <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
                         Modifica
