@@ -215,6 +215,24 @@ function FoodGauge({ value }) {
   )
 }
 
+// Sfondo a 3 fasce dietro le barre, come lo sfondo buono/cattivo degli
+// altri grafici con obiettivo -- solo che qui le fasce sono 3 (in base ai
+// punti) invece di 2 (in base all'obiettivo).
+const BAD_BOUNDARY_PCT = (GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100
+const MID_BOUNDARY_PCT = (GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100
+
+function PointZoneBackground() {
+  return (
+    <>
+      <div className="goal-zone goal-zone--bad" style={{ bottom: 0, top: `${100 - BAD_BOUNDARY_PCT}%` }} />
+      <div className="goal-zone goal-zone--mid" style={{ bottom: `${BAD_BOUNDARY_PCT}%`, top: `${100 - MID_BOUNDARY_PCT}%` }} />
+      <div className="goal-zone goal-zone--good" style={{ bottom: `${MID_BOUNDARY_PCT}%`, top: 0 }} />
+      <div className="goal-line" style={{ bottom: `${MID_BOUNDARY_PCT}%` }} />
+      <div className="goal-line" style={{ bottom: `${BAD_BOUNDARY_PCT}%` }} />
+    </>
+  )
+}
+
 // Solo per la settimana: una barra per giorno con il punteggio 0-12 di quel
 // giorno (non una media), colorata in base alla fascia in cui cade, cosi si
 // vede subito quale giorno ha tirato su o giù la media mostrata nel gauge
@@ -224,8 +242,7 @@ function FoodDailyChart({ days, records }) {
   return (
     <div className="trend-chart__row">
       <div className="trend-chart__bars-wrap">
-        <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100}%` }} />
-        <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100}%` }} />
+        <PointZoneBackground />
         <div className="trend-chart__bars">
           {days.map((d, i) => {
             const points = dayPoints(records[i])
@@ -247,13 +264,11 @@ function FoodDailyChart({ days, records }) {
 }
 
 // Sempre visibile (non solo in settimana): non "quando", ma "quale delle 6
-// cose" -- una barra impilata per categoria con le stesse proporzioni
-// buono/medio/male della sezione qui sopra (stessi colori, stesso stile a
-// segmenti), cosi le due sezioni si leggono allo stesso modo invece di
-// mescolare uno stile a punti con uno a proporzioni. Le proporzioni contano
-// solo i giorni in cui quella categoria è stata segnata: un giorno mai
-// segnato (es. prima di aver iniziato a tracciare) non entra né al
-// numeratore né al denominatore, non abbassa la fetta di nessun colore.
+// cose" -- una barra per categoria, dello stesso colore a fascia e sullo
+// stesso sfondo a 3 zone del grafico giornaliero qui sopra, cosi i due
+// grafici si leggono allo stesso modo. La media conta solo i giorni in cui
+// quella categoria è stata segnata: un giorno mai segnato (es. prima di
+// aver iniziato a tracciare) non entra nel calcolo, non abbassa la media.
 const CATEGORY_FIELDS = [
   { key: 'colazione', label: 'Colazione' },
   { key: 'pranzo', label: 'Pranzo' },
@@ -262,43 +277,39 @@ const CATEGORY_FIELDS = [
   { key: 'dolci', label: 'Dolci' },
   { key: 'extra', label: 'Extra' },
 ]
+const CATEGORY_MAX = 2
 
-function categoryCounts(records, key) {
-  const counts = { good: 0, mid: 0, bad: 0 }
+function categoryAverage(records, key) {
+  let total = 0
+  let tracked = 0
   for (const r of records) {
     if (!r) continue
     if (key === 'extra') {
       if (!r.extra) continue
-      counts[r.extra === 'no' ? 'good' : 'bad'] += 1
+      total += r.extra === 'no' ? 2 : 0
+      tracked += 1
     } else if (r[key]) {
-      counts[r[key]] += 1
+      total += POINT_VALUE[r[key]]
+      tracked += 1
     }
   }
-  return counts
+  return tracked > 0 ? total / tracked : null
 }
 
 function FoodCategoryChart({ records }) {
   return (
     <div className="trend-chart__row">
       <div className="trend-chart__bars-wrap">
+        <PointZoneBackground />
         <div className="trend-chart__bars">
           {CATEGORY_FIELDS.map((f) => {
-            const counts = categoryCounts(records, f.key)
-            const total = counts.good + counts.mid + counts.bad
+            const avg = categoryAverage(records, f.key)
+            const heightPct = avg === null ? 2 : Math.max(2, (avg / CATEGORY_MAX) * 100)
+            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, CATEGORY_MAX).key]
             return (
               <div key={f.key} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
-                  {total === 0 ? (
-                    <span className="trend-chart__stack">
-                      <span style={{ height: '100%', background: 'var(--border)' }} />
-                    </span>
-                  ) : (
-                    <span className="trend-chart__stack">
-                      <span style={{ height: `${(counts.good / total) * 100}%`, background: RATING_COLOR.good }} />
-                      <span style={{ height: `${(counts.mid / total) * 100}%`, background: RATING_COLOR.mid }} />
-                      <span style={{ height: `${(counts.bad / total) * 100}%`, background: RATING_COLOR.bad }} />
-                    </span>
-                  )}
+                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
                 </span>
                 <span className="trend-chart__label">{f.label}</span>
               </div>
