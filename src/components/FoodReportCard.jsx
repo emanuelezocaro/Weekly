@@ -238,7 +238,20 @@ function PointZoneBackground() {
   )
 }
 
-// Solo per la settimana: una barra per giorno con il punteggio 0-12 di quel
+// Settimana e mese: sparse labels sotto le barre oltre i 7 giorni, stessa
+// logica di CigarettesReportCard (solo primo/ultimo/ogni 5° in un mese,
+// altrimenti si accavallano).
+function shouldLabelDay(index, total) {
+  if (total <= 7) return true
+  if (index === 0 || index === total - 1) return true
+  return index % 5 === 0
+}
+
+function dailyAxisLabel(d, days) {
+  return days.length <= 7 ? dayLabel(d) : String(d.getDate())
+}
+
+// Settimana e mese: una barra per giorno con il punteggio 0-12 di quel
 // giorno (non una media), colorata in base alla fascia in cui cade, cosi si
 // vede subito quale giorno ha tirato su o giù la media mostrata nel gauge
 // qui sopra. Le due righe tratteggiate segnano gli stessi confini del gauge.
@@ -258,7 +271,37 @@ function FoodDailyChart({ days, records }) {
                 <span className="trend-chart__bar-track">
                   <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
                 </span>
-                <span className="trend-chart__label">{dayLabel(d)}</span>
+                <span className="trend-chart__label">{shouldLabelDay(i, days.length) ? dailyAxisLabel(d, days) : ''}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Anno: troppi giorni per una barra a testa, si aggrega per mese mostrando
+// la media punti (solo giorni tracciati) di quel mese -- stessa scala 0-12,
+// stesso sfondo a fasce del grafico giornaliero qui sopra.
+function FoodMonthlyChart({ months, food }) {
+  return (
+    <div className="trend-chart__row">
+      <TrendChartYAxis maxValue={GAUGE_MAX} formatValue={(v) => `${v}`} />
+      <div className="trend-chart__bars-wrap">
+        <PointZoneBackground />
+        <div className="trend-chart__bars">
+          {months.map((m) => {
+            const monthRecords = m.days.map((d) => food.find((f) => f.date === toISODate(d)) || null)
+            const avg = averageDayPoints(monthRecords)
+            const heightPct = avg === null ? 2 : Math.max(2, (avg / GAUGE_MAX) * 100)
+            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg).key]
+            return (
+              <div key={toMonthISO(m.monthStart)} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
+                </span>
+                <span className="trend-chart__label">{formatMonthShort(toMonthISO(m.monthStart))}</span>
               </div>
             )
           })}
@@ -471,6 +514,8 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
       <section className="settings-card">
         <h2 className="settings-card__title">Alimentazione</h2>
         <FoodGauge value={gaugeValue} />
+        <p className="trend-chart__caption">Media punti di ogni mese (0-12)</p>
+        <FoodMonthlyChart months={months} food={food} />
         <hr className="report-divider" />
         <RatingMiniRowGrouped label="Colazione" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
         <RatingMiniRowGrouped label="Pranzo" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
@@ -487,6 +532,7 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
           </div>
         </div>
         <hr className="report-divider" />
+        <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
         <FoodCategoryChart records={records} />
       </section>
     )
@@ -496,7 +542,12 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
     <section className="settings-card">
       <h2 className="settings-card__title">Alimentazione</h2>
       <FoodGauge value={gaugeValue} />
-      {period === 'week' && <FoodDailyChart days={days} records={records} />}
+      {(period === 'week' || period === 'month') && (
+        <>
+          <p className="trend-chart__caption">Punteggio di ogni giorno (0-12)</p>
+          <FoodDailyChart days={days} records={records} />
+        </>
+      )}
       <hr className="report-divider" />
       <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
       <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
@@ -512,6 +563,7 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
         </p>
       )}
       <hr className="report-divider" />
+      <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
       <FoodCategoryChart records={records} />
     </section>
   )
