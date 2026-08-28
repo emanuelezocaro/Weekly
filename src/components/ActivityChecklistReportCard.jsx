@@ -72,9 +72,11 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
   const prevCount = clippedPrev.filter((d) => doneSet.has(toISODate(d))).length
   const delta = deltaPct(doneCount, prevCount)
 
-  // Stessa unità del grafico qui sotto (volte a settimana), non il
-  // conteggio grezzo -- e sui giorni già passati, cosi un periodo ancora in
-  // corso non viene diluito dai giorni futuri.
+  // In Anno la stessa unità del grafico qui sotto (volte a settimana), sui
+  // giorni già passati cosi un periodo ancora in corso non viene diluito dai
+  // giorni futuri -- ma solo li: guardando già una singola settimana o un
+  // mese, "X volte a settimana in media" è un giro inutile, "X/Y giorni
+  // fatti" si legge diretto.
   const elapsedDaysCount = Math.max(1, days.filter((d) => !isFuture(d)).length)
   const weeklyRate = (doneCount / elapsedDaysCount) * 7
 
@@ -84,7 +86,9 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
         <h2 className="settings-card__title">{activity.name}</h2>
         <GoalTrendIndicator goal={goal} actual={doneCount} target={target} />
       </div>
-      <p className="trend-chart__caption">{formatWeeklyRate(weeklyRate)} volte a settimana in media</p>
+      <p className="trend-chart__caption">
+        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana in media` : `${doneCount}/${days.length} giorni fatti`}
+      </p>
       <p className="report-card__delta" style={{ textAlign: 'center' }}>
         {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
       </p>
