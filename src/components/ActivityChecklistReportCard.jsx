@@ -87,7 +87,7 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
         <GoalTrendIndicator goal={goal} actual={doneCount} target={target} />
       </div>
       <p className="trend-chart__caption">
-        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana in media` : `${doneCount}/${days.length} giorni fatti`}
+        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
       </p>
       <p className="report-card__delta" style={{ textAlign: 'center' }}>
         {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
