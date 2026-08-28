@@ -1,5 +1,6 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
+import TrendChartYAxis from './TrendChartYAxis'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
 const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
@@ -240,8 +241,7 @@ function PointZoneBackground() {
 // Solo per la settimana: una barra per giorno con il punteggio 0-12 di quel
 // giorno (non una media), colorata in base alla fascia in cui cade, cosi si
 // vede subito quale giorno ha tirato su o giù la media mostrata nel gauge
-// qui sopra. Le due righe tratteggiate segnano gli stessi confini del gauge
-// (senza numeri sull'asse: il gauge sopra li mostra già).
+// qui sopra. Le due righe tratteggiate segnano gli stessi confini del gauge.
 function FoodDailyChart({ days, records }) {
   return (
     <div className="trend-chart__row">
@@ -263,6 +263,7 @@ function FoodDailyChart({ days, records }) {
           })}
         </div>
       </div>
+      <TrendChartYAxis maxValue={GAUGE_MAX} formatValue={(v) => `${v}`} />
     </div>
   )
 }
@@ -282,6 +283,10 @@ const CATEGORY_FIELDS = [
   { key: 'extra', label: 'Extra' },
 ]
 const CATEGORY_MAX = 2
+// L'asse mostra la scala "a settimana" (7 giorni x 2 punti) invece di 0-2,
+// cosi il numero in cima coincide con quello di cui parliamo di solito
+// (7 colazioni x 2 punti = 14) anche se qui è una media, non una somma.
+const CATEGORY_WEEK_MAX = 14
 
 function categoryAverage(records, key) {
   let total = 0
@@ -321,6 +326,7 @@ function FoodCategoryChart({ records }) {
           })}
         </div>
       </div>
+      <TrendChartYAxis maxValue={CATEGORY_WEEK_MAX} formatValue={(v) => `${v}`} />
     </div>
   )
 }
