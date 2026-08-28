@@ -137,9 +137,9 @@ function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
 const POINT_VALUE = { bad: 0, mid: 1, good: 2 }
 const GAUGE_MAX = 12
 const GAUGE_ZONES = [
-  { key: 'bad', label: 'Da migliorare', upTo: 4 },
-  { key: 'mid', label: 'Nella media', upTo: 9 },
-  { key: 'good', label: 'Ottimo', upTo: GAUGE_MAX },
+  { key: 'bad', label: 'Male', upTo: 4 },
+  { key: 'mid', label: 'Medio', upTo: 9 },
+  { key: 'good', label: 'Buono', upTo: GAUGE_MAX },
 ]
 
 function dayPoints(record) {
