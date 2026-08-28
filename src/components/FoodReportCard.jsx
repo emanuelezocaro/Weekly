@@ -245,6 +245,7 @@ function PointZoneBackground() {
 function FoodDailyChart({ days, records }) {
   return (
     <div className="trend-chart__row">
+      <TrendChartYAxis maxValue={GAUGE_MAX} formatValue={(v) => `${v}`} />
       <div className="trend-chart__bars-wrap">
         <PointZoneBackground />
         <div className="trend-chart__bars">
@@ -263,7 +264,6 @@ function FoodDailyChart({ days, records }) {
           })}
         </div>
       </div>
-      <TrendChartYAxis maxValue={GAUGE_MAX} formatValue={(v) => `${v}`} />
     </div>
   )
 }
@@ -308,6 +308,7 @@ function categoryAverage(records, key) {
 function FoodCategoryChart({ records }) {
   return (
     <div className="trend-chart__row">
+      <TrendChartYAxis maxValue={CATEGORY_WEEK_MAX} formatValue={(v) => `${v}`} />
       <div className="trend-chart__bars-wrap">
         <PointZoneBackground />
         <div className="trend-chart__bars">
@@ -326,7 +327,6 @@ function FoodCategoryChart({ records }) {
           })}
         </div>
       </div>
-      <TrendChartYAxis maxValue={CATEGORY_WEEK_MAX} formatValue={(v) => `${v}`} />
     </div>
   )
 }
