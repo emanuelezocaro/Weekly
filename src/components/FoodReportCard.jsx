@@ -40,6 +40,26 @@ function ratingSummary(records) {
   return { ...counts, extraYes }
 }
 
+// "Come sto andando" a colpo d'occhio, invece di dover leggere 6 righe di
+// barrette colorate: un conteggio buono/valutati per i 3 pasti principali
+// (unica cifra che risponde davvero a "come mangio"), e uno separato per
+// Alcol/Dolci (stessa scala buono/medio/male dei pasti, ma tenuti a parte
+// perché sono "da evitare", non "da fare bene") ed Extra (un sì/no, quindi
+// un conteggio di quante volte è successo, non un buono/male).
+function goodRatioAcrossFields(records, fields) {
+  let good = 0
+  let total = 0
+  for (const r of records) {
+    if (!r) continue
+    for (const field of fields) {
+      if (!r[field]) continue
+      total += 1
+      if (r[field] === 'good') good += 1
+    }
+  }
+  return { good, total }
+}
+
 // A "3 colazioni buone" goal is set per day or per week; scale it to a
 // target for however many days the report is currently showing.
 function goalTarget(goal, daysCount) {
@@ -236,16 +256,42 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
     const iso = toISODate(date)
     return food.find((f) => f.date === iso) || null
   })
-  const prevSummary = ratingSummary(prevRecords)
-  const delta = deltaPct(summary.good, prevSummary.good)
+  const meals = goodRatioAcrossFields(records, ['colazione', 'pranzo', 'cena'])
+  const alcol = goodRatioAcrossFields(records, ['alcol'])
+  const dolci = goodRatioAcrossFields(records, ['dolci'])
+  const prevMeals = goodRatioAcrossFields(prevRecords, ['colazione', 'pranzo', 'cena'])
+  const delta = deltaPct(meals.good, prevMeals.good)
 
   const caption = (
     <>
-      <p className="trend-chart__caption">
-        {summary.good} buono · {summary.mid} medio · {summary.bad} male · Extra {summary.extraYes}/{days.length} giorni
-      </p>
+      <div className="dash-card__stats">
+        <div className="dash-card__stat">
+          <span className="dash-card__stat-label">Pasti</span>
+          <span className="dash-card__stat-value">
+            {meals.good}/{meals.total}
+          </span>
+        </div>
+        <div className="dash-card__stat">
+          <span className="dash-card__stat-label">Alcol</span>
+          <span className="dash-card__stat-value">
+            {alcol.good}/{alcol.total}
+          </span>
+        </div>
+        <div className="dash-card__stat">
+          <span className="dash-card__stat-label">Dolci</span>
+          <span className="dash-card__stat-value">
+            {dolci.good}/{dolci.total}
+          </span>
+        </div>
+        <div className="dash-card__stat">
+          <span className="dash-card__stat-label">Extra</span>
+          <span className="dash-card__stat-value">
+            {summary.extraYes}/{days.length}
+          </span>
+        </div>
+      </div>
       <p className="report-card__delta" style={{ textAlign: 'center' }}>
-        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% buono rispetto al periodo precedente` : NBSP}
+        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% pasti buoni rispetto al periodo precedente` : NBSP}
       </p>
     </>
   )
