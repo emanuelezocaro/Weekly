@@ -1,4 +1,4 @@
-import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
@@ -101,37 +101,38 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
 }
 
 // Anno: un pallino per giorno (o anche uno per settimana, come prima)
-// direbbe poco -- "almeno un giorno su 7" è quasi sempre vero. Mostra invece
-// una barra per mese con la % di giorni fatti (giorni fatti / giorni già
-// passati in quel mese, cosi un mese ancora in corso non viene diluito dai
-// giorni futuri), con la linea obiettivo calcolata allo stesso modo
-// per-giorno usato nelle viste settimana/mese.
+// direbbe poco -- "almeno un giorno su 7" è quasi sempre vero. A differenza
+// di un'attività a orario, però, qui non ha senso nemmeno una media: un
+// sì/no non è una quantità da diluire sui giorni, è un conteggio -- esattamente
+// come Sigarette/Uscite. Ogni barra è quindi il numero grezzo di giorni
+// fatti quel mese, con l'obiettivo scalato su un mese medio (goalPerBar
+// 'month'), non sul singolo giorno.
 function YearBars({ activity, days, doneSet, goals, color }) {
   const bars = groupDaysByMonth(days).map((m) => {
     const doneInMonth = m.days.filter((d) => doneSet.has(toISODate(d))).length
-    const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
     return {
       key: toMonthISO(m.monthStart),
       label: formatMonthShort(toMonthISO(m.monthStart)),
-      value: doneInMonth / elapsedDays,
+      value: doneInMonth,
     }
   })
+  const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
   return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={1} formatValue={(v) => `${Math.round(v * 100)}%`} />
+      <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
       <div className="trend-chart__bars-wrap">
         <GoalLine
           goals={goals}
           itemKey={activity.id}
           monthIso={toMonthISO(days[days.length - 1])}
-          barGranularity="day"
-          maxValue={1}
+          barGranularity="month"
+          maxValue={maxValue}
           formatValue={(v) => String(v)}
         />
         <div className="trend-chart__bars">
           {bars.map((b) => {
-            const heightPct = Math.max(2, b.value * 100)
+            const heightPct = Math.max(2, (b.value / maxValue) * 100)
             return (
               <div key={b.key} className="trend-chart__col">
                 <span className="trend-chart__bar-track">

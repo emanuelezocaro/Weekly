@@ -51,14 +51,22 @@ export function goalTargetForDays(goal, daysCount) {
   return perDay * daysCount
 }
 
+// Average calendar-month length, for scaling a goal to a "typical month"
+// bar -- a real month is 28-31 days, but one dashed line at a constant
+// height reads far better than 12 slightly different ones, and the error
+// that introduces (at most ~3 days) is not worth that cost.
+const DAYS_PER_MONTH_AVG = 365 / 12
+
 // Converts a goal (expressed in its own period) into a reference value for a
-// chart whose bars represent `barGranularity` ('day' | 'week'), so the same
-// goal can be drawn as a line regardless of whether the chart shows daily or
-// weekly bars.
+// chart whose bars represent `barGranularity` ('day' | 'week' | 'month'), so
+// the same goal can be drawn as a line regardless of whether the chart shows
+// daily, weekly, or (an average) monthly bars.
 export function goalPerBar(goal, barGranularity) {
   if (!goal) return null
   if (goal.period === barGranularity) return goal.value
   if (goal.period === 'day' && barGranularity === 'week') return goal.value * 7
   if (goal.period === 'week' && barGranularity === 'day') return goal.value / 7
+  if (goal.period === 'day' && barGranularity === 'month') return goal.value * DAYS_PER_MONTH_AVG
+  if (goal.period === 'week' && barGranularity === 'month') return (goal.value / 7) * DAYS_PER_MONTH_AVG
   return goal.value
 }
