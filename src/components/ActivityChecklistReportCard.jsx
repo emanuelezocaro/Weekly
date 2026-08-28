@@ -1,4 +1,4 @@
-import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalPerBar, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
@@ -100,48 +100,47 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
   )
 }
 
-// Anno: un pallino per giorno (o anche uno per settimana, come prima)
-// direbbe poco -- "almeno un giorno su 7" è quasi sempre vero. A differenza
-// di un'attività a orario, però, qui non ha senso nemmeno una media: un
-// sì/no non è una quantità da diluire sui giorni, è un conteggio -- esattamente
-// come Sigarette/Uscite. Ogni barra è quindi il numero grezzo di giorni
-// fatti quel mese, con l'obiettivo scalato su un mese medio (goalPerBar
-// 'month'), non sul singolo giorno.
+// Anno: un pallino per giorno (o uno per settimana) direbbe poco -- "almeno
+// un giorno su 7" è quasi sempre vero. E un conteggio grezzo per mese (0-31)
+// si è rivelato scomodo da leggere contro un obiettivo espresso a
+// settimana/giorno. Torna quindi alla stessa scala usata per Sonno/
+// Sigarette/Uscite: la media al giorno -- qui una % (quanti giorni su
+// quanti possibili), con l'obiettivo nella stessa unità (barGranularity
+// "day", come le altre card), non convertito su un mese medio.
 function YearBars({ activity, days, doneSet, goals, color }) {
   const bars = groupDaysByMonth(days).map((m) => {
     const doneInMonth = m.days.filter((d) => doneSet.has(toISODate(d))).length
+    const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
     return {
       key: toMonthISO(m.monthStart),
       label: formatMonthShort(toMonthISO(m.monthStart)),
-      value: doneInMonth,
+      value: doneInMonth / elapsedDays,
     }
   })
-  const maxValue = Math.max(1, ...bars.map((b) => b.value))
 
-  // The goal itself is set per giorno/settimana, but these bars are a raw
-  // count on a 0-31 scale -- showing "Obiettivo 5/sett" next to that scale
-  // reads as unrelated to what the eye sees. Converting it to the bar's own
-  // unit ("Obiettivo 22/mese") keeps the tag legible against the axis it's
-  // actually drawn on.
+  // Il tag va comunque riportato nella stessa unità della scala (%) --
+  // altrimenti torna il problema di prima ("5" vicino a una scala 0-100%
+  // non si capisce da solo).
   const goalForTag = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
-  const monthTarget = goalForTag ? Math.round(goalPerBar(goalForTag, 'month')) : null
+  const dayTarget = goalForTag ? goalPerBar(goalForTag, 'day') : null
+  const tagLabel = dayTarget !== null ? `Obiettivo ${Math.round(dayTarget * 100)}%` : undefined
 
   return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
+      <TrendChartYAxis maxValue={1} formatValue={(v) => `${Math.round(v * 100)}%`} />
       <div className="trend-chart__bars-wrap">
         <GoalLine
           goals={goals}
           itemKey={activity.id}
           monthIso={toMonthISO(days[days.length - 1])}
-          barGranularity="month"
-          maxValue={maxValue}
+          barGranularity="day"
+          maxValue={1}
           formatValue={(v) => String(v)}
-          tagLabel={monthTarget !== null ? `Obiettivo ${monthTarget}/mese` : undefined}
+          tagLabel={tagLabel}
         />
         <div className="trend-chart__bars">
           {bars.map((b) => {
-            const heightPct = Math.max(2, (b.value / maxValue) * 100)
+            const heightPct = Math.max(2, b.value * 100)
             return (
               <div key={b.key} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
