@@ -152,6 +152,22 @@ export function groupDaysByWeek(days) {
   return weeks
 }
 
+// Same idea as groupDaysByWeek, but bucketed into calendar months -- for
+// aggregating a year's worth of daily charts into 12 monthly bars.
+export function groupDaysByMonth(days) {
+  const months = []
+  const indexByKey = new Map()
+  for (const d of days) {
+    const key = toMonthISO(d)
+    if (!indexByKey.has(key)) {
+      indexByKey.set(key, months.length)
+      months.push({ monthStart: startOfMonth(d), days: [] })
+    }
+    months[indexByKey.get(key)].days.push(d)
+  }
+  return months
+}
+
 export function getDatesInMonth(monthDate) {
   const start = startOfMonth(monthDate)
   const end = endOfMonth(monthDate)

@@ -1,4 +1,12 @@
-import { dayLabel, formatDuration, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import {
+  dayLabel,
+  formatDuration,
+  formatMonthShort,
+  groupDaysByMonth,
+  isFuture,
+  toISODate,
+  toMonthISO,
+} from '../utils/date'
 import { goalForMonth, goalTargetForDays, minutesToHours } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
@@ -39,15 +47,20 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
   const trackedDays = perDay.filter((d) => d.minutes > 0).length
   const avg = trackedDays > 0 ? Math.round(total / trackedDays) : 0
 
-  // Trimestre: troppi giorni per una barra a testa, si aggrega per settimana.
+  // Anno: troppi giorni per una barra a testa, si aggrega per mese --
+  // mostrando la media giornaliera (non il totale del mese, che farebbe
+  // sembrare agosto "più attivo" di febbraio solo perché ha più giorni),
+  // cosi il confronto con l'obiettivo resta lo stesso conto per-giorno
+  // usato nelle viste settimana/mese (vedi barGranularity più sotto).
   const bars =
-    period === 'quarter'
-      ? groupDaysByWeek(days).map((w, i, weeks) => {
-          const weekTotal = minutesForDays(durations, activity.id, w.days).reduce((sum, d) => sum + d.minutes, 0)
+    period === 'year'
+      ? groupDaysByMonth(days).map((m) => {
+          const monthTotal = minutesForDays(durations, activity.id, m.days).reduce((sum, d) => sum + d.minutes, 0)
+          const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
           return {
-            key: toISODate(w.weekStart),
-            label: shouldLabel(i, weeks.length) ? formatShortDate(w.weekStart) : '',
-            value: weekTotal,
+            key: toMonthISO(m.monthStart),
+            label: formatMonthShort(toMonthISO(m.monthStart)),
+            value: monthTotal / elapsedDays,
           }
         })
       : perDay.map((d, i) => ({
@@ -89,7 +102,7 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
             goals={goals}
             itemKey={activity.id}
             monthIso={toMonthISO(days[days.length - 1])}
-            barGranularity={period === 'quarter' ? 'week' : 'day'}
+            barGranularity="day"
             maxValue={maxValue}
             formatValue={(v) => `${minutesToHours(v)}h`}
           />

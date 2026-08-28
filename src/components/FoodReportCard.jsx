@@ -1,4 +1,4 @@
-import { dayLabel, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 
@@ -115,10 +115,12 @@ function ExtraMiniRow({ values, goalBadge }) {
   )
 }
 
-// Trimestre: troppi giorni per una barra a testa, si aggrega per settimana
-// contando quante valutazioni buone/medie/male ci sono state, invece di
-// mostrare il singolo giorno.
-function RatingMiniRowWeekly({ label, weeklyCounts, goalBadge }) {
+// Anno: troppi giorni per una barra a testa, si aggrega per mese contando
+// quante valutazioni buone/medie/male ci sono state, invece di mostrare il
+// singolo giorno. A differenza di Sonno/Sigarette/Uscite, qui non serve una
+// media giornaliera: ogni barra è già una proporzione (quota di buono/medio/
+// male su quel mese), non una somma che un mese più lungo gonfierebbe.
+function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
   return (
     <div className="mini-row">
       <span className="mini-row__label">
@@ -126,7 +128,7 @@ function RatingMiniRowWeekly({ label, weeklyCounts, goalBadge }) {
         {goalBadge}
       </span>
       <div className="mini-row__bars">
-        {weeklyCounts.map((counts, i) => {
+        {groupedCounts.map((counts, i) => {
           const total = counts.good + counts.mid + counts.bad
           return (
             <div key={i} className="mini-row__stack">
@@ -162,7 +164,7 @@ function WeekAxisRow({ days }) {
   )
 }
 
-function ExtraMiniRowWeekly({ weeklyExtra, goalBadge }) {
+function ExtraMiniRowGrouped({ groupedExtra, goalBadge }) {
   return (
     <div className="mini-row">
       <span className="mini-row__label">
@@ -170,7 +172,7 @@ function ExtraMiniRowWeekly({ weeklyExtra, goalBadge }) {
         {goalBadge}
       </span>
       <div className="mini-row__bars">
-        {weeklyExtra.map(({ yes, total }, i) => {
+        {groupedExtra.map(({ yes, total }, i) => {
           const pct = total > 0 ? (yes / total) * 100 : 0
           return (
             <span
@@ -263,21 +265,21 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
     return <GoalBadge goal={goal} target={target} count={count} days={days} values={values} now={now} />
   })()
 
-  if (period === 'quarter') {
-    const weeks = groupDaysByWeek(days)
-    const weeklyRecordsByField = (field) =>
-      weeks.map((w) => {
+  if (period === 'year') {
+    const months = groupDaysByMonth(days)
+    const monthlyRecordsByField = (field) =>
+      months.map((m) => {
         const counts = { good: 0, mid: 0, bad: 0 }
-        for (const d of w.days) {
+        for (const d of m.days) {
           const rec = food.find((f) => f.date === toISODate(d))
           if (rec && rec[field]) counts[rec[field]] += 1
         }
         return counts
       })
-    const weeklyExtra = weeks.map((w) => {
+    const monthlyExtra = months.map((m) => {
       let yes = 0
       let total = 0
-      for (const d of w.days) {
+      for (const d of m.days) {
         const rec = food.find((f) => f.date === toISODate(d))
         if (rec && rec.extra) {
           total += 1
@@ -291,15 +293,20 @@ export default function FoodReportCard({ food, days, prevDays, period, goals, no
       <section className="settings-card">
         <h2 className="settings-card__title">Alimentazione</h2>
         {caption}
-        <RatingMiniRowWeekly label="Colazione" weeklyCounts={weeklyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
-        <RatingMiniRowWeekly label="Pranzo" weeklyCounts={weeklyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
-        <RatingMiniRowWeekly label="Cena" weeklyCounts={weeklyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
-        <RatingMiniRowWeekly label="Alcol" weeklyCounts={weeklyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
-        <RatingMiniRowWeekly label="Dolci" weeklyCounts={weeklyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
-        <ExtraMiniRowWeekly weeklyExtra={weeklyExtra} goalBadge={extraBadge} />
-        <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-          {axisLegend(days)} · una barra per settimana
-        </p>
+        <RatingMiniRowGrouped label="Colazione" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
+        <RatingMiniRowGrouped label="Pranzo" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
+        <RatingMiniRowGrouped label="Cena" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
+        <RatingMiniRowGrouped label="Alcol" groupedCounts={monthlyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
+        <RatingMiniRowGrouped label="Dolci" groupedCounts={monthlyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
+        <ExtraMiniRowGrouped groupedExtra={monthlyExtra} goalBadge={extraBadge} />
+        <div className="mini-row">
+          <span className="mini-row__label" />
+          <div className="mini-row__axis">
+            {months.map((m) => (
+              <span key={toMonthISO(m.monthStart)}>{formatMonthShort(toMonthISO(m.monthStart))}</span>
+            ))}
+          </div>
+        </div>
       </section>
     )
   }

@@ -47,18 +47,17 @@ const SUMMARY_MESSAGES = {
 const PERIODS = [
   { id: 'week', label: 'Settimana' },
   { id: 'month', label: 'Mese' },
-  { id: 'quarter', label: 'Trimestre' },
+  { id: 'year', label: 'Anno' },
 ]
 
-function startOfQuarter(date) {
-  const qMonth = Math.floor(date.getMonth() / 3) * 3
-  return new Date(date.getFullYear(), qMonth, 1)
+function startOfYear(date) {
+  return new Date(date.getFullYear(), 0, 1)
 }
 
 function shiftCursor(period, cursor, direction) {
   if (period === 'week') return addDays(cursor, direction * 7)
   if (period === 'month') return addMonths(cursor, direction)
-  return addMonths(cursor, direction * 3)
+  return new Date(cursor.getFullYear() + direction, 0, 1)
 }
 
 function periodRange(period, cursor) {
@@ -70,8 +69,8 @@ function periodRange(period, cursor) {
     start = startOfMonth(cursor)
     end = startOfMonth(addMonths(cursor, 1))
   } else {
-    start = startOfQuarter(cursor)
-    end = startOfQuarter(addMonths(cursor, 3))
+    start = startOfYear(cursor)
+    end = startOfYear(new Date(cursor.getFullYear() + 1, 0, 1))
   }
   return [start < APP_START_DATE ? APP_START_DATE : start, end]
 }
@@ -89,6 +88,11 @@ function periodDays(period, cursor) {
 
 function periodHeaderLabel(period, cursor) {
   if (period === 'month') return formatMonthLabel(startOfMonth(cursor))
+  if (period === 'year') {
+    const year = startOfYear(cursor).getFullYear()
+    const isCurrentYear = year === new Date().getFullYear()
+    return isCurrentYear ? `Current year · ${year}` : String(year)
+  }
   const [start, end] = periodRange(period, cursor)
   const label = formatDateRange(start, end)
   const isCurrentWeek = period === 'week' && startOfWeek(cursor).getTime() === startOfWeek(new Date()).getTime()
@@ -99,13 +103,13 @@ function isNextDisabled(period, cursor) {
   const next = shiftCursor(period, cursor, 1)
   if (period === 'week') return isFuture(startOfWeek(next))
   if (period === 'month') return isFuture(startOfMonth(next))
-  return isFuture(startOfQuarter(next))
+  return isFuture(startOfYear(next))
 }
 
 function isPrevDisabled(period, cursor) {
   if (period === 'week') return startOfWeek(cursor) <= startOfWeek(APP_START_DATE)
   if (period === 'month') return startOfMonth(cursor) <= startOfMonth(APP_START_DATE)
-  return startOfQuarter(cursor) <= startOfQuarter(APP_START_DATE)
+  return startOfYear(cursor) <= startOfYear(APP_START_DATE)
 }
 
 export default function ReportView({ activities, durations, checklist, outputs, cigarettes, food, diary, goals, onPeriodLabel }) {

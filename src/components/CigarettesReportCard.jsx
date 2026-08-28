@@ -1,4 +1,4 @@
-import { dayLabel, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import GoalLine from './GoalLine'
@@ -53,15 +53,20 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
   const total = tracked.reduce((sum, c) => sum + c.count, 0)
   const avg = tracked.length > 0 ? Math.round(total / tracked.length) : 0
 
-  // Trimestre: troppi giorni per una barra a testa, si aggrega per settimana.
+  // Anno: troppi giorni per una barra a testa, si aggrega per mese --
+  // mostrando la media giornaliera (non il totale del mese, che farebbe
+  // sembrare un mese più lungo "peggiore" solo perché ha più giorni), cosi
+  // il confronto con l'obiettivo resta lo stesso conto per-giorno usato
+  // nelle viste settimana/mese (vedi barGranularity più sotto).
   const bars =
-    period === 'quarter'
-      ? groupDaysByWeek(days).map((w, i, weeks) => {
-          const weekTotal = countsForDays(cigarettes, w.days).reduce((sum, c) => sum + (c.count || 0), 0)
+    period === 'year'
+      ? groupDaysByMonth(days).map((m) => {
+          const monthTotal = countsForDays(cigarettes, m.days).reduce((sum, c) => sum + (c.count || 0), 0)
+          const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
           return {
-            key: toISODate(w.weekStart),
-            label: shouldLabel(i, weeks.length) ? formatShortDate(w.weekStart) : '',
-            value: weekTotal,
+            key: toMonthISO(m.monthStart),
+            label: formatMonthShort(toMonthISO(m.monthStart)),
+            value: monthTotal / elapsedDays,
           }
         })
       : counts.map((c, i) => ({
@@ -78,6 +83,10 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
     0,
   )
   const delta = deltaPct(total, prevTotal)
+  // Year bars are a daily average and can land on a fraction (e.g. 2.3
+  // cigarettes/day) -- week/month bars are always a whole day's raw count,
+  // so they keep the plain integer they always had.
+  const formatAxisValue = (v) => (period === 'year' ? v.toFixed(1) : String(v))
 
   return (
     <section className="settings-card">
@@ -92,13 +101,13 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
         {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
       </p>
       <div className="trend-chart__row">
-        <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
+        <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
         <div className="trend-chart__bars-wrap">
           <GoalLine
             goals={goals}
             itemKey="cigarettes"
             monthIso={toMonthISO(days[days.length - 1])}
-            barGranularity={period === 'quarter' ? 'week' : 'day'}
+            barGranularity="day"
             maxValue={maxValue}
             formatValue={(v) => String(v)}
             direction="lower_is_better"

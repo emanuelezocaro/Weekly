@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { dayLabel, formatFullDate, formatShortDate, groupDaysByWeek, toISODate, toMonthISO } from '../utils/date'
+import { dayLabel, formatFullDate, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
 import { goalForMonth, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { copyOrShareText } from '../utils/shareFile'
@@ -56,15 +56,20 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
   const counts = outputCountsForDays(outputs, days)
   const daysWithOutputs = counts.filter((c) => c.count > 0).length
 
-  // Trimestre: troppi giorni per una barra a testa, si aggrega per settimana.
+  // Anno: troppi giorni per una barra a testa, si aggrega per mese --
+  // mostrando la media giornaliera (non il totale del mese, che farebbe
+  // sembrare un mese più lungo "migliore" solo perché ha più giorni), cosi
+  // il confronto con l'obiettivo resta lo stesso conto per-giorno usato
+  // nelle viste settimana/mese (vedi barGranularity più sotto).
   const bars =
-    period === 'quarter'
-      ? groupDaysByWeek(days).map((w, i, weeks) => {
-          const weekTotal = outputCountsForDays(outputs, w.days).reduce((sum, c) => sum + c.count, 0)
+    period === 'year'
+      ? groupDaysByMonth(days).map((m) => {
+          const monthTotal = outputCountsForDays(outputs, m.days).reduce((sum, c) => sum + c.count, 0)
+          const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
           return {
-            key: toISODate(w.weekStart),
-            label: shouldLabel(i, weeks.length) ? formatShortDate(w.weekStart) : '',
-            value: weekTotal,
+            key: toMonthISO(m.monthStart),
+            label: formatMonthShort(toMonthISO(m.monthStart)),
+            value: monthTotal / elapsedDays,
           }
         })
       : counts.map((c, i) => ({
@@ -83,6 +88,9 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
   )
   const delta = deltaPct(total, prevTotal)
   const grouped = outputsByDay(outputs, days)
+  // Year bars are a daily average and can land on a fraction -- week/month
+  // bars are always a whole day's raw count, so they keep the plain integer.
+  const formatAxisValue = (v) => (period === 'year' ? v.toFixed(1) : String(v))
 
   async function handleCopyList() {
     const result = await copyOrShareText(buildOutputsListText(grouped), 'uscite.txt')
@@ -109,13 +117,13 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
         disabled={grouped.length === 0}
       >
         <div className="trend-chart__row">
-          <TrendChartYAxis maxValue={maxValue} formatValue={(v) => String(v)} />
+          <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
           <div className="trend-chart__bars-wrap">
             <GoalLine
               goals={goals}
               itemKey="outputs"
               monthIso={toMonthISO(days[days.length - 1])}
-              barGranularity={period === 'quarter' ? 'week' : 'day'}
+              barGranularity="day"
               maxValue={maxValue}
               formatValue={(v) => String(v)}
             />

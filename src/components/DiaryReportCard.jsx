@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { dayLabel, formatFullDate, groupDaysByWeek, toISODate } from '../utils/date'
+import { dayLabel, formatFullDate, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { copyOrShareText } from '../utils/shareFile'
 
 // Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
@@ -31,7 +31,7 @@ function buildDiaryListText(grouped) {
   return grouped.map((d) => `${formatFullDate(d.date)}\n${d.text}`).join('\n\n')
 }
 
-// One dot per day (or, for a quarter, one dot per week) -- filled if a note
+// One dot per day (or, for a year, one dot per month) -- filled if a note
 // was written, empty if not. Sits in the same trend-chart__row/yaxis/
 // bars-wrap scaffolding Uscite's bar chart uses (empty yaxis, since there's
 // no number scale here) rather than Alimentazione's mini-row -- otherwise
@@ -70,6 +70,23 @@ function WeekAxisRow({ days }) {
   )
 }
 
+// Same idea for a year view (12 dots): month labels underneath instead of
+// weekday letters.
+function MonthAxisRow({ months }) {
+  return (
+    <div className="trend-chart__row">
+      <div className="mini-row__gutter" />
+      <div className="trend-chart__bars-wrap">
+        <div className="mini-row__axis">
+          {months.map((m) => (
+            <span key={toMonthISO(m.monthStart)}>{formatMonthShort(toMonthISO(m.monthStart))}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Unlike the other Report cards, Diary is never tracked as a goal -- this
 // just says whether a note exists per day, with the same "expand for the
 // dated list, then copy" pattern as Uscite, minus the chart.
@@ -86,17 +103,18 @@ export default function DiaryReportCard({ diary, days, period }) {
     if (result !== 'failed') setTimeout(() => setCopyMessage(''), 2500)
   }
 
-  const dotsRow =
-    period === 'quarter' ? (
-      <DotsRow
-        isOnByKey={groupDaysByWeek(days).map((w) => ({
-          key: toISODate(w.weekStart),
-          isOn: w.days.some((d) => notedIsoSet.has(toISODate(d))),
-        }))}
-      />
-    ) : (
-      <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: notedIsoSet.has(toISODate(d)) }))} />
-    )
+  const months = period === 'year' ? groupDaysByMonth(days) : null
+
+  const dotsRow = months ? (
+    <DotsRow
+      isOnByKey={months.map((m) => ({
+        key: toMonthISO(m.monthStart),
+        isOn: m.days.some((d) => notedIsoSet.has(toISODate(d))),
+      }))}
+    />
+  ) : (
+    <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: notedIsoSet.has(toISODate(d)) }))} />
+  )
 
   return (
     <section className="settings-card">
@@ -105,11 +123,13 @@ export default function DiaryReportCard({ diary, days, period }) {
         {grouped.length}/{days.length} giorni con una nota
       </p>
       {dotsRow}
-      {days.length <= 7 && period !== 'quarter' ? (
+      {months ? (
+        <MonthAxisRow months={months} />
+      ) : days.length <= 7 ? (
         <WeekAxisRow days={days} />
       ) : (
         <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-          {period === 'quarter' ? `${axisLegend(days)} · un pallino per settimana` : axisLegend(days)}
+          {axisLegend(days)}
         </p>
       )}
       <button
