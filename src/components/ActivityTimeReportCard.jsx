@@ -87,9 +87,7 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
           formatDiff={(minutes) => formatDuration(minutes * 60000)}
         />
       </div>
-      <p className="trend-chart__caption">
-        {formatDuration(total * 60000)} in totale · {formatDuration(avg * 60000)}/giorno in media
-      </p>
+      <p className="trend-chart__caption">{formatDuration(avg * 60000)}/giorno in media</p>
       <p className="report-card__delta" style={{ textAlign: 'center' }}>
         {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
       </p>
