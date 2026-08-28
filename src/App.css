@@ -1888,29 +1888,6 @@
   transform: translateX(-100%);
 }
 
-.rating-legend {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  margin: 0 0 8px;
-}
-
-.rating-legend__item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.rating-legend__swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .rating-field {
   display: flex;
   flex-direction: column;

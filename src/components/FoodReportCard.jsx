@@ -215,22 +215,6 @@ function FoodGauge({ value }) {
   )
 }
 
-// Un pallino colorato per fascia, cosi le due righe tratteggiate sotto (e i
-// colori delle barre, ovunque in questa card) si leggono senza dover
-// ricordare a memoria quale colore è quale.
-function ClusterLegend() {
-  return (
-    <div className="rating-legend">
-      {GAUGE_ZONES.map((z) => (
-        <span key={z.key} className="rating-legend__item">
-          <span className="rating-legend__swatch" style={{ background: RATING_COLOR[z.key] }} />
-          {z.label}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 // Solo per la settimana: una barra per giorno con il punteggio 0-12 di quel
 // giorno (non una media), colorata in base alla fascia in cui cade, cosi si
 // vede subito quale giorno ha tirato su o giù la media mostrata nel gauge
@@ -238,30 +222,27 @@ function ClusterLegend() {
 // (senza numeri sull'asse: il gauge sopra li mostra già).
 function FoodDailyChart({ days, records }) {
   return (
-    <>
-      <ClusterLegend />
-      <div className="trend-chart__row">
-        <div className="trend-chart__bars-wrap">
-          <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100}%` }} />
-          <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100}%` }} />
-          <div className="trend-chart__bars">
-            {days.map((d, i) => {
-              const points = dayPoints(records[i])
-              const heightPct = points === null ? 2 : Math.max(2, (points / GAUGE_MAX) * 100)
-              const color = points === null ? 'var(--border)' : RATING_COLOR[clusterFor(points).key]
-              return (
-                <div key={toISODate(d)} className="trend-chart__col">
-                  <span className="trend-chart__bar-track">
-                    <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
-                  </span>
-                  <span className="trend-chart__label">{dayLabel(d)}</span>
-                </div>
-              )
-            })}
-          </div>
+    <div className="trend-chart__row">
+      <div className="trend-chart__bars-wrap">
+        <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[1].upTo / GAUGE_MAX) * 100}%` }} />
+        <div className="goal-line" style={{ bottom: `${(GAUGE_ZONES[0].upTo / GAUGE_MAX) * 100}%` }} />
+        <div className="trend-chart__bars">
+          {days.map((d, i) => {
+            const points = dayPoints(records[i])
+            const heightPct = points === null ? 2 : Math.max(2, (points / GAUGE_MAX) * 100)
+            const color = points === null ? 'var(--border)' : RATING_COLOR[clusterFor(points).key]
+            return (
+              <div key={toISODate(d)} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
+                </span>
+                <span className="trend-chart__label">{dayLabel(d)}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -298,37 +279,34 @@ function categoryCounts(records, key) {
 
 function FoodCategoryChart({ records }) {
   return (
-    <>
-      <ClusterLegend />
-      <div className="trend-chart__row">
-        <div className="trend-chart__bars-wrap">
-          <div className="trend-chart__bars">
-            {CATEGORY_FIELDS.map((f) => {
-              const counts = categoryCounts(records, f.key)
-              const total = counts.good + counts.mid + counts.bad
-              return (
-                <div key={f.key} className="trend-chart__col">
-                  <span className="trend-chart__bar-track">
-                    {total === 0 ? (
-                      <span className="trend-chart__stack">
-                        <span style={{ height: '100%', background: 'var(--border)' }} />
-                      </span>
-                    ) : (
-                      <span className="trend-chart__stack">
-                        <span style={{ height: `${(counts.good / total) * 100}%`, background: RATING_COLOR.good }} />
-                        <span style={{ height: `${(counts.mid / total) * 100}%`, background: RATING_COLOR.mid }} />
-                        <span style={{ height: `${(counts.bad / total) * 100}%`, background: RATING_COLOR.bad }} />
-                      </span>
-                    )}
-                  </span>
-                  <span className="trend-chart__label">{f.label}</span>
-                </div>
-              )
-            })}
-          </div>
+    <div className="trend-chart__row">
+      <div className="trend-chart__bars-wrap">
+        <div className="trend-chart__bars">
+          {CATEGORY_FIELDS.map((f) => {
+            const counts = categoryCounts(records, f.key)
+            const total = counts.good + counts.mid + counts.bad
+            return (
+              <div key={f.key} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  {total === 0 ? (
+                    <span className="trend-chart__stack">
+                      <span style={{ height: '100%', background: 'var(--border)' }} />
+                    </span>
+                  ) : (
+                    <span className="trend-chart__stack">
+                      <span style={{ height: `${(counts.good / total) * 100}%`, background: RATING_COLOR.good }} />
+                      <span style={{ height: `${(counts.mid / total) * 100}%`, background: RATING_COLOR.mid }} />
+                      <span style={{ height: `${(counts.bad / total) * 100}%`, background: RATING_COLOR.bad }} />
+                    </span>
+                  )}
+                </span>
+                <span className="trend-chart__label">{f.label}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
