@@ -31,18 +31,18 @@ function perDayRate(goal) {
   return goal.period === 'day' ? goal.value : goal.value / 7
 }
 
-// Days from today through the end of this week that don't have a value yet
-// for `field` -- a day already rated (good or not) has used its one slot,
-// so it's not a chance to still catch up, unlike a day that's still blank.
-function openDaysThisWeek(records, field, now) {
+// Days from today through the end of this week that don't have an entry yet
+// (per `hasEntry`) -- a day already logged has used its one slot, so it's
+// not a chance to still catch up, unlike a day that's still blank. Shared by
+// every "at most one per day" goal (Food ratings, checklist activities).
+function openDaysThisWeek(now, hasEntry) {
   const todayIso = toISODate(now)
   const weekStart = startOfWeek(now)
   let count = 0
   for (let i = 0; i < 7; i++) {
     const dayIso = toISODate(addDays(weekStart, i))
     if (dayIso < todayIso) continue
-    const rec = records.find((r) => r.date === dayIso)
-    if (!rec || !rec[field]) count += 1
+    if (!hasEntry(dayIso)) count += 1
   }
   return count
 }
@@ -183,6 +183,10 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
         elapsedDaysThisWeek,
         fallbackDirection: 'higher_is_better',
         formatDiff: formatCount,
+        // Al massimo una spunta al giorno: se i giorni ancora aperti questa
+        // settimana non bastano a colmare quanto manca, è già persa, non più
+        // "da recuperare" (vedi commento su buildItem più sotto).
+        remainingCapacity: openDaysThisWeek(now, (dayIso) => checklist.some((c) => c.activityId === activity.id && c.date === dayIso)),
       })
     } else {
       const actualMinutes = durations
@@ -245,7 +249,10 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
       elapsedDaysThisWeek,
       fallbackDirection: 'higher_is_better',
       formatDiff: formatCount,
-      remainingCapacity: openDaysThisWeek(food, field.key, now),
+      remainingCapacity: openDaysThisWeek(now, (dayIso) => {
+        const rec = food.find((f) => f.date === dayIso)
+        return !!(rec && rec[field.key])
+      }),
       alwaysFullWeekTarget: true,
     })
   }
@@ -262,7 +269,10 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
       elapsedDaysThisWeek,
       fallbackDirection: 'higher_is_better',
       formatDiff: formatCount,
-      remainingCapacity: openDaysThisWeek(food, 'extra', now),
+      remainingCapacity: openDaysThisWeek(now, (dayIso) => {
+        const rec = food.find((f) => f.date === dayIso)
+        return !!(rec && rec.extra)
+      }),
       alwaysFullWeekTarget: true,
     })
   }
