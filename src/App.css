@@ -281,36 +281,30 @@
   color: var(--accent-strong);
 }
 
-/* Folder-tab pattern (reference: real file-folder tabs) -- the point
-   isn't the slanted edges, it's that the SELECTED tab is visually
-   coherent with the panel beneath it (same background, same rounded-
-   corner language as every card in this app -- var(--radius-lg) -- no
-   border between them) while the rest sit shorter/muted, visibly not
-   part of that panel. Rounded top corners here, matching the panel's own
-   corners below, not a separate decorative shape. */
+/* Minimal icon nav -- no per-tab background or border, just a colored
+   underline that grows under whichever tab is active (see .top-nav__tab
+   ::after below). A single hairline under the whole row separates it from
+   the content, instead of each tab carrying its own boxed background. */
 .top-nav {
   display: flex;
-  align-items: flex-end;
-  gap: 5px;
   margin: 10px 16px 0;
+  padding: 6px 4px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .top-nav__tab {
   flex: 1;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 5px;
   border: none;
-  background: var(--surface-2);
+  background: none;
+  padding: 6px 4px 10px;
   color: var(--text-muted);
-  opacity: 0.75;
-  padding: 8px 4px;
-  margin-top: 8px;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease, margin-top 0.15s ease, padding-top 0.15s ease;
+  position: relative;
+  transition: color 0.15s ease;
 }
 
 .top-nav__tab svg {
@@ -320,22 +314,34 @@
 }
 
 .top-nav__tab span {
-  font-size: 13.5px;
+  font-size: 11px;
   font-weight: 700;
   transition: color 0.15s ease;
 }
 
 .top-nav__tab.is-active {
-  position: relative;
-  z-index: 2;
+  color: var(--text);
+}
+
+.top-nav__tab.is-active svg {
   color: var(--accent-strong);
-  background: var(--tab-highlight-bg);
-  opacity: 1;
-  margin-top: 0;
-  padding-top: 13px;
-  border: 1px solid var(--border);
-  border-bottom: none;
-  box-shadow: 0 -2px 6px rgba(20, 20, 26, 0.05);
+}
+
+.top-nav__tab::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--accent-strong);
+  transition: width 0.15s ease;
+}
+
+.top-nav__tab.is-active::after {
+  width: 26px;
 }
 
 /* Striscia "Oggi" in cima alla Dash: a differenza delle card sotto (pacing
@@ -412,13 +418,10 @@
 }
 
 /* Segmented control -- the sub-tabs for whichever top-level section is
-   active (Recuperare/Successi/Falliti under Dashboard, and so on). Same
-   --tab-highlight-bg tint as the active folder tab above it (not
-   --surface, which is what the content cards below use -- the whole nav
-   panel needs its own tone so it doesn't blend into them) and flush
-   against it (no gap, no border between them) so the two read as one merged panel that
-   the active tab opens into -- the inactive tabs, in a different shade,
-   are visibly outside this panel instead. */
+   active (Recuperare/Successi/Falliti under Dashboard, and so on). Its own
+   --tab-highlight-bg tint (not --surface, which is what the content cards
+   below use) keeps it visually distinct from those cards, standing as its
+   own floating panel below the top nav rather than blending into them. */
 .segmented-sticky-wrap {
   position: sticky;
   /* --topbar-height (measured in App.jsx) is the real, safe-area-aware
@@ -438,8 +441,7 @@
   padding: 0 10px;
   background: var(--tab-highlight-bg);
   border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
 }
 
