@@ -338,6 +338,79 @@
   box-shadow: 0 -2px 6px rgba(20, 20, 26, 0.05);
 }
 
+/* Striscia "Oggi" in cima alla Dash: a differenza delle card sotto (pacing
+   sulla settimana verso un obiettivo), qui non serve nessun obiettivo --
+   solo il valore di oggi per ogni cosa tracciata, a scorrimento orizzontale
+   cosi non allunga la pagina anche con molte attività. */
+.today-head {
+  margin: 0 0 8px 2px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.today-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.today-row::-webkit-scrollbar {
+  display: none;
+}
+
+.today-tile {
+  flex: 0 0 auto;
+  min-width: 92px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.today-tile__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.today-tile__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.today-tile__value {
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.today-tile__value.is-muted {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.today-tile__sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* Segmented control -- the sub-tabs for whichever top-level section is
    active (Recuperare/Successi/Falliti under Dashboard, and so on). Same
    --tab-highlight-bg tint as the active folder tab above it (not

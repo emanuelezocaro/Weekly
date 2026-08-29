@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { buildDashboardItems } from '../utils/dashboard'
-import { formatFullDate } from '../utils/date'
+import { formatDuration, formatFullDate, toISODate } from '../utils/date'
+import { RATING_COLOR, clusterFor, dayPoints } from '../utils/foodPoints'
+import { colorVar } from '../utils/palette'
 
 const TABS = [
   { id: 'behind', label: 'Recuperare' },
@@ -113,6 +115,89 @@ function MetCard({ item }) {
 
 const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 
+// A tile per tracked thing with today's raw value -- unlike il resto della
+// Dash (pacing sulla settimana verso un obiettivo), qui non serve nessun
+// obiettivo impostato: mostra sempre cosa è stato segnato oggi, o un
+// trattino se ancora niente.
+function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs, food, now }) {
+  const todayIso = toISODate(now)
+  const tiles = []
+
+  for (const activity of activities) {
+    const color = colorVar(activity.colorSlot)
+    if (activity.mode === 'checklist') {
+      const done = checklist.some((c) => c.activityId === activity.id && c.date === todayIso)
+      tiles.push({ key: activity.id, label: activity.name, color, value: done ? '✓ Fatto' : '—', muted: !done })
+    } else {
+      const minutes = durations
+        .filter((d) => d.activityId === activity.id && d.date === todayIso)
+        .reduce((sum, d) => sum + d.minutes, 0)
+      tiles.push({
+        key: activity.id,
+        label: activity.name,
+        color,
+        value: minutes > 0 ? formatDuration(minutes * 60000) : '—',
+        muted: minutes === 0,
+      })
+    }
+  }
+
+  const cigToday = cigarettes.find((c) => c.date === todayIso)
+  tiles.push({
+    key: 'cigarettes',
+    label: 'Sigarette',
+    color: 'var(--series-1)',
+    value: cigToday ? String(cigToday.count) : '—',
+    muted: !cigToday,
+  })
+
+  const outputsToday = outputs.filter((o) => o.date === todayIso).length
+  tiles.push({
+    key: 'outputs',
+    label: 'Uscite',
+    color: 'var(--accent)',
+    value: outputsToday > 0 ? String(outputsToday) : '—',
+    muted: outputsToday === 0,
+  })
+
+  const foodToday = food.find((f) => f.date === todayIso)
+  const points = dayPoints(foodToday)
+  const cluster = points === null ? null : clusterFor(points)
+  tiles.push({
+    key: 'food',
+    label: 'Cibo',
+    color: cluster ? RATING_COLOR[cluster.key] : 'var(--text-muted)',
+    value: points === null ? '—' : String(points),
+    sub: cluster?.label,
+    muted: points === null,
+  })
+
+  return tiles
+}
+
+function TodayStrip({ tiles }) {
+  return (
+    <>
+      <p className="today-head">Oggi</p>
+      <div className="today-row">
+        {tiles.map((t) => (
+          <div key={t.key} className="today-tile">
+            <span className="today-tile__label">
+              <span className="today-tile__dot" style={{ background: t.color }} />
+              {t.label}
+            </span>
+            <span className={`today-tile__value ${t.muted ? 'is-muted' : ''}`} style={t.sub ? { color: t.color } : undefined}>
+              {t.value}
+            </span>
+            {t.sub && <span className="today-tile__sub">{t.sub}</span>}
+          </div>
+        ))}
+      </div>
+      <hr className="report-divider" />
+    </>
+  )
+}
+
 export default function DashboardView({
   activities,
   durations,
@@ -149,9 +234,12 @@ export default function DashboardView({
     return () => onPeriodLabel(null)
   }, [now, onPeriodLabel])
 
+  const todayTiles = buildTodayTiles({ activities, durations, checklist, cigarettes, outputs, food, now })
+
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (
       <div className="view">
+        <TodayStrip tiles={todayTiles} />
         <p className="empty-state">
           Imposta degli obiettivi in Impostazioni per vedere qui il tuo andamento della settimana.
         </p>
@@ -165,6 +253,7 @@ export default function DashboardView({
 
   return (
     <div className="view">
+      <TodayStrip tiles={todayTiles} />
       <div className="segmented-sticky-wrap">
         <div className="segmented">
           {TABS.map((t) => (

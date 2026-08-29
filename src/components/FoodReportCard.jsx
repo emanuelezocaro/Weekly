@@ -1,11 +1,18 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
+import {
+  GAUGE_MAX,
+  GAUGE_ZONES,
+  POINT_VALUE,
+  RATING_COLOR,
+  averageDayPoints,
+  clusterFor,
+  dayPoints,
+} from '../utils/foodPoints'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 import TrendChartYAxis from './TrendChartYAxis'
 
 const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
-const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
 const EXTRA_LABELS = { yes: 'Sì', no: 'No' }
-const RATING_FIELDS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci']
 const FOOD_GOAL_KEYS = {
   colazione: 'food_colazione',
   pranzo: 'food_pranzo',
@@ -127,59 +134,6 @@ function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
       </div>
     </div>
   )
-}
-
-// Sistema a punti per "come sto andando" a colpo d'occhio, senza bisogno di
-// un obiettivo: buono = 2 punti, medio = 1, male = 0 (extra: no = 2 -- averlo
-// evitato è il risultato buono --, sì = 0). Un giorno con tutte e 6 le
-// valutazioni "buono" vale 12, tutte "male" vale 0. La card mostra la media
-// del periodo su questa scala 0-12, e in quale delle tre fasce cade: male
-// 0-4, medio 5-8, buono 9-12.
-const POINT_VALUE = { bad: 0, mid: 1, good: 2 }
-const GAUGE_MAX = 12
-const GAUGE_ZONES = [
-  { key: 'bad', label: 'Male', upTo: 4 },
-  { key: 'mid', label: 'Medio', upTo: 9 },
-  { key: 'good', label: 'Buono', upTo: GAUGE_MAX },
-]
-
-function dayPoints(record) {
-  if (!record) return null
-  let sum = 0
-  let rated = false
-  for (const field of RATING_FIELDS) {
-    if (record[field]) {
-      sum += POINT_VALUE[record[field]]
-      rated = true
-    }
-  }
-  if (record.extra) {
-    sum += record.extra === 'no' ? 2 : 0
-    rated = true
-  }
-  return rated ? sum : null
-}
-
-// Media solo sui giorni con almeno una valutazione, come per Sonno/Sigarette
-// -- un giorno senza dati non abbassa la media, semplicemente non conta.
-function averageDayPoints(records) {
-  let total = 0
-  let trackedDays = 0
-  for (const r of records) {
-    const p = dayPoints(r)
-    if (p === null) continue
-    total += p
-    trackedDays += 1
-  }
-  return trackedDays > 0 ? total / trackedDays : null
-}
-
-// Male fino a 1/3 della scala, buono da 3/4 in su, medio la fascia in mezzo
-// -- stessi confini proporzionali del gauge (4 e 9 su una scala 0-12).
-function clusterFor(value, max = GAUGE_MAX) {
-  if (value <= max * (4 / 12)) return GAUGE_ZONES[0]
-  if (value < max * (9 / 12)) return GAUGE_ZONES[1]
-  return GAUGE_ZONES[2]
 }
 
 function FoodGauge({ value }) {
