@@ -168,6 +168,7 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
     label: 'Cibo',
     color: cluster ? RATING_COLOR[cluster.key] : 'var(--text-muted)',
     value: points === null ? '—' : String(points),
+    unit: points === null ? null : '/ 12 punti',
     sub: cluster?.label,
     muted: points === null,
   })
@@ -188,6 +189,7 @@ function TodayStrip({ tiles }) {
             </span>
             <span className={`today-tile__value ${t.muted ? 'is-muted' : ''}`} style={t.sub ? { color: t.color } : undefined}>
               {t.value}
+              {t.unit && <span className="today-tile__unit"> {t.unit}</span>}
             </span>
             {t.sub && <span className="today-tile__sub">{t.sub}</span>}
           </div>

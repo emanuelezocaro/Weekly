@@ -340,8 +340,9 @@
 
 /* Striscia "Oggi" in cima alla Dash: a differenza delle card sotto (pacing
    sulla settimana verso un obiettivo), qui non serve nessun obiettivo --
-   solo il valore di oggi per ogni cosa tracciata, a scorrimento orizzontale
-   cosi non allunga la pagina anche con molte attività. */
+   solo il valore di oggi per ogni cosa tracciata. Griglia fissa a 4 colonne
+   (invece di uno scorrimento orizzontale) cosi tutte le card si vedono
+   subito senza scrollare, e ognuna è alta solo quanto il suo contenuto. */
 .today-head {
   margin: 0 0 8px 2px;
   font-size: 15px;
@@ -349,64 +350,69 @@
 }
 
 .today-row {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 2px 2px 4px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   margin-bottom: 4px;
-  scrollbar-width: none;
-}
-
-.today-row::-webkit-scrollbar {
-  display: none;
 }
 
 .today-tile {
-  flex: 0 0 auto;
-  min-width: 92px;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
-  padding: 10px 12px;
+  padding: 6px 7px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .today-tile__label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 4px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .today-tile__dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .today-tile__value {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 800;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .today-tile__value.is-muted {
   color: var(--text-muted);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
+}
+
+/* Alimentazione: il punteggio resta grande come le altre card, l'unità
+   "/ 12 punti" accanto è più piccola invece di ingrandire tutta la card. */
+.today-tile__unit {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 .today-tile__sub {
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 600;
   color: var(--text-muted);
 }
