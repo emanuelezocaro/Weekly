@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TopNav from './components/TopNav'
 import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
@@ -7,30 +7,11 @@ import SettingsView from './components/SettingsView'
 import { useHabitData } from './hooks/useHabitData'
 import './App.css'
 
-/* The page now scrolls naturally (see App.css/index.css), with the top nav
+/* The page scrolls naturally (see App.css/index.css), with the top nav
    pinned via position: sticky instead of living outside a fixed-height
-   scroll container. Each view's own segmented tab strip is also sticky,
-   and needs to stop right below the topbar rather than underneath it --
-   but the topbar's height isn't a fixed number (it grows with
-   env(safe-area-inset-top), which varies by device, and now also shrinks
-   on scroll-down as the nav itself collapses away -- see
-   useHideTopbarOnScroll below -- while the period label stays put), so
-   it's measured directly and exposed as --topbar-height for that sticky
-   offset to use instead of a guessed constant. */
-function useTopbarHeightVar(topbarRef) {
-  useLayoutEffect(() => {
-    const el = topbarRef.current
-    if (!el) return
-    const root = document.documentElement
-    const setTopbarHeight = () => {
-      root.style.setProperty('--topbar-height', `${el.getBoundingClientRect().height}px`)
-    }
-    setTopbarHeight()
-    const observer = new ResizeObserver(setTopbarHeight)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [topbarRef])
-}
+   scroll container. Each view's own segmented tab strip scrolls away with
+   the rest of the content -- it isn't pinned, so it doesn't need to know
+   the topbar's height the way a sticky element under it would. */
 
 /* Collapses the top nav out of the way while scrolling down (reclaiming
    its space for content), and brings it right back on any upward scroll --
@@ -97,8 +78,6 @@ function SkipIcon({ direction }) {
 }
 
 function App() {
-  const topbarRef = useRef(null)
-  useTopbarHeightVar(topbarRef)
   const topbarHidden = useHideTopbarOnScroll()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
@@ -133,7 +112,7 @@ function App() {
 
   return (
     <div className="app">
-      <div className="app-topbar" ref={topbarRef}>
+      <div className="app-topbar">
         <div className={`app-topbar__inner ${topbarHidden ? 'app-topbar__inner--hidden' : ''}`}>
           <TopNav active={tab} onChange={setTab} />
         </div>

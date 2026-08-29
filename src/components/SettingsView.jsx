@@ -161,7 +161,7 @@ export default function SettingsView({
 
   return (
     <div className="view">
-      <div className="segmented-sticky-wrap">
+      <div className="segmented-wrap">
         <div className="segmented">
           {SETTINGS_TABS.map((t) => (
             <button

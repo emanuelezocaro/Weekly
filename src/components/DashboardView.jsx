@@ -255,7 +255,7 @@ export default function DashboardView({
   return (
     <div className="view">
       <TodayStrip tiles={todayTiles} />
-      <div className="segmented-sticky-wrap">
+      <div className="segmented-wrap">
         <div className="segmented">
           {TABS.map((t) => (
             <button

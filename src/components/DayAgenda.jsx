@@ -257,7 +257,7 @@ export default function DayAgenda({
 
   return (
     <div className="panel" {...swipeHandlers}>
-      <div className="segmented-sticky-wrap">
+      <div className="segmented-wrap">
         <div className="segmented">
           {DAY_TABS.map((t) => (
             <button

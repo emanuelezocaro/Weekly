@@ -152,7 +152,7 @@ export default function ReportView({ activities, durations, checklist, outputs, 
 
   return (
     <div className="view" {...swipeHandlers}>
-      <div className="segmented-sticky-wrap">
+      <div className="segmented-wrap">
         <div className="segmented">
           {PERIODS.map((p) => (
             <button
