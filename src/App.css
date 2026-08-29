@@ -411,12 +411,6 @@
   color: var(--text-muted);
 }
 
-.today-tile__sub {
-  font-size: 9.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
 /* Segmented control -- the sub-tabs for whichever top-level section is
    active (Recuperare/Successi/Falliti under Dashboard, and so on). Same
    --tab-highlight-bg tint as the active folder tab above it (not
