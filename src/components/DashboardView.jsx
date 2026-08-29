@@ -146,7 +146,7 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
   tiles.push({
     key: 'cigarettes',
     label: 'Sigarette',
-    color: 'var(--series-1)',
+    color: 'var(--series-6)',
     value: cigToday ? String(cigToday.count) : '—',
     muted: !cigToday,
   })
