@@ -272,11 +272,11 @@ function FoodMonthlyChart({ months, food }) {
 // giorni in cui quella categoria è stata segnata: un giorno mai segnato
 // (es. prima di aver iniziato a tracciare) non entra nel calcolo.
 const CATEGORY_FIELDS = [
-  { key: 'colazione', label: 'Colazione' },
-  { key: 'pranzo', label: 'Pranzo' },
-  { key: 'cena', label: 'Cena' },
-  { key: 'alcol', label: 'Alcol' },
-  { key: 'dolci', label: 'Dolci' },
+  { key: 'colazione', label: 'Breakfast' },
+  { key: 'pranzo', label: 'Lunch' },
+  { key: 'cena', label: 'Dinner' },
+  { key: 'alcol', label: 'Alcohol' },
+  { key: 'dolci', label: 'Sweets' },
   { key: 'extra', label: 'Extra' },
 ]
 const CATEGORY_MAX = 2
@@ -394,25 +394,25 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
     const rec = records[0]
     return (
       <section className="settings-card">
-        <h2 className="settings-card__title">Alimentazione</h2>
+        <h2 className="settings-card__title">Food</h2>
         {!rec ? (
           <p className="trend-chart__caption">Nessun dato per questo giorno</p>
         ) : (
           <>
             <p className="field-readout">
-              Colazione: <strong>{RATING_LABELS[rec.colazione] ?? '—'}</strong>
+              Breakfast: <strong>{RATING_LABELS[rec.colazione] ?? '—'}</strong>
             </p>
             <p className="field-readout">
-              Pranzo: <strong>{RATING_LABELS[rec.pranzo] ?? '—'}</strong>
+              Lunch: <strong>{RATING_LABELS[rec.pranzo] ?? '—'}</strong>
             </p>
             <p className="field-readout">
-              Cena: <strong>{RATING_LABELS[rec.cena] ?? '—'}</strong>
+              Dinner: <strong>{RATING_LABELS[rec.cena] ?? '—'}</strong>
             </p>
             <p className="field-readout">
-              Alcol: <strong>{RATING_LABELS[rec.alcol] ?? '—'}</strong>
+              Alcohol: <strong>{RATING_LABELS[rec.alcol] ?? '—'}</strong>
             </p>
             <p className="field-readout">
-              Dolci: <strong>{RATING_LABELS[rec.dolci] ?? '—'}</strong>
+              Sweets: <strong>{RATING_LABELS[rec.dolci] ?? '—'}</strong>
             </p>
             <p className="field-readout">
               Extra: <strong>{EXTRA_LABELS[rec.extra] ?? '—'}</strong>
@@ -466,16 +466,16 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
     })
     return (
       <section className="settings-card">
-        <h2 className="settings-card__title">Alimentazione</h2>
+        <h2 className="settings-card__title">Food</h2>
         <FoodGauge value={gaugeValue} />
         <p className="trend-chart__caption">Media punti di ogni mese (0-12)</p>
         <FoodMonthlyChart months={months} food={food} />
         <hr className="report-divider" />
-        <RatingMiniRowGrouped label="Colazione" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
-        <RatingMiniRowGrouped label="Pranzo" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
-        <RatingMiniRowGrouped label="Cena" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
-        <RatingMiniRowGrouped label="Alcol" groupedCounts={monthlyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
-        <RatingMiniRowGrouped label="Dolci" groupedCounts={monthlyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
+        <RatingMiniRowGrouped label="Breakfast" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
+        <RatingMiniRowGrouped label="Lunch" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
+        <RatingMiniRowGrouped label="Dinner" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
+        <RatingMiniRowGrouped label="Alcohol" groupedCounts={monthlyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
+        <RatingMiniRowGrouped label="Sweets" groupedCounts={monthlyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
         <ExtraMiniRowGrouped groupedExtra={monthlyExtra} goalBadge={extraBadge} />
         <div className="mini-row">
           <span className="mini-row__label" />
@@ -494,7 +494,7 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
 
   return (
     <section className="settings-card">
-      <h2 className="settings-card__title">Alimentazione</h2>
+      <h2 className="settings-card__title">Food</h2>
       <FoodGauge value={gaugeValue} />
       {(period === 'week' || period === 'month') && (
         <>
@@ -503,11 +503,11 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
         </>
       )}
       <hr className="report-divider" />
-      <RatingMiniRow label="Colazione" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
-      <RatingMiniRow label="Pranzo" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
-      <RatingMiniRow label="Cena" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
-      <RatingMiniRow label="Alcol" values={records.map((r) => r?.alcol ?? null)} goalBadge={fieldBadge('alcol')} />
-      <RatingMiniRow label="Dolci" values={records.map((r) => r?.dolci ?? null)} goalBadge={fieldBadge('dolci')} />
+      <RatingMiniRow label="Breakfast" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
+      <RatingMiniRow label="Lunch" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
+      <RatingMiniRow label="Dinner" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
+      <RatingMiniRow label="Alcohol" values={records.map((r) => r?.alcol ?? null)} goalBadge={fieldBadge('alcol')} />
+      <RatingMiniRow label="Sweets" values={records.map((r) => r?.dolci ?? null)} goalBadge={fieldBadge('dolci')} />
       <ExtraMiniRow values={records.map((r) => r?.extra ?? null)} goalBadge={extraBadge} />
       {days.length <= 7 ? (
         <WeekAxisRow days={days} />
