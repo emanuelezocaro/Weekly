@@ -11,8 +11,8 @@ import {
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
 import TrendChartYAxis from './TrendChartYAxis'
 
-const RATING_LABELS = { bad: 'Male', mid: 'Medio', good: 'Buono' }
-const EXTRA_LABELS = { yes: 'Sì', no: 'No' }
+const RATING_LABELS = { bad: 'Bad', mid: 'Medium', good: 'Good' }
+const EXTRA_LABELS = { yes: 'Yes', no: 'No' }
 const FOOD_GOAL_KEYS = {
   colazione: 'food_colazione',
   pranzo: 'food_pranzo',
@@ -183,10 +183,10 @@ function PointZoneBackground() {
       <div className="goal-zone goal-zone--mid" style={{ bottom: `${BAD_BOUNDARY_PCT}%`, top: `${100 - MID_BOUNDARY_PCT}%` }} />
       <div className="goal-zone goal-zone--good" style={{ bottom: `${MID_BOUNDARY_PCT}%`, top: 0 }} />
       <div className="goal-line" style={{ bottom: `${MID_BOUNDARY_PCT}%` }}>
-        <span className="goal-line__tag">Buono</span>
+        <span className="goal-line__tag">Good</span>
       </div>
       <div className="goal-line" style={{ bottom: `${BAD_BOUNDARY_PCT}%` }}>
-        <span className="goal-line__tag">Medio</span>
+        <span className="goal-line__tag">Medium</span>
       </div>
     </>
   )
@@ -317,10 +317,10 @@ function FoodCategoryChart({ records }) {
             <div key={t} className="food-hbars__gridline" style={{ left: `${(t / CATEGORY_WEEK_MAX) * 100}%` }} />
           ))}
           <div className="food-hbars__vline" style={{ left: `${BAD_BOUNDARY_PCT}%` }}>
-            <span className="food-hbars__vline-tag">Medio</span>
+            <span className="food-hbars__vline-tag">Medium</span>
           </div>
           <div className="food-hbars__vline" style={{ left: `${MID_BOUNDARY_PCT}%` }}>
-            <span className="food-hbars__vline-tag">Buono</span>
+            <span className="food-hbars__vline-tag">Good</span>
           </div>
           {CATEGORY_FIELDS.map((f) => {
             const avg = categoryAverage(records, f.key)

@@ -8,9 +8,9 @@ export const POINT_VALUE = { bad: 0, mid: 1, good: 2 }
 export const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
 export const GAUGE_MAX = 12
 export const GAUGE_ZONES = [
-  { key: 'bad', label: 'Male', upTo: 4 },
-  { key: 'mid', label: 'Medio', upTo: 9 },
-  { key: 'good', label: 'Buono', upTo: GAUGE_MAX },
+  { key: 'bad', label: 'Bad', upTo: 4 },
+  { key: 'mid', label: 'Medium', upTo: 9 },
+  { key: 'good', label: 'Good', upTo: GAUGE_MAX },
 ]
 
 export function dayPoints(record) {

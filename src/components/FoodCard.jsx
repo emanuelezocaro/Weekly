@@ -1,11 +1,11 @@
 const RATING_OPTIONS = [
-  { value: 'bad', label: 'Male', cls: 'sel-bad' },
-  { value: 'mid', label: 'Medio', cls: 'sel-mid' },
-  { value: 'good', label: 'Buono', cls: 'sel-good' },
+  { value: 'bad', label: 'Bad', cls: 'sel-bad' },
+  { value: 'mid', label: 'Medium', cls: 'sel-mid' },
+  { value: 'good', label: 'Good', cls: 'sel-good' },
 ]
 
 const EXTRA_OPTIONS = [
-  { value: 'yes', label: 'Sì', cls: 'sel-yes' },
+  { value: 'yes', label: 'Yes', cls: 'sel-yes' },
   { value: 'no', label: 'No', cls: 'sel-no' },
 ]
 
@@ -41,37 +41,37 @@ export default function FoodCard({ food, onChange, locked }) {
   } = food || {}
   return (
     <section className="settings-card">
-      <h2 className="settings-card__title">Alimentazione</h2>
+      <h2 className="settings-card__title">Food</h2>
       <RatingRow
-        label="Colazione"
+        label="Breakfast"
         value={colazione}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('colazione', v)}
         locked={locked}
       />
       <RatingRow
-        label="Pranzo"
+        label="Lunch"
         value={pranzo}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('pranzo', v)}
         locked={locked}
       />
       <RatingRow
-        label="Cena"
+        label="Dinner"
         value={cena}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('cena', v)}
         locked={locked}
       />
       <RatingRow
-        label="Alcol"
+        label="Alcohol"
         value={alcol}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('alcol', v)}
         locked={locked}
       />
       <RatingRow
-        label="Dolci"
+        label="Sweets"
         value={dolci}
         options={RATING_OPTIONS}
         onChange={(v) => onChange('dolci', v)}
@@ -84,7 +84,7 @@ export default function FoodCard({ food, onChange, locked }) {
         onChange={(v) => onChange('extra', v)}
         locked={locked}
       />
-      {locked && <p className="settings-card__hint">Non più modificabile.</p>}
+      {locked && <p className="settings-card__hint">No longer editable.</p>}
     </section>
   )
 }
