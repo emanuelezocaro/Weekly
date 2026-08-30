@@ -878,8 +878,12 @@
   flex-shrink: 0;
 }
 
+/* Negative top margin claws back most of .settings-card's 10px flex gap
+   above this -- the caption right above it is a single short line, so that
+   full gap read as a wide gap between two lines of text that belong
+   together, not a separator between distinct sections of the card. */
 .report-card__delta {
-  margin: 6px 0 0;
+  margin: -7px 0 0;
   font-size: 11.5px;
   color: var(--text-muted);
 }
