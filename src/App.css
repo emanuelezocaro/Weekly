@@ -1098,12 +1098,16 @@
   color: var(--text-muted);
 }
 
+/* A fixed-size dot doesn't need the 30px of vertical room a variable-height
+   bar does (see .mini-row__bars) -- that height was mostly empty space
+   around an 8px circle, making Lavoro/Diary's cards look disproportionately
+   tall next to the bar-chart cards around them for how little they show. */
 .mini-row__dots {
   flex: 1;
   display: flex;
   align-items: center;
   gap: 3px;
-  height: 30px;
+  height: 16px;
 }
 
 .mini-row__dots > span {
