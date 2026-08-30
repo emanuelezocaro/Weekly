@@ -97,10 +97,12 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
         <h2 className="settings-card__title">Sigarette</h2>
         <GoalTrendIndicator goal={goal} actual={total} target={target} fallbackDirection="lower_is_better" />
       </div>
-      <p className="trend-chart__caption">{avg}/giorno</p>
-      <p className="report-card__delta" style={{ textAlign: 'center' }}>
-        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-      </p>
+      <div className="report-card__count">
+        <p className="trend-chart__caption">{avg}/giorno</p>
+        <p className="report-card__delta" style={{ textAlign: 'center' }}>
+          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
+        </p>
+      </div>
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
         <div className="trend-chart__bars-wrap">

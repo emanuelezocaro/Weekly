@@ -878,12 +878,24 @@
   flex-shrink: 0;
 }
 
-/* Negative top margin claws back most of .settings-card's 10px flex gap
-   above this -- the caption right above it is a single short line, so that
-   full gap read as a wide gap between two lines of text that belong
-   together, not a separator between distinct sections of the card. */
+/* Wraps the bold count line (.trend-chart__caption) and this delta line as
+   one tight unit, with its own small gap instead of .settings-card's wider
+   10px flex gap between them -- the two lines belong together (one caption,
+   one comparison of it), not two separate sections of the card. Overriding
+   .trend-chart__caption's own margin only inside this wrapper leaves its
+   default spacing untouched everywhere else it's used standalone. */
+.report-card__count {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.report-card__count .trend-chart__caption {
+  margin: 0;
+}
+
 .report-card__delta {
-  margin: -7px 0 0;
+  margin: 0;
   font-size: 11.5px;
   color: var(--text-muted);
 }

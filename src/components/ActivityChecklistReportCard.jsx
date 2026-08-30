@@ -86,12 +86,14 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
         <h2 className="settings-card__title">{activity.name}</h2>
         <GoalTrendIndicator goal={goal} actual={doneCount} target={target} />
       </div>
-      <p className="trend-chart__caption">
-        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
-      </p>
-      <p className="report-card__delta" style={{ textAlign: 'center' }}>
-        {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-      </p>
+      <div className="report-card__count">
+        <p className="trend-chart__caption">
+          {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
+        </p>
+        <p className="report-card__delta" style={{ textAlign: 'center' }}>
+          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
+        </p>
+      </div>
       {period === 'year' ? (
         <YearBars activity={activity} days={days} doneSet={doneSet} goals={goals} color={color} />
       ) : (
