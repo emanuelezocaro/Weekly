@@ -45,9 +45,9 @@ const SUMMARY_MESSAGES = {
 }
 
 const PERIODS = [
-  { id: 'week', label: 'Settimana' },
-  { id: 'month', label: 'Mese' },
-  { id: 'year', label: 'Anno' },
+  { id: 'week', label: 'Week' },
+  { id: 'month', label: 'Month' },
+  { id: 'year', label: 'Year' },
 ]
 
 function startOfYear(date) {

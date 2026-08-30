@@ -101,7 +101,7 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
   return (
     <section className="settings-card">
       <div className="settings-card__title-row">
-        <h2 className="settings-card__title">Uscite</h2>
+        <h2 className="settings-card__title">Exit</h2>
         <GoalTrendIndicator goal={goal} actual={total} target={target} />
       </div>
       <p className="trend-chart__caption">

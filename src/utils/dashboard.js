@@ -3,11 +3,11 @@ import { goalDirection, goalForMonth, isGoalMet, isGoalTracked } from './goals'
 import { colorVar } from './palette'
 
 const FOOD_FIELDS = [
-  { key: 'colazione', label: 'Colazione buona', goalKey: 'food_colazione' },
-  { key: 'pranzo', label: 'Pranzo buono', goalKey: 'food_pranzo' },
-  { key: 'cena', label: 'Cena buona', goalKey: 'food_cena' },
-  { key: 'alcol', label: 'Alcol buono', goalKey: 'food_alcol' },
-  { key: 'dolci', label: 'Dolci buono', goalKey: 'food_dolci' },
+  { key: 'colazione', label: 'Good breakfast', goalKey: 'food_colazione' },
+  { key: 'pranzo', label: 'Good lunch', goalKey: 'food_pranzo' },
+  { key: 'cena', label: 'Good dinner', goalKey: 'food_cena' },
+  { key: 'alcol', label: 'Good alcohol', goalKey: 'food_alcol' },
+  { key: 'dolci', label: 'Good sweets', goalKey: 'food_dolci' },
 ]
 
 // The Dashboard is a weekly compass: every item, whether its goal is set
@@ -211,7 +211,7 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
     const actual = cigarettes.filter((c) => isoWeekDays.has(c.date)).reduce((sum, c) => sum + c.count, 0)
     pushItem({
       key: 'cigarettes',
-      label: 'Sigarette',
+      label: 'Cigarettes',
       swatchColor: 'var(--series-1)',
       goal: cigGoal,
       actual,
@@ -226,7 +226,7 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
     const actual = outputs.filter((o) => isoWeekDays.has(o.date)).length
     pushItem({
       key: 'outputs',
-      label: 'Uscite',
+      label: 'Exit',
       swatchColor: 'var(--accent)',
       goal: outputsGoal,
       actual,
@@ -262,7 +262,7 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
     const actual = food.filter((f) => isoWeekDays.has(f.date) && f.extra === 'no').length
     pushItem({
       key: 'food_extra',
-      label: 'Extra evitato',
+      label: 'Extra avoided',
       swatchColor: 'var(--series-2)',
       goal: extraGoal,
       actual,

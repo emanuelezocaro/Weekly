@@ -145,7 +145,7 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
   const cigToday = cigarettes.find((c) => c.date === todayIso)
   tiles.push({
     key: 'cigarettes',
-    label: 'Sigarette',
+    label: 'Cigarettes',
     color: 'var(--series-6)',
     value: cigToday ? String(cigToday.count) : '—',
     muted: !cigToday,
@@ -154,7 +154,7 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
   const outputsToday = outputs.filter((o) => o.date === todayIso).length
   tiles.push({
     key: 'outputs',
-    label: 'Uscite',
+    label: 'Exit',
     color: 'var(--accent)',
     value: outputsToday > 0 ? String(outputsToday) : '—',
     muted: outputsToday === 0,
@@ -165,10 +165,10 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
   const cluster = points === null ? null : clusterFor(points)
   tiles.push({
     key: 'food',
-    label: 'Cibo',
+    label: 'Food',
     color: cluster ? RATING_COLOR[cluster.key] : 'var(--text-muted)',
     value: points === null ? '—' : String(points),
-    unit: points === null ? null : '/ 12 punti',
+    unit: points === null ? null : '/ 12 points',
     colorValue: points !== null,
     muted: points === null,
   })
@@ -179,7 +179,7 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
 function TodayStrip({ tiles }) {
   return (
     <>
-      <p className="today-head">Oggi</p>
+      <p className="today-head">Today</p>
       <div className="today-row">
         {tiles.map((t) => (
           <div key={t.key} className="today-tile">
