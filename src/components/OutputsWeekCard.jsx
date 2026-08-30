@@ -104,14 +104,16 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
         <h2 className="settings-card__title">Uscite</h2>
         <GoalTrendIndicator goal={goal} actual={total} target={target} />
       </div>
-      <div className="report-card__count">
-        <p className="trend-chart__caption">
-          {daysWithOutputs}/{days.length} giorni con almeno un'uscita
-        </p>
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-        </p>
-      </div>
+      <p className="trend-chart__caption">
+        {daysWithOutputs}/{days.length} giorni con almeno un'uscita
+        {delta !== null && (
+          <span className="report-card__delta">
+            {' '}
+            ({delta > 0 ? '+' : ''}
+            {delta}%)
+          </span>
+        )}
+      </p>
       <button
         type="button"
         className="trend-chart__toggle"

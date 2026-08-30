@@ -6,11 +6,6 @@ import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
-// A regular space collapses to zero height when it's a block element's only
-// content -- this reserves the delta row's height even with nothing to say,
-// so swiping between periods doesn't shift the chart below it.
-const NBSP = String.fromCharCode(160)
-
 // Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
 // each weekday for a week, otherwise just the date range (too many days to
 // label individually).
@@ -86,14 +81,16 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
         <h2 className="settings-card__title">{activity.name}</h2>
         <GoalTrendIndicator goal={goal} actual={doneCount} target={target} />
       </div>
-      <div className="report-card__count">
-        <p className="trend-chart__caption">
-          {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
-        </p>
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-        </p>
-      </div>
+      <p className="trend-chart__caption">
+        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
+        {delta !== null && (
+          <span className="report-card__delta">
+            {' '}
+            ({delta > 0 ? '+' : ''}
+            {delta}%)
+          </span>
+        )}
+      </p>
       {period === 'year' ? (
         <YearBars activity={activity} days={days} doneSet={doneSet} goals={goals} color={color} />
       ) : (

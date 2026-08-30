@@ -878,25 +878,12 @@
   flex-shrink: 0;
 }
 
-/* Wraps the bold count line (.trend-chart__caption) and this delta line as
-   one tight unit, with its own small gap instead of .settings-card's wider
-   10px flex gap between them -- the two lines belong together (one caption,
-   one comparison of it), not two separate sections of the card. Overriding
-   .trend-chart__caption's own margin only inside this wrapper leaves its
-   default spacing untouched everywhere else it's used standalone. */
-.report-card__count {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.report-card__count .trend-chart__caption {
-  margin: 0;
-}
-
+/* Inline right after the caption text ("5h 40m/giorno (-39%)") instead of
+   its own line below -- the comparison to the previous period is short
+   enough to just be a parenthetical, not a whole separate row. */
 .report-card__delta {
-  margin: 0;
-  font-size: 11.5px;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted);
 }
 

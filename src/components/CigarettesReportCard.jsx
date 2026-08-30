@@ -5,11 +5,6 @@ import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
-// A regular space collapses to zero height when it's a block element's only
-// content -- this reserves the delta row's height even with nothing to say,
-// so swiping between periods doesn't shift the chart below it.
-const NBSP = String.fromCharCode(160)
-
 // Sparse x-axis labels: every day for a week, every ~5th (plus first/last) for
 // a month — mirrors ActivityTrendChart's axis logic.
 function shouldLabel(index, total) {
@@ -97,12 +92,16 @@ export default function CigarettesReportCard({ cigarettes, days, prevDays, perio
         <h2 className="settings-card__title">Sigarette</h2>
         <GoalTrendIndicator goal={goal} actual={total} target={target} fallbackDirection="lower_is_better" />
       </div>
-      <div className="report-card__count">
-        <p className="trend-chart__caption">{avg}/giorno</p>
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-        </p>
-      </div>
+      <p className="trend-chart__caption">
+        {avg}/giorno
+        {delta !== null && (
+          <span className="report-card__delta">
+            {' '}
+            ({delta > 0 ? '+' : ''}
+            {delta}%)
+          </span>
+        )}
+      </p>
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
         <div className="trend-chart__bars-wrap">

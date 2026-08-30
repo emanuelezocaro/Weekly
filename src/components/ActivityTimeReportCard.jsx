@@ -6,11 +6,6 @@ import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
-// A regular space collapses to zero height when it's a block element's only
-// content -- this reserves the delta row's height even with nothing to say,
-// so swiping between periods doesn't shift the chart below it.
-const NBSP = String.fromCharCode(160)
-
 function shouldLabel(index, total) {
   if (total <= 7) return true
   if (index === 0 || index === total - 1) return true
@@ -87,12 +82,16 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
           formatDiff={(minutes) => formatDuration(minutes * 60000)}
         />
       </div>
-      <div className="report-card__count">
-        <p className="trend-chart__caption">{formatDuration(avg * 60000)}/giorno</p>
-        <p className="report-card__delta" style={{ textAlign: 'center' }}>
-          {delta !== null ? `${delta > 0 ? '+' : ''}${delta}% rispetto al periodo precedente` : NBSP}
-        </p>
-      </div>
+      <p className="trend-chart__caption">
+        {formatDuration(avg * 60000)}/giorno
+        {delta !== null && (
+          <span className="report-card__delta">
+            {' '}
+            ({delta > 0 ? '+' : ''}
+            {delta}%)
+          </span>
+        )}
+      </p>
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={(v) => formatDuration(v * 60000)} />
         <div className="trend-chart__bars-wrap">
