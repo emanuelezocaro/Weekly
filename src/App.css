@@ -1909,32 +1909,9 @@
   box-shadow: 0 0 0 2px var(--surface);
 }
 
-.chip-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  border-radius: 999px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.chip:disabled,
 .rating-seg button:disabled {
   cursor: default;
   opacity: 0.5;
-}
-
-.chip.is-selected {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
 }
 
 .field-readout {

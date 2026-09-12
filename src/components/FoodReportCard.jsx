@@ -193,7 +193,7 @@ function PointZoneBackground() {
 }
 
 // Settimana e mese: sparse labels sotto le barre oltre i 7 giorni, stessa
-// logica di CigarettesReportCard (solo primo/ultimo/ogni 5° in un mese,
+// logica di ActivityRatingReportCard (solo primo/ultimo/ogni 5° in un mese,
 // altrimenti si accavallano).
 function shouldLabelDay(index, total) {
   if (total <= 7) return true

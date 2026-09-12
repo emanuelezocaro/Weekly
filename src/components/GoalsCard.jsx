@@ -193,14 +193,6 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
         ),
       )}
       <CountGoalRow
-        itemKey="cigarettes"
-        label="Sigarette"
-        withDirection
-        defaultDirection="lower_is_better"
-        goal={goalForMonth(goals, 'cigarettes', monthIso)}
-        onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-      />
-      <CountGoalRow
         itemKey="outputs"
         label="Uscite"
         withDirection

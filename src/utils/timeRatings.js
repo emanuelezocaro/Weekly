@@ -1,15 +1,16 @@
-// Rating-mode activities (Sleep, Put off, Work) are logged the same way
-// Food is: a single Bad/Medium/Good tap per day, no numbers. The thresholds
-// below exist to (a) label each button with what it means -- no separate
-// legend line, the hint sits inside the button itself -- and (b) migrate old
-// hour logs into this scale (see the reconciliation effect in
-// useHabitData.js).
-export const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
-
-// Each activity's zones list its thresholds in ascending-minutes order;
-// `upTo` is that zone's inclusive upper bound (Infinity for the last one).
-// `hint` is the short text shown inside that zone's button and used to
-// build the Report's legend line.
+// Rating-mode activities (Sleep, Put off, Work, Cigarettes) are logged the
+// same way Food is: a single Bad/Medium/Good tap per day, no numbers. The
+// thresholds below exist to (a) label each button with what it means -- no
+// separate legend line, the hint sits inside the button itself -- and (b)
+// migrate old logs (hours for Sleep/Put off/Work, a daily count for
+// Cigarettes) into this scale (see the reconciliation effect in
+// useHabitData.js). The matching logic doesn't care what unit `upTo` is in
+// -- minutes for the time-tracked ones, a plain count for Cigarettes -- it's
+// just "which zone does this raw number fall into" either way.
+// Each activity's zones list its thresholds in ascending order; `upTo` is
+// that zone's inclusive upper bound (Infinity for the last one). `hint` is
+// the short text shown inside that zone's button and used to build the
+// Report's legend line.
 const THRESHOLDS = {
   Sleep: [
     { value: 'bad', upTo: 360, hint: 'up to 6h' },
@@ -26,6 +27,11 @@ const THRESHOLDS = {
     { value: 'mid', upTo: 240, hint: '1h-4h' },
     { value: 'good', upTo: Infinity, hint: 'over 4h' },
   ],
+  Cigarettes: [
+    { value: 'good', upTo: 4, hint: 'under 5' },
+    { value: 'mid', upTo: 15, hint: '5-15' },
+    { value: 'bad', upTo: Infinity, hint: 'over 15' },
+  ],
 }
 
 export const RATING_OPTIONS = [
@@ -35,13 +41,13 @@ export const RATING_OPTIONS = [
 ]
 
 // Only activities in THRESHOLDS have known boundaries -- any other one
-// switched to rating mode has no way to derive a rating from old minutes
+// switched to rating mode has no way to derive a rating from its old logs
 // (nor a hint to show on its buttons), so its history just starts blank.
-export function ratingForMinutes(activityName, minutes) {
+export function ratingForValue(activityName, value) {
   const zones = THRESHOLDS[activityName]
   if (!zones) return null
   for (const zone of zones) {
-    if (minutes <= zone.upTo) return zone.value
+    if (value <= zone.upTo) return zone.value
   }
   return zones[zones.length - 1].value
 }

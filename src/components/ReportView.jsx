@@ -17,7 +17,6 @@ import ActivityTimeReportCard from './ActivityTimeReportCard'
 import ActivityChecklistReportCard from './ActivityChecklistReportCard'
 import ActivityRatingReportCard from './ActivityRatingReportCard'
 import OutputsWeekCard from './OutputsWeekCard'
-import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
 
 // Fixed reading order for the per-activity report cards, chosen by hand
@@ -112,7 +111,7 @@ function isPrevDisabled(period, cursor) {
   return startOfYear(cursor) <= startOfYear(APP_START_DATE)
 }
 
-export default function ReportView({ activities, durations, checklist, outputs, cigarettes, food, ratings, goals, onPeriodLabel }) {
+export default function ReportView({ activities, durations, checklist, outputs, food, ratings, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
@@ -140,7 +139,7 @@ export default function ReportView({ activities, durations, checklist, outputs, 
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const ctx = { activities, durations, checklist, outputs, cigarettes, food, ratings, goals }
+    const ctx = { activities, durations, checklist, outputs, food, ratings, goals }
     const text =
       period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
     const filename =
@@ -221,7 +220,6 @@ export default function ReportView({ activities, durations, checklist, outputs, 
         <hr className="report-divider" />
 
         <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
-        <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
         <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
       </>
     </div>

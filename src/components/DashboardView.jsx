@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { buildDashboardItems } from '../utils/dashboard'
 import { formatDuration, formatFullDate, toISODate } from '../utils/date'
 import { RATING_COLOR, clusterFor, dayPoints } from '../utils/foodPoints'
-import { RATING_COLOR as TIME_RATING_COLOR } from '../utils/timeRatings'
 import { colorVar } from '../utils/palette'
 
 const TABS = [
@@ -122,7 +121,7 @@ const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 // trattino se ancora niente.
 const TIME_RATING_LABELS = { bad: 'Bad', mid: 'Medium', good: 'Good' }
 
-function buildTodayTiles({ activities, durations, checklist, ratings, cigarettes, outputs, food, now }) {
+function buildTodayTiles({ activities, durations, checklist, ratings, outputs, food, now }) {
   const todayIso = toISODate(now)
   const tiles = []
 
@@ -136,7 +135,7 @@ function buildTodayTiles({ activities, durations, checklist, ratings, cigarettes
       tiles.push({
         key: activity.id,
         label: activity.name,
-        color: today ? TIME_RATING_COLOR[today.value] : color,
+        color: today ? RATING_COLOR[today.value] : color,
         value: today ? TIME_RATING_LABELS[today.value] : '—',
         colorValue: !!today,
         muted: !today,
@@ -154,15 +153,6 @@ function buildTodayTiles({ activities, durations, checklist, ratings, cigarettes
       })
     }
   }
-
-  const cigToday = cigarettes.find((c) => c.date === todayIso)
-  tiles.push({
-    key: 'cigarettes',
-    label: 'Cigarettes',
-    color: 'var(--series-6)',
-    value: cigToday ? String(cigToday.count) : '—',
-    muted: !cigToday,
-  })
 
   const outputsToday = outputs.filter((o) => o.date === todayIso).length
   tiles.push({
@@ -217,7 +207,6 @@ export default function DashboardView({
   durations,
   checklist,
   ratings,
-  cigarettes,
   outputs,
   food,
   goals,
@@ -236,7 +225,6 @@ export default function DashboardView({
     durations,
     checklist,
     ratings,
-    cigarettes,
     outputs,
     food,
     goals,
@@ -250,7 +238,7 @@ export default function DashboardView({
     return () => onPeriodLabel(null)
   }, [now, onPeriodLabel])
 
-  const todayTiles = buildTodayTiles({ activities, durations, checklist, ratings, cigarettes, outputs, food, now })
+  const todayTiles = buildTodayTiles({ activities, durations, checklist, ratings, outputs, food, now })
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (

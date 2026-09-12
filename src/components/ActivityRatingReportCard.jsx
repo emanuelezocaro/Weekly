@@ -1,17 +1,19 @@
-import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth, goalPerBar, goalTargetForDays } from '../utils/goals'
-import { clipPrevDays, deltaPct } from '../utils/periodDelta'
-import { RATING_COLOR, legendText } from '../utils/timeRatings'
-import GoalLine from './GoalLine'
+import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
+import { POINT_VALUE, RATING_COLOR, clusterFor } from '../utils/foodPoints'
+import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
+import { legendText } from '../utils/timeRatings'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
-// Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
-// each weekday for a week, otherwise just the date range (too many days to
-// label individually).
-function axisLegend(days) {
-  if (days.length <= 7) return days.map((d) => dayLabel(d)).join(' · ')
-  return `${String(days[0].getDate())} – ${String(days[days.length - 1].getDate())}`
+// Rating-mode activities (Sleep, Put off, Work) get the exact same
+// good/medium/bad gauge as Food -- just one field instead of six, so its
+// scale is 0-2 (Male=0, Medio=1, Buono=2) instead of 0-12. clusterFor and
+// the zone boundaries are percentage-based (1/3 and 3/4 of the max), so the
+// same fractions apply regardless of the scale.
+const FIELD_GAUGE_MAX = 2
+
+function pointsFor(value) {
+  return value ? POINT_VALUE[value] : null
 }
 
 function ratingMapFor(ratings, activityId) {
@@ -22,85 +24,109 @@ function ratingMapFor(ratings, activityId) {
   return map
 }
 
-// One dot per day, colored by that day's Bad/Medium/Good tap (or empty if
-// not rated yet) -- same scaffolding as ActivityChecklistReportCard's
-// DotsRow, just 3 colors instead of on/off.
-function DotsRow({ isoValues }) {
-  return (
-    <div className="trend-chart__row">
-      <div className="mini-row__gutter" />
-      <div className="trend-chart__bars-wrap">
-        <div className="mini-row__dots">
-          {isoValues.map(({ key, value }) => (
-            <span key={key} className={value ? 'is-on' : ''} style={{ '--dot-color': value ? RATING_COLOR[value] : undefined }} />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+function averagePoints(values) {
+  let total = 0
+  let tracked = 0
+  for (const v of values) {
+    const p = pointsFor(v)
+    if (p === null) continue
+    total += p
+    tracked += 1
+  }
+  return tracked > 0 ? total / tracked : null
 }
 
-function WeekAxisRow({ days }) {
-  return (
-    <div className="trend-chart__row">
-      <div className="mini-row__gutter" />
-      <div className="trend-chart__bars-wrap">
-        <div className="mini-row__axis">
-          {days.map((d) => (
-            <span key={toISODate(d)}>{dayLabel(d)}</span>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+function axisLegend(days) {
+  if (days.length <= 7) return days.map((d) => dayLabel(d)).join(' · ')
+  return `${String(days[0].getDate())} – ${String(days[days.length - 1].getDate())}`
 }
 
-function formatWeeklyRate(v) {
+function formatScaleValue(v) {
   return Number.isInteger(v) ? String(v) : v.toFixed(1)
 }
 
-// Anno: come ActivityChecklistReportCard, una barra per mese con la media
-// giornaliera di giorni "Good" convertita in "volte a settimana equivalenti"
-// (solo sui giorni già passati, cosi un mese ancora in corso non viene
-// diluito dai giorni futuri) -- stessa unità dell'obiettivo.
-function YearBars({ activity, days, ratingMap, goals, color }) {
-  const bars = groupDaysByMonth(days).map((m) => {
-    const goodInMonth = m.days.filter((d) => ratingMap.get(toISODate(d)) === 'good').length
-    const elapsedDays = Math.max(1, m.days.filter((d) => !isFuture(d)).length)
-    return {
-      key: toMonthISO(m.monthStart),
-      label: formatMonthShort(toMonthISO(m.monthStart)),
-      value: (goodInMonth / elapsedDays) * 7,
-    }
-  })
-  const maxValue = Math.max(1, ...bars.map((b) => b.value))
-
-  const goalForTag = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
-  const weekTarget = goalForTag ? goalPerBar(goalForTag, 'week') : null
-  const tagLabel = weekTarget !== null ? `Obiettivo ${formatWeeklyRate(weekTarget)}/sett` : undefined
+function RatingGauge({ value }) {
+  if (value === null) return <p className="trend-chart__caption">Nessun dato per questo periodo</p>
+  const cluster = clusterFor(value, FIELD_GAUGE_MAX)
+  const pct = Math.min(100, Math.max(0, (value / FIELD_GAUGE_MAX) * 100))
+  const badUpTo = FIELD_GAUGE_MAX * (4 / 12)
+  const midUpTo = FIELD_GAUGE_MAX * (9 / 12)
 
   return (
+    <>
+      <div className="gauge-head">
+        <span className={`gauge-head__value is-${cluster.key}`}>{value.toFixed(1)}</span>
+        <span className="gauge-head__unit">/ {FIELD_GAUGE_MAX} points</span>
+      </div>
+      <p className={`gauge-cluster is-${cluster.key}`}>{cluster.label}</p>
+      <div className="gauge-track">
+        <span className="gauge-zone gauge-zone--bad" style={{ width: `${(badUpTo / FIELD_GAUGE_MAX) * 100}%` }} />
+        <span className="gauge-zone gauge-zone--mid" style={{ width: `${((midUpTo - badUpTo) / FIELD_GAUGE_MAX) * 100}%` }} />
+        <span className="gauge-zone gauge-zone--good" style={{ width: `${((FIELD_GAUGE_MAX - midUpTo) / FIELD_GAUGE_MAX) * 100}%` }} />
+        <span className="gauge-pointer" style={{ left: `${pct}%` }} />
+      </div>
+      <div className="gauge-scale">
+        <span style={{ left: '0%' }}>0</span>
+        <span style={{ left: `${(badUpTo / FIELD_GAUGE_MAX) * 100}%` }}>{formatScaleValue(badUpTo)}</span>
+        <span style={{ left: `${(midUpTo / FIELD_GAUGE_MAX) * 100}%` }}>{formatScaleValue(midUpTo)}</span>
+        <span style={{ left: '100%' }}>{FIELD_GAUGE_MAX}</span>
+      </div>
+    </>
+  )
+}
+
+// Same 3-band background as Food's PointZoneBackground -- expressed in
+// percentages (1/3, 3/4), so it's identical regardless of the field's own
+// max.
+const BAD_BOUNDARY_PCT = (4 / 12) * 100
+const MID_BOUNDARY_PCT = (9 / 12) * 100
+
+function PointZoneBackground() {
+  return (
+    <>
+      <div className="goal-zone goal-zone--bad" style={{ bottom: 0, top: `${100 - BAD_BOUNDARY_PCT}%` }} />
+      <div className="goal-zone goal-zone--mid" style={{ bottom: `${BAD_BOUNDARY_PCT}%`, top: `${100 - MID_BOUNDARY_PCT}%` }} />
+      <div className="goal-zone goal-zone--good" style={{ bottom: `${MID_BOUNDARY_PCT}%`, top: 0 }} />
+      <div className="goal-line" style={{ bottom: `${MID_BOUNDARY_PCT}%` }}>
+        <span className="goal-line__tag">Good</span>
+      </div>
+      <div className="goal-line" style={{ bottom: `${BAD_BOUNDARY_PCT}%` }}>
+        <span className="goal-line__tag">Medium</span>
+      </div>
+    </>
+  )
+}
+
+function shouldLabelDay(index, total) {
+  if (total <= 7) return true
+  if (index === 0 || index === total - 1) return true
+  return index % 5 === 0
+}
+
+function dailyAxisLabel(d, days) {
+  return days.length <= 7 ? dayLabel(d) : String(d.getDate())
+}
+
+// One bar per day with that day's own points (0/1/2), colored by its own
+// zone -- not the period average -- so it's obvious at a glance which day
+// pulled the gauge above up or down.
+function RatingDailyChart({ days, ratingMap }) {
+  return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={maxValue} formatValue={formatWeeklyRate} />
+      <TrendChartYAxis maxValue={FIELD_GAUGE_MAX} formatValue={(v) => `${v}`} />
       <div className="trend-chart__bars-wrap">
-        <GoalLine
-          goals={goals}
-          itemKey={activity.id}
-          monthIso={toMonthISO(days[days.length - 1])}
-          barGranularity="week"
-          maxValue={maxValue}
-          formatValue={(v) => String(v)}
-          tagLabel={tagLabel}
-        />
+        <PointZoneBackground />
         <div className="trend-chart__bars">
-          {bars.map((b) => {
-            const heightPct = Math.max(2, (b.value / maxValue) * 100)
+          {days.map((d, i) => {
+            const points = pointsFor(ratingMap.get(toISODate(d)) ?? null)
+            const heightPct = points === null ? 2 : Math.max(2, (points / FIELD_GAUGE_MAX) * 100)
+            const color = points === null ? 'var(--border)' : RATING_COLOR[clusterFor(points, FIELD_GAUGE_MAX).key]
             return (
-              <div key={b.key} className="trend-chart__col">
+              <div key={toISODate(d)} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
                   <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
                 </span>
-                <span className="trend-chart__label">{b.label}</span>
+                <span className="trend-chart__label">{shouldLabelDay(i, days.length) ? dailyAxisLabel(d, days) : ''}</span>
               </div>
             )
           })}
@@ -110,24 +136,49 @@ function YearBars({ activity, days, ratingMap, goals, color }) {
   )
 }
 
-// Rating-mode activities (Sleep, Put off): a single Bad/Medium/Good tap per
-// day instead of hours, judged the same way a checklist activity is --
-// "how many Good days" against a weekly/daily goal -- just with 3 dot
-// colors instead of on/off.
-export default function ActivityRatingReportCard({ activity, ratings, days, prevDays, period, goals }) {
+// Anno: una barra per mese con la media punti (solo giorni valutati) di
+// quel mese -- stessa scala e stesso sfondo a fasce del grafico giornaliero.
+function RatingMonthlyChart({ months, ratingMap }) {
+  return (
+    <div className="trend-chart__row">
+      <TrendChartYAxis maxValue={FIELD_GAUGE_MAX} formatValue={(v) => `${v}`} />
+      <div className="trend-chart__bars-wrap">
+        <PointZoneBackground />
+        <div className="trend-chart__bars">
+          {months.map((m) => {
+            const values = m.days.map((d) => ratingMap.get(toISODate(d)) ?? null)
+            const avg = averagePoints(values)
+            const heightPct = avg === null ? 2 : Math.max(2, (avg / FIELD_GAUGE_MAX) * 100)
+            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, FIELD_GAUGE_MAX).key]
+            return (
+              <div key={toMonthISO(m.monthStart)} className="trend-chart__col">
+                <span className="trend-chart__bar-track">
+                  <span className="cigarettes-chart__bar" style={{ height: `${heightPct}%`, background: color }} />
+                </span>
+                <span className="trend-chart__label">{formatMonthShort(toMonthISO(m.monthStart))}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Rating-mode activities (Sleep, Put off, Work): a single Bad/Medium/Good
+// tap per day, shown with the exact same gauge + zone-colored chart as
+// Food, on a 0-2 scale (Male=0, Medio=1, Buono=2) instead of Food's 0-12 --
+// plus the "how many Good days" goal Cibo/checklist activities already use.
+export default function ActivityRatingReportCard({ activity, ratings, days, period, goals }) {
   const ratingMap = ratingMapFor(ratings, activity.id)
-  const goodCount = days.filter((d) => ratingMap.get(toISODate(d)) === 'good').length
+  const values = days.map((d) => ratingMap.get(toISODate(d)) ?? null)
+  const goodCount = values.filter((v) => v === 'good').length
   const legend = legendText(activity.name)
 
   const goal = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
 
-  const clippedPrev = clipPrevDays(days, prevDays)
-  const prevGoodCount = clippedPrev.filter((d) => ratingMap.get(toISODate(d)) === 'good').length
-  const delta = deltaPct(goodCount, prevGoodCount)
-
-  const elapsedDaysCount = Math.max(1, days.filter((d) => !isFuture(d)).length)
-  const weeklyRate = (goodCount / elapsedDaysCount) * 7
+  const gaugeValue = averagePoints(values)
 
   return (
     <section className="settings-card">
@@ -135,31 +186,34 @@ export default function ActivityRatingReportCard({ activity, ratings, days, prev
         <h2 className="settings-card__title">{activity.name}</h2>
         <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
       </div>
-      <p className="trend-chart__caption">
-        {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${goodCount}/${days.length} giorni buono`}
-        {delta !== null && (
-          <span className="report-card__delta">
-            {' '}
-            ({delta > 0 ? '+' : ''}
-            {delta}%)
-          </span>
-        )}
-      </p>
+      <RatingGauge value={gaugeValue} />
       {legend && <p className="trend-chart__caption">{legend}</p>}
       {period === 'year' ? (
-        <YearBars activity={activity} days={days} ratingMap={ratingMap} goals={goals} color={RATING_COLOR.good} />
+        <>
+          <p className="trend-chart__caption">Media punti di ogni mese (0-{FIELD_GAUGE_MAX})</p>
+          <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
+        </>
       ) : (
         <>
-          <DotsRow isoValues={days.map((d) => ({ key: toISODate(d), value: ratingMap.get(toISODate(d)) ?? null }))} />
-          {days.length <= 7 ? (
-            <WeekAxisRow days={days} />
-          ) : (
+          <p className="trend-chart__caption">Punteggio di ogni giorno (0-{FIELD_GAUGE_MAX})</p>
+          <RatingDailyChart days={days} ratingMap={ratingMap} />
+          {days.length <= 7 ? null : (
             <p className="trend-chart__caption" style={{ marginTop: 4 }}>
               {axisLegend(days)}
             </p>
           )}
         </>
       )}
+      <p className="trend-chart__caption">
+        {goodCount}/{days.length} giorni buono
+        {goal && target !== null && (
+          <span className="report-card__delta">
+            {' '}
+            (obiettivo {goal.value}/{goal.period === 'day' ? 'giorno' : 'settimana'}:{' '}
+            {isGoalMet(goal, goodCount, Math.round(target)) ? 'raggiunto' : 'non raggiunto'})
+          </span>
+        )}
+      </p>
     </section>
   )
 }

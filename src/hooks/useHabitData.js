@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { closeStaleOpenEntries, resolveAllOverlaps, splitEntriesAtMidnight } from '../utils/entries'
 import { addDays, parseISODate, parseISODateTime, toISODate } from '../utils/date'
-import { ratingForMinutes } from '../utils/timeRatings'
+import { ratingForValue } from '../utils/timeRatings'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -57,10 +57,6 @@ function makeOutputId() {
 
 function makeOutputsSkippedId() {
   return `os_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
-function makeCigaretteId() {
-  return `c_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
 function makeFoodId() {
@@ -144,6 +140,10 @@ export function useHabitData() {
   const [checklistMeta, setChecklistMeta] = useState(() => loadJSON(CHECKLIST_KEY, []))
   const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
   const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
+  // Kept only as a passive historical record now (still exported in
+  // backups, and read once by the rating reconciliation effect above) --
+  // nothing writes to it anymore since Cigarettes became a rating-mode
+  // activity.
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
   const [foodMeta, setFoodMeta] = useState(() => loadJSON(FOOD_KEY, []))
   const [ratingsMeta, setRatingsMeta] = useState(() => loadJSON(RATINGS_KEY, []))
@@ -214,34 +214,44 @@ export function useHabitData() {
   }, [activitiesMeta, checklistMeta])
 
   // Ongoing (not one-time): for every rating-mode activity, fill in a rating
-  // for any day that already has logged minutes but no rating yet -- using
-  // that activity's own thresholds (see ratingForMinutes). Runs on every
-  // load instead of only at the moment the mode switches, so an activity
-  // whose thresholds only become known later (a new one added to
-  // ratingForMinutes after it was already switched) still gets backfilled,
-  // and it's a no-op once every already-logged day has its rating.
+  // for any day that already has an old-style log but no rating yet, using
+  // that activity's own thresholds (see ratingForValue). The source of that
+  // old log differs by activity: Cigarettes was its own daily count
+  // (cigarettesMeta), everything else (Sleep, Put off, Work) was hours
+  // (durationsMeta). Runs on every load instead of only at the moment the
+  // mode switches, so an activity whose thresholds only become known later
+  // still gets backfilled, and it's a no-op once every already-logged day
+  // has its rating.
   useEffect(() => {
     const ratingActivities = activitiesMeta.filter((a) => !a.deleted && a.mode === 'rating')
     if (ratingActivities.length === 0) return
     const nowMs = Date.now()
     const additions = []
     for (const activity of ratingActivities) {
+      const isCigarettes = activity.name.trim().toLowerCase() === 'cigarettes'
       const totalsByDate = new Map()
-      for (const d of durationsMeta) {
-        if (d.deleted || d.activityId !== activity.id) continue
-        totalsByDate.set(d.date, (totalsByDate.get(d.date) || 0) + d.minutes)
+      if (isCigarettes) {
+        for (const c of cigarettesMeta) {
+          if (c.deleted) continue
+          totalsByDate.set(c.date, c.count)
+        }
+      } else {
+        for (const d of durationsMeta) {
+          if (d.deleted || d.activityId !== activity.id) continue
+          totalsByDate.set(d.date, (totalsByDate.get(d.date) || 0) + d.minutes)
+        }
       }
       if (totalsByDate.size === 0) continue
       const already = new Set(ratingsMeta.filter((r) => !r.deleted && r.activityId === activity.id).map((r) => r.date))
-      for (const [date, minutes] of totalsByDate) {
+      for (const [date, rawValue] of totalsByDate) {
         if (already.has(date)) continue
-        const value = ratingForMinutes(activity.name, minutes)
+        const value = ratingForValue(activity.name, rawValue)
         if (!value) continue
         additions.push({ id: makeRatingId(), activityId: activity.id, date, value, updatedAt: nowMs, deleted: false })
       }
     }
     if (additions.length > 0) setRatingsMeta((prev) => [...prev, ...additions])
-  }, [activitiesMeta, durationsMeta, ratingsMeta])
+  }, [activitiesMeta, durationsMeta, cigarettesMeta, ratingsMeta])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const durations = useMemo(() => durationsMeta.filter((d) => !d.deleted), [durationsMeta])
@@ -251,7 +261,6 @@ export function useHabitData() {
     () => outputsSkippedMeta.filter((o) => !o.deleted),
     [outputsSkippedMeta],
   )
-  const cigarettes = useMemo(() => cigarettesMeta.filter((c) => !c.deleted), [cigarettesMeta])
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
   const ratings = useMemo(() => ratingsMeta.filter((r) => !r.deleted), [ratingsMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
@@ -395,19 +404,10 @@ export function useHabitData() {
     )
   }, [])
 
-  // --- Cigarettes (one indicative count per day) ---
-
-  const setCigarettes = useCallback((date, count) => {
-    setCigarettesMeta((prev) => {
-      const idx = prev.findIndex((c) => !c.deleted && c.date === date)
-      if (idx === -1) {
-        return [...prev, { id: makeCigaretteId(), date, count, updatedAt: Date.now(), deleted: false }]
-      }
-      const next = [...prev]
-      next[idx] = { ...next[idx], count, updatedAt: Date.now() }
-      return next
-    })
-  }, [])
+  // Note: cigarettesMeta itself (the old daily-count feature) is kept as a
+  // passive historical record only -- nothing writes to it anymore, see the
+  // reconciliation effect above, which reads it once to seed Cigarettes'
+  // ratings and otherwise leaves it alone.
 
   // --- Food (per-day Pasti/Alcol/Dolci/Extra ratings) ---
 
@@ -542,8 +542,6 @@ export function useHabitData() {
     outputsSkipped,
     confirmNoOutputs,
     undoNoOutputs,
-    cigarettes,
-    setCigarettes,
     food,
     setFoodField,
     ratings,

@@ -2,26 +2,24 @@ import { useEffect, useState } from 'react'
 import { addDays, APP_START_DATE, endOfDay, formatDuration, formatFullDate, isFuture, isSameDay, toISODate } from '../utils/date'
 import { useSwipeNav } from '../hooks/useSwipeNav'
 import { colorVar } from '../utils/palette'
-import CigarettesCard from './CigarettesCard'
 import FoodCard from './FoodCard'
 import { RATING_OPTIONS, thresholdHint } from '../utils/timeRatings'
 
 const DAY_TABS = [
   { id: 'calendar', label: 'Act' },
   { id: 'outputs', label: 'Exit' },
-  { id: 'cigarettes', label: 'Cig' },
   { id: 'food', label: 'Food' },
 ]
 
 const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
 
 // A day that's "done" is locked 48h after it ends, so old history can't be
-// edited by accident. What counts as "done" depends on the tab: a record for
-// Sigarette, all fields for Cibo, at least one output (or a confirmed
-// "niente") for Uscite. Attività has no such notion anymore -- logging a
-// duration or ticking a checklist item is never "complete" or "incomplete",
-// so that tab is never locked on its own; the shared unlock button below
-// still applies to whichever OTHER tab is locked for that day.
+// edited by accident. What counts as "done" depends on the tab: all fields
+// for Cibo, at least one output (or a confirmed "niente") for Uscite.
+// Attività has no such notion -- logging a duration, ticking a checklist
+// item, or tapping a rating is never "complete" or "incomplete", so that
+// tab is never locked on its own; the shared unlock button below still
+// applies to whichever OTHER tab is locked for that day.
 const LOCK_AFTER_MS = 48 * 60 * 60 * 1000
 
 function isDayLocked(isToday, complete, cursor, now) {
@@ -214,7 +212,6 @@ export default function DayAgenda({
   checklist,
   outputs,
   outputsSkipped,
-  cigarettes,
   food,
   ratings,
   onAddDuration,
@@ -224,7 +221,6 @@ export default function DayAgenda({
   onRemoveOutput,
   onConfirmNoOutputs,
   onUndoNoOutputs,
-  onSetCigarettes,
   onSetFoodField,
   onSetRating,
   onPeriodLabel,
@@ -266,13 +262,11 @@ export default function DayAgenda({
   const dayRatingByActivity = new Map(ratings.filter((r) => r.date === dayIso).map((r) => [r.activityId, r.value]))
   const dayOutputs = outputs.filter((o) => o.date === dayIso)
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
-  const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
   const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now) && !forceUnlock
-  const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now) && !forceUnlock
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
-  const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || cigarettesLocked || foodLocked)
+  const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || foodLocked)
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
@@ -280,7 +274,6 @@ export default function DayAgenda({
   // missing-data notion anymore -- there's no full day to account for.
   const missingByTab = {
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
-    cigarettes: isToday && !dayCigaretteRecord,
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
   }
 
@@ -319,14 +312,6 @@ export default function DayAgenda({
             onConfirmNoOutputs={() => onConfirmNoOutputs(dayIso)}
             onUndoNoOutputs={() => onUndoNoOutputs(dayIso)}
             locked={outputsLocked}
-          />
-        )}
-
-        {activeTab === 'cigarettes' && (
-          <CigarettesCard
-            count={dayCigaretteRecord ? dayCigaretteRecord.count : null}
-            onSet={(count) => onSetCigarettes(dayIso, count)}
-            locked={cigarettesLocked}
           />
         )}
 

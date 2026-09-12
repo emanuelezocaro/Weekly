@@ -98,8 +98,6 @@ function App() {
     outputsSkipped,
     confirmNoOutputs,
     undoNoOutputs,
-    cigarettes,
-    setCigarettes,
     food,
     setFoodField,
     ratings,
@@ -136,7 +134,6 @@ function App() {
             activities={activities}
             durations={durations}
             checklist={checklist}
-            cigarettes={cigarettes}
             outputs={outputs}
             food={food}
             ratings={ratings}
@@ -151,7 +148,6 @@ function App() {
             checklist={checklist}
             outputs={outputs}
             outputsSkipped={outputsSkipped}
-            cigarettes={cigarettes}
             food={food}
             ratings={ratings}
             onAddDuration={addDuration}
@@ -161,7 +157,6 @@ function App() {
             onRemoveOutput={removeOutput}
             onConfirmNoOutputs={confirmNoOutputs}
             onUndoNoOutputs={undoNoOutputs}
-            onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
             onSetRating={setRating}
             onPeriodLabel={setPeriodLabel}
@@ -173,7 +168,6 @@ function App() {
             durations={durations}
             checklist={checklist}
             outputs={outputs}
-            cigarettes={cigarettes}
             food={food}
             ratings={ratings}
             goals={goals}
