@@ -4,6 +4,7 @@ import { useSwipeNav } from '../hooks/useSwipeNav'
 import { colorVar } from '../utils/palette'
 import CigarettesCard from './CigarettesCard'
 import FoodCard from './FoodCard'
+import { RATING_OPTIONS, legendText } from '../utils/timeRatings'
 
 const DAY_TABS = [
   { id: 'calendar', label: 'Act' },
@@ -98,6 +99,35 @@ function ChecklistActivityRow({ activity, done, onToggle }) {
   )
 }
 
+// A single Bad/Medium/Good tap per day -- same input shape as Food's rating
+// buttons, just one field instead of six. The legend (only known for Sleep
+// and Put off) spells out what each label means, since there's no number
+// entry here to make it obvious.
+function RatingActivityRow({ activity, value, onSet }) {
+  const legend = legendText(activity.name)
+  return (
+    <div className="day-activity-row">
+      <div className="day-activity-row__header">
+        <span className="day-activity-row__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+        <span className="day-activity-row__name">{activity.name}</span>
+      </div>
+      <div className="rating-seg">
+        {RATING_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
+            onClick={() => onSet(opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      {legend && <p className="settings-card__hint">{legend}</p>}
+    </div>
+  )
+}
+
 function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs, locked }) {
   const [text, setText] = useState('')
 
@@ -183,6 +213,7 @@ export default function DayAgenda({
   outputsSkipped,
   cigarettes,
   food,
+  ratings,
   onAddDuration,
   onRemoveDuration,
   onToggleChecklist,
@@ -192,6 +223,7 @@ export default function DayAgenda({
   onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
+  onSetRating,
   onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
@@ -228,6 +260,7 @@ export default function DayAgenda({
   const dayIso = toISODate(cursor)
   const dayDurations = durations.filter((d) => d.date === dayIso)
   const dayChecklistDone = new Set(checklist.filter((c) => c.date === dayIso).map((c) => c.activityId))
+  const dayRatingByActivity = new Map(ratings.filter((r) => r.date === dayIso).map((r) => [r.activityId, r.value]))
   const dayOutputs = outputs.filter((o) => o.date === dayIso)
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
@@ -314,6 +347,13 @@ export default function DayAgenda({
                     activity={a}
                     done={dayChecklistDone.has(a.id)}
                     onToggle={() => onToggleChecklist(a.id, dayIso)}
+                  />
+                ) : a.mode === 'rating' ? (
+                  <RatingActivityRow
+                    key={a.id}
+                    activity={a}
+                    value={dayRatingByActivity.get(a.id) ?? null}
+                    onSet={(value) => onSetRating(a.id, dayIso, value)}
                   />
                 ) : (
                   <DurationActivityRow

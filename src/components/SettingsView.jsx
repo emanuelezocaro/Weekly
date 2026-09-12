@@ -8,10 +8,13 @@ import GoalsCard from './GoalsCard'
 const MODE_OPTIONS = [
   { id: 'time', label: 'A tempo' },
   { id: 'checklist', label: 'Checklist' },
+  { id: 'rating', label: 'Bad/Medio/Buono' },
 ]
 
 function modeLabel(mode) {
-  return mode === 'checklist' ? 'Checklist' : 'A tempo'
+  if (mode === 'checklist') return 'Checklist'
+  if (mode === 'rating') return 'Bad/Medio/Buono'
+  return 'A tempo'
 }
 
 function ModeSelect({ value, onChange }) {

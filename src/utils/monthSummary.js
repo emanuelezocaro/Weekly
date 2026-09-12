@@ -38,7 +38,7 @@ function goalPeriodLabel(goal) {
 
 // Lines for a single week within the month, one topic per line -- so
 // nothing is summed across weeks.
-function weekSummaryLines(weekDays, { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }) {
+function weekSummaryLines(weekDays, { activities, durations, checklist, outputs, cigarettes, food, ratings, goals, monthIso }) {
   const lines = []
   const weekIsoDates = weekDays.map(toISODate)
 
@@ -56,6 +56,20 @@ function weekSummaryLines(weekDays, { activities, durations, checklist, outputs,
         note = ` (obiettivo ${goal.value}/${goalPeriodLabel(goal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
       }
       lines.push(`- ${activity.name}: ${doneCount}/${weekDays.length} giorni fatti${note}`)
+    } else if (activity.mode === 'rating') {
+      const goodCount = weekIsoDates.filter((iso) =>
+        ratings.some((r) => r.activityId === activity.id && r.date === iso && r.value === 'good'),
+      ).length
+      const ratedCount = weekIsoDates.filter((iso) => ratings.some((r) => r.activityId === activity.id && r.date === iso)).length
+      if (ratedCount === 0) continue
+      const goal = goalForMonth(goals, activity.id, monthIso)
+      let note = ''
+      if (goal) {
+        const weeklyTarget = Math.round(goalPerBar(goal, 'week'))
+        const met = isGoalMet(goal, goodCount, weeklyTarget)
+        note = ` (obiettivo ${goal.value}/${goalPeriodLabel(goal)}: ${met ? 'raggiunto' : 'non raggiunto'})`
+      }
+      lines.push(`- ${activity.name}: ${goodCount}/${weekDays.length} giorni buono${note}`)
     } else {
       const totalMinutes = weekIsoDates.reduce(
         (sum, iso) =>
@@ -146,10 +160,10 @@ function weekSummaryLines(weekDays, { activities, durations, checklist, outputs,
 // Same per-week breakdown as one week inside buildMonthSummaryText, but
 // standalone -- for when you want just that one week's summary, not the
 // whole month it falls in.
-export function buildWeekSummaryText(weekStart, { activities, durations, checklist, outputs, cigarettes, food, goals }) {
+export function buildWeekSummaryText(weekStart, { activities, durations, checklist, outputs, cigarettes, food, ratings, goals }) {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const monthIso = toMonthISO(weekDays[weekDays.length - 1])
-  const ctx = { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }
+  const ctx = { activities, durations, checklist, outputs, cigarettes, food, ratings, goals, monthIso }
   const label = formatDateRange(weekStart, addDays(weekStart, 7))
 
   const lines = [`Riepilogo settimana ${label}`, '']
@@ -159,11 +173,11 @@ export function buildWeekSummaryText(weekStart, { activities, durations, checkli
   return lines.join('\n').trimEnd()
 }
 
-export function buildMonthSummaryText(monthDate, { activities, durations, checklist, outputs, cigarettes, food, goals }) {
+export function buildMonthSummaryText(monthDate, { activities, durations, checklist, outputs, cigarettes, food, ratings, goals }) {
   const days = monthDays(monthDate)
   const monthIso = toMonthISO(monthDate)
   const weeks = groupDaysByWeek(days)
-  const ctx = { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }
+  const ctx = { activities, durations, checklist, outputs, cigarettes, food, ratings, goals, monthIso }
 
   const lines = [`Riepilogo ${formatMonthLabel(monthDate)}`, '']
 

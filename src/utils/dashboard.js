@@ -157,7 +157,7 @@ const roundMinutes = (n) => Math.round(n)
 // period against its full target with no notion of "so far"), this always
 // compares the week's cumulative total against a target scaled to how much
 // of the week has elapsed.
-export function buildDashboardItems({ activities, durations, checklist, cigarettes, outputs, food, goals, now = new Date() }) {
+export function buildDashboardItems({ activities, durations, checklist, ratings, cigarettes, outputs, food, goals, now = new Date() }) {
   const monthIso = toMonthISO(now)
   const items = []
   const weekDays = daysSoFarThisWeek(now)
@@ -187,6 +187,22 @@ export function buildDashboardItems({ activities, durations, checklist, cigarett
         // settimana non bastano a colmare quanto manca, è già persa, non più
         // "da recuperare" (vedi commento su buildItem più sotto).
         remainingCapacity: openDaysThisWeek(now, (dayIso) => checklist.some((c) => c.activityId === activity.id && c.date === dayIso)),
+      })
+    } else if (activity.mode === 'rating') {
+      const actual = ratings.filter((r) => r.activityId === activity.id && r.value === 'good' && isoWeekDays.has(r.date)).length
+      pushItem({
+        key: activity.id,
+        label: activity.name,
+        swatchColor: colorVar(activity.colorSlot),
+        goal,
+        actual,
+        elapsedDaysThisWeek,
+        fallbackDirection: 'higher_is_better',
+        formatDiff: formatCount,
+        // Al massimo una valutazione al giorno, stessa logica delle attività
+        // a checklist qui sopra: solo i giorni ancora senza un tap contano
+        // come possibilità di recupero.
+        remainingCapacity: openDaysThisWeek(now, (dayIso) => ratings.some((r) => r.activityId === activity.id && r.date === dayIso)),
       })
     } else {
       const actualMinutes = durations

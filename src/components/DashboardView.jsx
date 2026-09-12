@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { buildDashboardItems } from '../utils/dashboard'
 import { formatDuration, formatFullDate, toISODate } from '../utils/date'
 import { RATING_COLOR, clusterFor, dayPoints } from '../utils/foodPoints'
+import { RATING_COLOR as TIME_RATING_COLOR } from '../utils/timeRatings'
 import { colorVar } from '../utils/palette'
 
 const TABS = [
@@ -119,7 +120,9 @@ const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 // Dash (pacing sulla settimana verso un obiettivo), qui non serve nessun
 // obiettivo impostato: mostra sempre cosa è stato segnato oggi, o un
 // trattino se ancora niente.
-function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs, food, now }) {
+const TIME_RATING_LABELS = { bad: 'Bad', mid: 'Medium', good: 'Good' }
+
+function buildTodayTiles({ activities, durations, checklist, ratings, cigarettes, outputs, food, now }) {
   const todayIso = toISODate(now)
   const tiles = []
 
@@ -128,6 +131,16 @@ function buildTodayTiles({ activities, durations, checklist, cigarettes, outputs
     if (activity.mode === 'checklist') {
       const done = checklist.some((c) => c.activityId === activity.id && c.date === todayIso)
       tiles.push({ key: activity.id, label: activity.name, color, value: done ? '✓ Fatto' : '—', muted: !done })
+    } else if (activity.mode === 'rating') {
+      const today = ratings.find((r) => r.activityId === activity.id && r.date === todayIso)
+      tiles.push({
+        key: activity.id,
+        label: activity.name,
+        color: today ? TIME_RATING_COLOR[today.value] : color,
+        value: today ? TIME_RATING_LABELS[today.value] : '—',
+        colorValue: !!today,
+        muted: !today,
+      })
     } else {
       const minutes = durations
         .filter((d) => d.activityId === activity.id && d.date === todayIso)
@@ -203,6 +216,7 @@ export default function DashboardView({
   activities,
   durations,
   checklist,
+  ratings,
   cigarettes,
   outputs,
   food,
@@ -221,6 +235,7 @@ export default function DashboardView({
     activities,
     durations,
     checklist,
+    ratings,
     cigarettes,
     outputs,
     food,
@@ -235,7 +250,7 @@ export default function DashboardView({
     return () => onPeriodLabel(null)
   }, [now, onPeriodLabel])
 
-  const todayTiles = buildTodayTiles({ activities, durations, checklist, cigarettes, outputs, food, now })
+  const todayTiles = buildTodayTiles({ activities, durations, checklist, ratings, cigarettes, outputs, food, now })
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (

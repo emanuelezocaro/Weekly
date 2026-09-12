@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { closeStaleOpenEntries, resolveAllOverlaps, splitEntriesAtMidnight } from '../utils/entries'
-import { parseISODateTime } from '../utils/date'
+import { addDays, parseISODate, parseISODateTime, toISODate } from '../utils/date'
+import { ratingForMinutes } from '../utils/timeRatings'
 
 // v2: bumped to reset everyone's local data for the fresh start on 1 luglio.
 const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
@@ -11,11 +12,21 @@ const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
+const RATINGS_KEY = 'weekly:v2:ratingsMeta'
 const GOALS_KEY = 'weekly:v2:goalsMeta'
 // One-time migration marker: once every activity's old time-blocks have been
 // folded into durationsMeta, this stops re-running on every load (which
 // would otherwise re-add the same totals again each time).
 const MIGRATED_FLAG_KEY = 'weekly:v2:migratedToDurations'
+// One-time backfill marker: Diario used to be its own free-text feature
+// (removed) before becoming a plain checklist activity the user adds by
+// hand -- every day from 4 August (when journaling actually started) through
+// yesterday was in fact written, so the very first time a checklist activity
+// named "Diario" exists, those days are backfilled as done instead of
+// starting that history blank. Guarded the same way as MIGRATED_FLAG_KEY so
+// it only ever runs once.
+const DIARIO_BACKFILL_FLAG_KEY = 'weekly:v2:diarioBackfilled'
+const DIARIO_BACKFILL_START = '2026-08-04'
 
 const DEFAULT_ACTIVITIES = []
 
@@ -60,11 +71,20 @@ function makeGoalId() {
   return `g_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
+function makeRatingId() {
+  return `rt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+function normalizeMode(mode) {
+  if (mode === 'checklist' || mode === 'rating') return mode
+  return 'time'
+}
+
 function toPlainActivities(meta) {
   return meta
     .filter((a) => !a.deleted)
     .sort((a, b) => a.order - b.order)
-    .map(({ id, name, colorSlot, mode }) => ({ id, name, colorSlot, mode: mode === 'checklist' ? 'checklist' : 'time' }))
+    .map(({ id, name, colorSlot, mode }) => ({ id, name, colorSlot, mode: normalizeMode(mode) }))
 }
 
 // Sums an entry's start/end (or start/now, if still open) into whole minutes
@@ -126,6 +146,7 @@ export function useHabitData() {
   const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
   const [foodMeta, setFoodMeta] = useState(() => loadJSON(FOOD_KEY, []))
+  const [ratingsMeta, setRatingsMeta] = useState(() => loadJSON(RATINGS_KEY, []))
   const [goalsMeta, setGoalsMeta] = useState(() => loadJSON(GOALS_KEY, []))
 
   useEffect(() => {
@@ -161,8 +182,34 @@ export function useHabitData() {
   }, [foodMeta])
 
   useEffect(() => {
+    localStorage.setItem(RATINGS_KEY, JSON.stringify(ratingsMeta))
+  }, [ratingsMeta])
+
+  useEffect(() => {
     localStorage.setItem(GOALS_KEY, JSON.stringify(goalsMeta))
   }, [goalsMeta])
+
+  // One-time: backfill "Diario" checklist days from 4 August through
+  // yesterday, the moment such an activity exists -- see
+  // DIARIO_BACKFILL_FLAG_KEY above. Runs at most once ever, whenever it
+  // first finds the activity (now or after the user creates it later).
+  useEffect(() => {
+    if (localStorage.getItem(DIARIO_BACKFILL_FLAG_KEY)) return
+    const diario = activitiesMeta.find((a) => !a.deleted && a.name === 'Diario' && a.mode === 'checklist')
+    if (!diario) return
+    const yesterdayIso = toISODate(addDays(new Date(), -1))
+    const already = new Set(checklistMeta.filter((c) => !c.deleted && c.activityId === diario.id).map((c) => c.date))
+    const nowMs = Date.now()
+    const additions = []
+    for (let d = parseISODate(DIARIO_BACKFILL_START); toISODate(d) <= yesterdayIso; d = addDays(d, 1)) {
+      const iso = toISODate(d)
+      if (!already.has(iso)) {
+        additions.push({ id: makeChecklistId(), activityId: diario.id, date: iso, updatedAt: nowMs, deleted: false })
+      }
+    }
+    if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
+    localStorage.setItem(DIARIO_BACKFILL_FLAG_KEY, '1')
+  }, [activitiesMeta, checklistMeta])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const durations = useMemo(() => durationsMeta.filter((d) => !d.deleted), [durationsMeta])
@@ -174,6 +221,7 @@ export function useHabitData() {
   )
   const cigarettes = useMemo(() => cigarettesMeta.filter((c) => !c.deleted), [cigarettesMeta])
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
+  const ratings = useMemo(() => ratingsMeta.filter((r) => !r.deleted), [ratingsMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
 
   // --- Activities ---
@@ -189,7 +237,7 @@ export function useHabitData() {
           id: makeActivityId(),
           name: trimmed,
           colorSlot,
-          mode: mode === 'checklist' ? 'checklist' : 'time',
+          mode: normalizeMode(mode),
           order: maxOrder + 1,
           updatedAt: Date.now(),
           deleted: false,
@@ -215,29 +263,51 @@ export function useHabitData() {
 
   // Switching an activity to checklist mode retroactively turns every day it
   // already has tracked minutes for into a "done" checklist day, so its
-  // history in the new dot report doesn't start from a blank slate. Going
-  // the other way (checklist -> orario) has no such conversion -- there's no
-  // duration to recover from a plain yes/no, so those days just stay at 0.
+  // history in the new dot report doesn't start from a blank slate. Switching
+  // to rating mode does the same, but into a Bad/Medium/Good per day instead
+  // of a plain done -- using that activity's own thresholds (see
+  // ratingForMinutes), so Sleep/Put off's July-September hour logs show up
+  // rated instead of starting blank. Going to plain "a tempo" has no such
+  // conversion either way -- there's no duration to recover from a yes/no or
+  // a rating, so those days just stay at 0.
   const setActivityMode = useCallback(
     (id, mode) => {
-      const nextMode = mode === 'checklist' ? 'checklist' : 'time'
+      const nextMode = normalizeMode(mode)
+      const activityName = activitiesMeta.find((a) => a.id === id)?.name
       setActivitiesMeta((prev) =>
         prev.map((a) => (a.id === id ? { ...a, mode: nextMode, updatedAt: Date.now() } : a)),
       )
-      if (nextMode !== 'checklist') return
-
-      const doneDates = new Set(
-        durationsMeta.filter((d) => !d.deleted && d.activityId === id && d.minutes > 0).map((d) => d.date),
-      )
-      if (doneDates.size === 0) return
-      const already = new Set(checklistMeta.filter((c) => !c.deleted && c.activityId === id).map((c) => c.date))
-      const nowMs = Date.now()
-      const additions = [...doneDates]
-        .filter((date) => !already.has(date))
-        .map((date) => ({ id: makeChecklistId(), activityId: id, date, updatedAt: nowMs, deleted: false }))
-      if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
+      if (nextMode === 'checklist') {
+        const doneDates = new Set(
+          durationsMeta.filter((d) => !d.deleted && d.activityId === id && d.minutes > 0).map((d) => d.date),
+        )
+        if (doneDates.size === 0) return
+        const already = new Set(checklistMeta.filter((c) => !c.deleted && c.activityId === id).map((c) => c.date))
+        const nowMs = Date.now()
+        const additions = [...doneDates]
+          .filter((date) => !already.has(date))
+          .map((date) => ({ id: makeChecklistId(), activityId: id, date, updatedAt: nowMs, deleted: false }))
+        if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
+      } else if (nextMode === 'rating') {
+        const totalsByDate = new Map()
+        for (const d of durationsMeta) {
+          if (d.deleted || d.activityId !== id) continue
+          totalsByDate.set(d.date, (totalsByDate.get(d.date) || 0) + d.minutes)
+        }
+        if (totalsByDate.size === 0) return
+        const already = new Set(ratingsMeta.filter((r) => !r.deleted && r.activityId === id).map((r) => r.date))
+        const nowMs = Date.now()
+        const additions = []
+        for (const [date, minutes] of totalsByDate) {
+          if (already.has(date)) continue
+          const value = ratingForMinutes(activityName, minutes)
+          if (!value) continue
+          additions.push({ id: makeRatingId(), activityId: id, date, value, updatedAt: nowMs, deleted: false })
+        }
+        if (additions.length > 0) setRatingsMeta((prev) => [...prev, ...additions])
+      }
     },
-    [durationsMeta, checklistMeta],
+    [activitiesMeta, durationsMeta, checklistMeta, ratingsMeta],
   )
 
   const deleteActivity = useCallback((id) => {
@@ -354,6 +424,20 @@ export function useHabitData() {
     })
   }, [])
 
+  // --- Ratings (rating-mode activities: one Bad/Medium/Good tap per day) ---
+
+  const setRating = useCallback((activityId, date, value) => {
+    setRatingsMeta((prev) => {
+      const idx = prev.findIndex((r) => !r.deleted && r.activityId === activityId && r.date === date)
+      if (idx === -1) {
+        return [...prev, { id: makeRatingId(), activityId, date, value, updatedAt: Date.now(), deleted: false }]
+      }
+      const next = [...prev]
+      next[idx] = { ...next[idx], value, updatedAt: Date.now() }
+      return next
+    })
+  }, [])
+
   // --- Goals (per item, versioned month by month) ---
 
   const setGoal = useCallback((itemKey, month, period, value, direction) => {
@@ -385,6 +469,7 @@ export function useHabitData() {
         outputsSkipped: outputsSkippedMeta,
         cigarettes: cigarettesMeta,
         food: foodMeta,
+        ratings: ratingsMeta,
         goals: goalsMeta,
       },
       null,
@@ -399,6 +484,7 @@ export function useHabitData() {
     outputsSkippedMeta,
     cigarettesMeta,
     foodMeta,
+    ratingsMeta,
     goalsMeta,
   ])
 
@@ -421,6 +507,7 @@ export function useHabitData() {
     setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
     setFoodMeta(Array.isArray(parsed.food) ? parsed.food : [])
+    setRatingsMeta(Array.isArray(parsed.ratings) ? parsed.ratings : [])
     setGoalsMeta(Array.isArray(parsed.goals) ? parsed.goals : [])
   }, [])
 
@@ -445,6 +532,8 @@ export function useHabitData() {
     setCigarettes,
     food,
     setFoodField,
+    ratings,
+    setRating,
     goals,
     setGoal,
     exportData,

@@ -170,6 +170,17 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
             goal={goalForMonth(goals, a.id, monthIso)}
             onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
           />
+        ) : a.mode === 'rating' ? (
+          <CountGoalRow
+            key={a.id}
+            itemKey={a.id}
+            label={`${a.name} buono`}
+            defaultPeriod="week"
+            withDirection
+            defaultDirection="higher_is_better"
+            goal={goalForMonth(goals, a.id, monthIso)}
+            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
+          />
         ) : (
           <DurationGoalRow
             key={a.id}
