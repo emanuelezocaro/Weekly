@@ -1,7 +1,6 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { POINT_VALUE, RATING_COLOR, clusterFor } from '../utils/foodPoints'
 import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
-import { legendText } from '../utils/timeRatings'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
@@ -184,7 +183,6 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
   const ratingMap = ratingMapFor(ratings, activity.id)
   const values = days.map((d) => ratingMap.get(toISODate(d)) ?? null)
   const goodCount = values.filter((v) => v === 'good').length
-  const legend = legendText(activity.name)
 
   const goal = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
@@ -198,7 +196,6 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
         <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
       </div>
       <RatingGauge dailyAverage={dailyAverage} />
-      {legend && <p className="trend-chart__caption">{legend}</p>}
       {period === 'year' ? (
         <>
           <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
