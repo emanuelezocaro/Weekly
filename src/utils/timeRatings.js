@@ -13,7 +13,7 @@
 // Report's legend line.
 const THRESHOLDS = {
   Sleep: [
-    { value: 'bad', upTo: 360, hint: 'up to 6h' },
+    { value: 'bad', upTo: 359, hint: 'under 6h' },
     { value: 'mid', upTo: 420, hint: '6h-7h' },
     { value: 'good', upTo: Infinity, hint: 'over 7h' },
   ],
