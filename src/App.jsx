@@ -81,6 +81,15 @@ function App() {
   const topbarHidden = useHideTopbarOnScroll()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
+
+  // Switching top-level tab swaps what's rendered in the same scrolling
+  // document -- the scroll position itself isn't reset for free, so without
+  // this a tab opens wherever the previous one happened to be scrolled to
+  // (e.g. landing mid-way down Report right after scrolling Add down to
+  // Food), topbar included, instead of at its own top.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [tab])
   const {
     activities,
     durations,
