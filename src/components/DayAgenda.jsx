@@ -85,14 +85,16 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
   )
 }
 
-function ChecklistActivityRow({ activity, done, onToggle }) {
+// Checklist activities are a single yes/no tap, so unlike the other modes
+// they don't need a full-width row -- a compact square/rectangular tile
+// lets three fit per line, cutting a long stack of near-identical rows down
+// to a grid.
+function ChecklistActivityTile({ activity, done, onToggle }) {
   return (
-    <button type="button" className={`day-activity-row day-activity-row--checklist ${done ? 'is-done' : ''}`} onClick={onToggle}>
-      <span className="day-activity-row__header">
-        <span className="day-activity-row__swatch" style={{ background: colorVar(activity.colorSlot) }} />
-        <span className="day-activity-row__name">{activity.name}</span>
-        <span className="day-activity-row__check-state">{done ? 'Fatto ✓' : 'Non fatto'}</span>
-      </span>
+    <button type="button" className={`day-activity-tile ${done ? 'is-done' : ''}`} onClick={onToggle}>
+      <span className="day-activity-tile__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+      <span className="day-activity-tile__name">{activity.name}</span>
+      <span className="day-activity-tile__check-state">{done ? 'Fatto ✓' : 'Non fatto'}</span>
     </button>
   )
 }
@@ -328,30 +330,39 @@ export default function DayAgenda({
             <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
           ) : (
             <div className="activity-day-list">
-              {activities.map((a) =>
-                a.mode === 'checklist' ? (
-                  <ChecklistActivityRow
-                    key={a.id}
-                    activity={a}
-                    done={dayChecklistDone.has(a.id)}
-                    onToggle={() => onToggleChecklist(a.id, dayIso)}
-                  />
-                ) : a.mode === 'rating' ? (
-                  <RatingActivityRow
-                    key={a.id}
-                    activity={a}
-                    value={dayRatingByActivity.get(a.id) ?? null}
-                    onSet={(value) => onSetRating(a.id, dayIso, value)}
-                  />
-                ) : (
-                  <DurationActivityRow
-                    key={a.id}
-                    activity={a}
-                    logs={dayDurations.filter((d) => d.activityId === a.id)}
-                    onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
-                    onRemove={onRemoveDuration}
-                  />
-                ),
+              {activities
+                .filter((a) => a.mode !== 'checklist')
+                .map((a) =>
+                  a.mode === 'rating' ? (
+                    <RatingActivityRow
+                      key={a.id}
+                      activity={a}
+                      value={dayRatingByActivity.get(a.id) ?? null}
+                      onSet={(value) => onSetRating(a.id, dayIso, value)}
+                    />
+                  ) : (
+                    <DurationActivityRow
+                      key={a.id}
+                      activity={a}
+                      logs={dayDurations.filter((d) => d.activityId === a.id)}
+                      onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
+                      onRemove={onRemoveDuration}
+                    />
+                  ),
+                )}
+              {activities.some((a) => a.mode === 'checklist') && (
+                <div className="day-activity-grid">
+                  {activities
+                    .filter((a) => a.mode === 'checklist')
+                    .map((a) => (
+                      <ChecklistActivityTile
+                        key={a.id}
+                        activity={a}
+                        done={dayChecklistDone.has(a.id)}
+                        onToggle={() => onToggleChecklist(a.id, dayIso)}
+                      />
+                    ))}
+                </div>
               )}
             </div>
           ))}

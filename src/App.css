@@ -1862,30 +1862,55 @@
   font-size: 13px;
 }
 
-.day-activity-row--checklist {
+/* Three checklist tiles per line instead of one full-width row each --
+   there's nothing in a tile but a name and a done/not-done state, so a
+   whole row was mostly empty space. */
+.day-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.day-activity-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 76px;
+  padding: 10px 6px;
   border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
+  border-radius: var(--radius-sm);
   background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: center;
 }
 
-.day-activity-row--checklist .day-activity-row__header {
-  padding: 12px;
-}
-
-.day-activity-row--checklist.is-done {
+.day-activity-tile.is-done {
   background: var(--accent-bg);
 }
 
-.day-activity-row__check-state {
-  flex-shrink: 0;
+.day-activity-tile__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.day-activity-tile__name {
   font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.day-activity-tile__check-state {
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
-.day-activity-row--checklist.is-done .day-activity-row__check-state {
+.day-activity-tile.is-done .day-activity-tile__check-state {
   color: var(--accent-strong);
 }
 
