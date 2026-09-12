@@ -11,51 +11,14 @@ import './App.css'
    pinned via position: sticky instead of living outside a fixed-height
    scroll container. Each view's own segmented tab strip scrolls away with
    the rest of the content -- it isn't pinned, so it doesn't need to know
-   the topbar's height the way a sticky element under it would. */
+   the topbar's height the way a sticky element under it would.
 
-/* Collapses the top nav out of the way while scrolling down (reclaiming
-   its space for content), and brings it right back on any upward scroll --
-   the standard "hide on scroll down, show on scroll up" toolbar behavior.
-   The reference point only moves once a scroll has actually covered
-   MIN_DELTA_PX -- comparing every single scroll tick to the immediately
-   preceding one is sensitive enough to flip-flop (hide, then immediately
-   show again) on the small back-and-forth jitter a real touch scroll
-   produces, instead of reacting to the overall direction the page is
-   actually moving in. Read at most once per animation frame (rAF-throttled)
-   rather than on every 'scroll' event, which can fire many times faster
-   than the page can usefully react to. */
-const MIN_DELTA_PX = 24
-
-function useHideTopbarOnScroll() {
-  const [hidden, setHidden] = useState(false)
-  useEffect(() => {
-    let lastY = window.scrollY
-    let ticking = false
-    function evaluate() {
-      ticking = false
-      const y = window.scrollY
-      const delta = y - lastY
-      if (y <= 40) {
-        setHidden(false)
-        lastY = y
-      } else if (delta > MIN_DELTA_PX) {
-        setHidden(true)
-        lastY = y
-      } else if (delta < -MIN_DELTA_PX) {
-        setHidden(false)
-        lastY = y
-      }
-    }
-    function onScroll() {
-      if (ticking) return
-      ticking = true
-      requestAnimationFrame(evaluate)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-  return hidden
-}
+   The top nav used to also collapse away on scroll-down to reclaim space,
+   but animating that (however tuned) kept producing visible jerks on a
+   real device -- a max-height/opacity transition fighting an in-progress
+   touch scroll never fully stopped stuttering. Simplest fix that actually
+   removes the problem instead of chasing the next timing edge case: the
+   top nav just stays put, no animation to get wrong. */
 
 /* Media-player "skip" glyph (triangle + bar) instead of a plain arrow --
    filled with the app icon's own oxblood (#57101f) so it reads as tied to
@@ -78,7 +41,6 @@ function SkipIcon({ direction }) {
 }
 
 function App() {
-  const topbarHidden = useHideTopbarOnScroll()
   const [tab, setTab] = useState('dashboard')
   const [periodLabel, setPeriodLabel] = useState(null)
 
@@ -120,9 +82,7 @@ function App() {
   return (
     <div className="app">
       <div className="app-topbar">
-        <div className={`app-topbar__inner ${topbarHidden ? 'app-topbar__inner--hidden' : ''}`}>
-          <TopNav active={tab} onChange={setTab} />
-        </div>
+        <TopNav active={tab} onChange={setTab} />
 
         {periodLabel && (
           <div className="app-period-row">
