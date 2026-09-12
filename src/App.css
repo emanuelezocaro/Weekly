@@ -32,9 +32,16 @@
    max-height rather than a transform, so the space it frees up is real.
    Lives on its own inner wrapper, not .app-topbar itself, so the collapse
    animation's own overflow/max-height never interferes with the sticky
-   positioning of the element that's actually pinned to the viewport. */
+   positioning of the element that's actually pinned to the viewport.
+   The starting value is close to .top-nav's own real height (~74px) on
+   purpose, not a big arbitrary round number: max-height only animates
+   pixels that are actually clipping content, so a much taller ceiling
+   (was 200px against ~74px of content) spends most of the transition's
+   0.25s easing on a range that's never visible, then rushes the part
+   that is into whatever's left -- a real snap/jerk on a device, not the
+   gradual collapse the transition duration implies. */
 .app-topbar__inner {
-  max-height: 200px;
+  max-height: 78px;
   overflow: hidden;
   transition: max-height 0.25s ease;
 }
