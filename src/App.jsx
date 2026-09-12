@@ -103,7 +103,7 @@ function App() {
     food,
     setFoodField,
     diary,
-    setDiaryEntry,
+    toggleDiary,
     goals,
     setGoal,
     exportData,
@@ -162,7 +162,7 @@ function App() {
             onUndoNoOutputs={undoNoOutputs}
             onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
-            onSetDiaryEntry={setDiaryEntry}
+            onToggleDiary={toggleDiary}
             onPeriodLabel={setPeriodLabel}
           />
         )}

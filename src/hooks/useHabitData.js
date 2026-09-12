@@ -11,7 +11,9 @@ const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
-const DIARY_KEY = 'weekly:v2:diaryMeta'
+// v3: diary stopped storing freeform text (now just a done/not-done mark
+// per day, like a checklist activity) -- bumped to drop everyone's old notes.
+const DIARY_KEY = 'weekly:v3:diaryMeta'
 const GOALS_KEY = 'weekly:v2:goalsMeta'
 // One-time migration marker: once every activity's old time-blocks have been
 // folded into durationsMeta, this stops re-running on every load (which
@@ -365,16 +367,16 @@ export function useHabitData() {
     })
   }, [])
 
-  // --- Diary (one freeform note per day, editable in place) ---
+  // --- Diary (done/not-done mark per day, same shape as a checklist item) ---
 
-  const setDiaryEntry = useCallback((date, text) => {
+  const toggleDiary = useCallback((date) => {
     setDiaryMeta((prev) => {
       const idx = prev.findIndex((d) => !d.deleted && d.date === date)
       if (idx === -1) {
-        return [...prev, { id: makeDiaryId(), date, text, updatedAt: Date.now(), deleted: false }]
+        return [...prev, { id: makeDiaryId(), date, updatedAt: Date.now(), deleted: false }]
       }
       const next = [...prev]
-      next[idx] = { ...next[idx], text, updatedAt: Date.now() }
+      next[idx] = { ...next[idx], deleted: true, updatedAt: Date.now() }
       return next
     })
   }, [])
@@ -474,7 +476,7 @@ export function useHabitData() {
     food,
     setFoodField,
     diary,
-    setDiaryEntry,
+    toggleDiary,
     goals,
     setGoal,
     exportData,

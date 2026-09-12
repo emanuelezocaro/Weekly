@@ -140,17 +140,9 @@ function weekSummaryLines(weekDays, { activities, durations, checklist, outputs,
     }
   }
 
-  const diaryRecords = weekDays
-    .map((d) => (diary ?? []).find((entry) => entry.date === toISODate(d) && entry.text.trim()))
-    .filter(Boolean)
-  if (diaryRecords.length > 0) {
-    lines.push(`Diary: ${diaryRecords.length}/${weekDays.length} giorni con una nota`)
-    for (const d of weekDays) {
-      const rec = diaryRecords.find((r) => r.date === toISODate(d))
-      if (!rec) continue
-      lines.push(formatFullDate(d))
-      lines.push(rec.text)
-    }
+  const diaryDaysWritten = weekDays.filter((d) => (diary ?? []).some((entry) => entry.date === toISODate(d))).length
+  if (diaryDaysWritten > 0) {
+    lines.push(`Diary: ${diaryDaysWritten}/${weekDays.length} giorni scritti`)
   }
 
   return lines

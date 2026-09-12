@@ -195,7 +195,7 @@ export default function DayAgenda({
   onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
-  onSetDiaryEntry,
+  onToggleDiary,
   onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
@@ -241,7 +241,7 @@ export default function DayAgenda({
   const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now) && !forceUnlock
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
-  const diaryLocked = isDayLocked(isToday, !!dayDiaryRecord?.text?.trim(), cursor, now) && !forceUnlock
+  const diaryLocked = isDayLocked(isToday, !!dayDiaryRecord, cursor, now) && !forceUnlock
   const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || cigarettesLocked || foodLocked || diaryLocked)
 
   // Only today can be "missing" data -- past days are either filled in or
@@ -252,7 +252,7 @@ export default function DayAgenda({
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
     cigarettes: isToday && !dayCigaretteRecord,
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
-    diary: isToday && !dayDiaryRecord?.text?.trim(),
+    diary: isToday && !dayDiaryRecord,
   }
 
   return (
@@ -311,9 +311,8 @@ export default function DayAgenda({
 
         {activeTab === 'diary' && (
           <DiaryCard
-            key={dayIso}
-            text={dayDiaryRecord?.text || ''}
-            onSave={(text) => onSetDiaryEntry(dayIso, text)}
+            done={!!dayDiaryRecord}
+            onToggle={() => onToggleDiary(dayIso)}
             locked={diaryLocked}
           />
         )}
