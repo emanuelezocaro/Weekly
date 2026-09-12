@@ -13,24 +13,24 @@
 // Report's legend line.
 const THRESHOLDS = {
   Sleep: [
-    { value: 'bad', upTo: 359, hint: 'under 6h' },
-    { value: 'mid', upTo: 420, hint: '6h-7h' },
-    { value: 'good', upTo: Infinity, hint: 'over 7h' },
+    { value: 'bad', upTo: 359, hint: '- 6 h' },
+    { value: 'mid', upTo: 420, hint: '6-7 h' },
+    { value: 'good', upTo: Infinity, hint: '+ 7 h' },
   ],
   'Put off': [
-    { value: 'good', upTo: 30, hint: 'up to 30min' },
-    { value: 'mid', upTo: 60, hint: '30min-1h' },
-    { value: 'bad', upTo: Infinity, hint: 'over 1h' },
+    { value: 'good', upTo: 30, hint: '- 30 min' },
+    { value: 'mid', upTo: 60, hint: '30-60 min' },
+    { value: 'bad', upTo: Infinity, hint: '+ 1 h' },
   ],
   Work: [
-    { value: 'bad', upTo: 59, hint: 'under 1h' },
-    { value: 'mid', upTo: 240, hint: '1h-4h' },
-    { value: 'good', upTo: Infinity, hint: 'over 4h' },
+    { value: 'bad', upTo: 59, hint: '- 1 h' },
+    { value: 'mid', upTo: 240, hint: '1-4 h' },
+    { value: 'good', upTo: Infinity, hint: '+ 4 h' },
   ],
   Cigarettes: [
-    { value: 'good', upTo: 4, hint: 'under 5' },
+    { value: 'good', upTo: 4, hint: '- 5' },
     { value: 'mid', upTo: 15, hint: '5-15' },
-    { value: 'bad', upTo: Infinity, hint: 'over 15' },
+    { value: 'bad', upTo: Infinity, hint: '+ 15' },
   ],
 }
 
