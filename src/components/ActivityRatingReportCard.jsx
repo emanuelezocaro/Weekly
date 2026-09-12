@@ -6,11 +6,18 @@ import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
 // Rating-mode activities (Sleep, Put off, Work) get the exact same
-// good/medium/bad gauge as Food -- just one field instead of six, so its
-// scale is 0-2 (Male=0, Medio=1, Buono=2) instead of 0-12. clusterFor and
-// the zone boundaries are percentage-based (1/3 and 3/4 of the max), so the
-// same fractions apply regardless of the scale.
-const FIELD_GAUGE_MAX = 2
+// good/medium/bad gauge as Food's per-category rows -- Male=0, Medio=1,
+// Buono=2 points a day, but the gauge up top reads on a 0-14 "a settimana"
+// scale (7 days x 2 points) instead of the raw 0-2 daily average, same
+// framing FoodCategoryChart already uses for a single field: the number
+// then matches what you'd say out loud ("9/14 points this week") instead of
+// an abstract daily average. It's still exactly the same average under the
+// hood, just x7 -- clusterFor and the zone boundaries are percentage-based
+// (1/3 and 3/4 of the max), so multiplying both the value and the max by 7
+// lands in the identical zone. The daily/monthly bars below stay on the raw
+// 0-2 scale, since a single day only ever earns up to 2 points.
+const DAY_POINTS_MAX = 2
+const WEEK_POINTS_MAX = DAY_POINTS_MAX * 7
 
 function pointsFor(value) {
   return value ? POINT_VALUE[value] : null
@@ -45,31 +52,34 @@ function formatScaleValue(v) {
   return Number.isInteger(v) ? String(v) : v.toFixed(1)
 }
 
-function RatingGauge({ value }) {
-  if (value === null) return <p className="trend-chart__caption">Nessun dato per questo periodo</p>
-  const cluster = clusterFor(value, FIELD_GAUGE_MAX)
-  const pct = Math.min(100, Math.max(0, (value / FIELD_GAUGE_MAX) * 100))
-  const badUpTo = FIELD_GAUGE_MAX * (4 / 12)
-  const midUpTo = FIELD_GAUGE_MAX * (9 / 12)
+// `dailyAverage` is the raw 0-2 average; displayed and judged on the 0-14
+// "a settimana" scale instead (see the constants above).
+function RatingGauge({ dailyAverage }) {
+  if (dailyAverage === null) return <p className="trend-chart__caption">Nessun dato per questo periodo</p>
+  const value = dailyAverage * 7
+  const cluster = clusterFor(value, WEEK_POINTS_MAX)
+  const pct = Math.min(100, Math.max(0, (value / WEEK_POINTS_MAX) * 100))
+  const badUpTo = WEEK_POINTS_MAX * (4 / 12)
+  const midUpTo = WEEK_POINTS_MAX * (9 / 12)
 
   return (
     <>
       <div className="gauge-head">
         <span className={`gauge-head__value is-${cluster.key}`}>{value.toFixed(1)}</span>
-        <span className="gauge-head__unit">/ {FIELD_GAUGE_MAX} points</span>
+        <span className="gauge-head__unit">/ {WEEK_POINTS_MAX} points a week</span>
       </div>
       <p className={`gauge-cluster is-${cluster.key}`}>{cluster.label}</p>
       <div className="gauge-track">
-        <span className="gauge-zone gauge-zone--bad" style={{ width: `${(badUpTo / FIELD_GAUGE_MAX) * 100}%` }} />
-        <span className="gauge-zone gauge-zone--mid" style={{ width: `${((midUpTo - badUpTo) / FIELD_GAUGE_MAX) * 100}%` }} />
-        <span className="gauge-zone gauge-zone--good" style={{ width: `${((FIELD_GAUGE_MAX - midUpTo) / FIELD_GAUGE_MAX) * 100}%` }} />
+        <span className="gauge-zone gauge-zone--bad" style={{ width: `${(badUpTo / WEEK_POINTS_MAX) * 100}%` }} />
+        <span className="gauge-zone gauge-zone--mid" style={{ width: `${((midUpTo - badUpTo) / WEEK_POINTS_MAX) * 100}%` }} />
+        <span className="gauge-zone gauge-zone--good" style={{ width: `${((WEEK_POINTS_MAX - midUpTo) / WEEK_POINTS_MAX) * 100}%` }} />
         <span className="gauge-pointer" style={{ left: `${pct}%` }} />
       </div>
       <div className="gauge-scale">
         <span style={{ left: '0%' }}>0</span>
-        <span style={{ left: `${(badUpTo / FIELD_GAUGE_MAX) * 100}%` }}>{formatScaleValue(badUpTo)}</span>
-        <span style={{ left: `${(midUpTo / FIELD_GAUGE_MAX) * 100}%` }}>{formatScaleValue(midUpTo)}</span>
-        <span style={{ left: '100%' }}>{FIELD_GAUGE_MAX}</span>
+        <span style={{ left: `${(badUpTo / WEEK_POINTS_MAX) * 100}%` }}>{formatScaleValue(badUpTo)}</span>
+        <span style={{ left: `${(midUpTo / WEEK_POINTS_MAX) * 100}%` }}>{formatScaleValue(midUpTo)}</span>
+        <span style={{ left: '100%' }}>{WEEK_POINTS_MAX}</span>
       </div>
     </>
   )
@@ -113,14 +123,14 @@ function dailyAxisLabel(d, days) {
 function RatingDailyChart({ days, ratingMap }) {
   return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={FIELD_GAUGE_MAX} formatValue={(v) => `${v}`} />
+      <TrendChartYAxis maxValue={DAY_POINTS_MAX} formatValue={(v) => `${v}`} />
       <div className="trend-chart__bars-wrap">
         <PointZoneBackground />
         <div className="trend-chart__bars">
           {days.map((d, i) => {
             const points = pointsFor(ratingMap.get(toISODate(d)) ?? null)
-            const heightPct = points === null ? 2 : Math.max(2, (points / FIELD_GAUGE_MAX) * 100)
-            const color = points === null ? 'var(--border)' : RATING_COLOR[clusterFor(points, FIELD_GAUGE_MAX).key]
+            const heightPct = points === null ? 2 : Math.max(2, (points / DAY_POINTS_MAX) * 100)
+            const color = points === null ? 'var(--border)' : RATING_COLOR[clusterFor(points, DAY_POINTS_MAX).key]
             return (
               <div key={toISODate(d)} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
@@ -141,15 +151,15 @@ function RatingDailyChart({ days, ratingMap }) {
 function RatingMonthlyChart({ months, ratingMap }) {
   return (
     <div className="trend-chart__row">
-      <TrendChartYAxis maxValue={FIELD_GAUGE_MAX} formatValue={(v) => `${v}`} />
+      <TrendChartYAxis maxValue={DAY_POINTS_MAX} formatValue={(v) => `${v}`} />
       <div className="trend-chart__bars-wrap">
         <PointZoneBackground />
         <div className="trend-chart__bars">
           {months.map((m) => {
             const values = m.days.map((d) => ratingMap.get(toISODate(d)) ?? null)
             const avg = averagePoints(values)
-            const heightPct = avg === null ? 2 : Math.max(2, (avg / FIELD_GAUGE_MAX) * 100)
-            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, FIELD_GAUGE_MAX).key]
+            const heightPct = avg === null ? 2 : Math.max(2, (avg / DAY_POINTS_MAX) * 100)
+            const color = avg === null ? 'var(--border)' : RATING_COLOR[clusterFor(avg, DAY_POINTS_MAX).key]
             return (
               <div key={toMonthISO(m.monthStart)} className="trend-chart__col">
                 <span className="trend-chart__bar-track">
@@ -167,8 +177,9 @@ function RatingMonthlyChart({ months, ratingMap }) {
 
 // Rating-mode activities (Sleep, Put off, Work): a single Bad/Medium/Good
 // tap per day, shown with the exact same gauge + zone-colored chart as
-// Food, on a 0-2 scale (Male=0, Medio=1, Buono=2) instead of Food's 0-12 --
-// plus the "how many Good days" goal Cibo/checklist activities already use.
+// Food, on a 0-14 "a settimana" scale (Male=0, Medio=1, Buono=2 points a
+// day, x7) instead of Food's own 0-12 -- plus the "how many Good days" goal
+// Cibo/checklist activities already use.
 export default function ActivityRatingReportCard({ activity, ratings, days, period, goals }) {
   const ratingMap = ratingMapFor(ratings, activity.id)
   const values = days.map((d) => ratingMap.get(toISODate(d)) ?? null)
@@ -178,7 +189,7 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
   const goal = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
 
-  const gaugeValue = averagePoints(values)
+  const dailyAverage = averagePoints(values)
 
   return (
     <section className="settings-card">
@@ -186,16 +197,16 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
         <h2 className="settings-card__title">{activity.name}</h2>
         <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
       </div>
-      <RatingGauge value={gaugeValue} />
+      <RatingGauge dailyAverage={dailyAverage} />
       {legend && <p className="trend-chart__caption">{legend}</p>}
       {period === 'year' ? (
         <>
-          <p className="trend-chart__caption">Media punti di ogni mese (0-{FIELD_GAUGE_MAX})</p>
+          <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
           <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
         </>
       ) : (
         <>
-          <p className="trend-chart__caption">Punteggio di ogni giorno (0-{FIELD_GAUGE_MAX})</p>
+          <p className="trend-chart__caption">Punteggio di ogni giorno (0-{DAY_POINTS_MAX})</p>
           <RatingDailyChart days={days} ratingMap={ratingMap} />
           {days.length <= 7 ? null : (
             <p className="trend-chart__caption" style={{ marginTop: 4 }}>
