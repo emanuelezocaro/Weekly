@@ -5,7 +5,7 @@
 // Alimentazione e la striscia "Oggi" della Dash, cosi la scala resta unica.
 export const RATING_FIELDS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci']
 export const POINT_VALUE = { bad: 0, mid: 1, good: 2 }
-export const RATING_COLOR = { bad: 'var(--series-6)', mid: 'var(--series-3)', good: 'var(--series-2)' }
+export const RATING_COLOR = { bad: 'var(--status-bad)', mid: 'var(--status-mid)', good: 'var(--status-good)' }
 export const GAUGE_MAX = 12
 export const GAUGE_ZONES = [
   { key: 'bad', label: 'Bad', upTo: 4 },
