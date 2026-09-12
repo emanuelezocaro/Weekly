@@ -6,9 +6,8 @@ import FoodCard from './FoodCard'
 import { RATING_OPTIONS, thresholdHint } from '../utils/timeRatings'
 
 const DAY_TABS = [
-  { id: 'calendar', label: 'Act' },
+  { id: 'calendar', label: 'Log' },
   { id: 'outputs', label: 'Exit' },
-  { id: 'food', label: 'Food' },
 ]
 
 const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
@@ -272,11 +271,12 @@ export default function DayAgenda({
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
-  // clears once the day is confirmed to have had none. Attività has no
-  // missing-data notion anymore -- there's no full day to account for.
+  // clears once the day is confirmed to have had none. Attività proper has
+  // no missing-data notion of its own, but Cibo (now living inside this same
+  // tab) still does, so its flag carries over to the tab as a whole.
   const missingByTab = {
+    calendar: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
-    food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
   }
 
   return (
@@ -317,55 +317,55 @@ export default function DayAgenda({
           />
         )}
 
-        {activeTab === 'food' && (
-          <FoodCard
-            food={dayFoodRecord}
-            onChange={(field, value) => onSetFoodField(dayIso, field, value)}
-            locked={foodLocked}
-          />
-        )}
-
-        {activeTab === 'calendar' &&
-          (activities.length === 0 ? (
-            <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
-          ) : (
-            <div className="activity-day-list">
-              {activities
-                .filter((a) => a.mode !== 'checklist')
-                .map((a) =>
-                  a.mode === 'rating' ? (
-                    <RatingActivityRow
-                      key={a.id}
-                      activity={a}
-                      value={dayRatingByActivity.get(a.id) ?? null}
-                      onSet={(value) => onSetRating(a.id, dayIso, value)}
-                    />
-                  ) : (
-                    <DurationActivityRow
-                      key={a.id}
-                      activity={a}
-                      logs={dayDurations.filter((d) => d.activityId === a.id)}
-                      onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
-                      onRemove={onRemoveDuration}
-                    />
-                  ),
-                )}
-              {activities.some((a) => a.mode === 'checklist') && (
-                <div className="day-activity-grid">
-                  {activities
-                    .filter((a) => a.mode === 'checklist')
-                    .map((a) => (
-                      <ChecklistActivityTile
+        {activeTab === 'calendar' && (
+          <div className="activity-day-list">
+            {activities.length === 0 ? (
+              <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+            ) : (
+              <>
+                {activities
+                  .filter((a) => a.mode !== 'checklist')
+                  .map((a) =>
+                    a.mode === 'rating' ? (
+                      <RatingActivityRow
                         key={a.id}
                         activity={a}
-                        done={dayChecklistDone.has(a.id)}
-                        onToggle={() => onToggleChecklist(a.id, dayIso)}
+                        value={dayRatingByActivity.get(a.id) ?? null}
+                        onSet={(value) => onSetRating(a.id, dayIso, value)}
                       />
-                    ))}
-                </div>
-              )}
-            </div>
-          ))}
+                    ) : (
+                      <DurationActivityRow
+                        key={a.id}
+                        activity={a}
+                        logs={dayDurations.filter((d) => d.activityId === a.id)}
+                        onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
+                        onRemove={onRemoveDuration}
+                      />
+                    ),
+                  )}
+                {activities.some((a) => a.mode === 'checklist') && (
+                  <div className="day-activity-grid">
+                    {activities
+                      .filter((a) => a.mode === 'checklist')
+                      .map((a) => (
+                        <ChecklistActivityTile
+                          key={a.id}
+                          activity={a}
+                          done={dayChecklistDone.has(a.id)}
+                          onToggle={() => onToggleChecklist(a.id, dayIso)}
+                        />
+                      ))}
+                  </div>
+                )}
+              </>
+            )}
+            <FoodCard
+              food={dayFoodRecord}
+              onChange={(field, value) => onSetFoodField(dayIso, field, value)}
+              locked={foodLocked}
+            />
+          </div>
+        )}
       </>
     </div>
   )
