@@ -1888,7 +1888,7 @@
 }
 
 .day-activity-tile.is-done {
-  background: var(--accent-bg);
+  background: color-mix(in srgb, var(--series-2) 18%, transparent);
 }
 
 .day-activity-tile__swatch {
@@ -1907,11 +1907,7 @@
 .day-activity-tile__check-state {
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-muted);
-}
-
-.day-activity-tile.is-done .day-activity-tile__check-state {
-  color: var(--accent-strong);
+  color: var(--series-2);
 }
 
 .color-picker {

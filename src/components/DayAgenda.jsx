@@ -94,7 +94,7 @@ function ChecklistActivityTile({ activity, done, onToggle }) {
     <button type="button" className={`day-activity-tile ${done ? 'is-done' : ''}`} onClick={onToggle}>
       <span className="day-activity-tile__swatch" style={{ background: colorVar(activity.colorSlot) }} />
       <span className="day-activity-tile__name">{activity.name}</span>
-      <span className="day-activity-tile__check-state">{done ? 'Fatto ✓' : 'Non fatto'}</span>
+      {done && <span className="day-activity-tile__check-state">Fatto ✓</span>}
     </button>
   )
 }
