@@ -2075,6 +2075,10 @@
 
 .rating-seg button {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   border: none;
   background: none;
   padding: 9px 4px;
@@ -2082,6 +2086,17 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+.rating-seg__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rating-seg__hint {
+  font-size: 10.5px;
+  font-weight: 500;
+  opacity: 0.75;
 }
 
 .rating-seg button.sel-bad.is-selected {

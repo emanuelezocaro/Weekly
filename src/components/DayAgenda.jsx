@@ -4,7 +4,7 @@ import { useSwipeNav } from '../hooks/useSwipeNav'
 import { colorVar } from '../utils/palette'
 import CigarettesCard from './CigarettesCard'
 import FoodCard from './FoodCard'
-import { RATING_OPTIONS, legendText } from '../utils/timeRatings'
+import { RATING_OPTIONS, thresholdHint } from '../utils/timeRatings'
 
 const DAY_TABS = [
   { id: 'calendar', label: 'Act' },
@@ -100,11 +100,11 @@ function ChecklistActivityRow({ activity, done, onToggle }) {
 }
 
 // A single Bad/Medium/Good tap per day -- same input shape as Food's rating
-// buttons, just one field instead of six. The legend (only known for Sleep
-// and Put off) spells out what each label means, since there's no number
-// entry here to make it obvious.
+// buttons, just one field instead of six. Each button carries its own
+// threshold (only known for Sleep, Put off and Work) right inside it,
+// instead of a separate legend line, since there's no number entry here to
+// make it obvious otherwise.
 function RatingActivityRow({ activity, value, onSet }) {
-  const legend = legendText(activity.name)
   return (
     <div className="day-activity-row">
       <div className="day-activity-row__header">
@@ -112,18 +112,21 @@ function RatingActivityRow({ activity, value, onSet }) {
         <span className="day-activity-row__name">{activity.name}</span>
       </div>
       <div className="rating-seg">
-        {RATING_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
-            onClick={() => onSet(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
+        {RATING_OPTIONS.map((opt) => {
+          const hint = thresholdHint(activity.name, opt.value)
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
+              onClick={() => onSet(opt.value)}
+            >
+              <span className="rating-seg__label">{opt.label}</span>
+              {hint && <span className="rating-seg__hint">{hint}</span>}
+            </button>
+          )
+        })}
       </div>
-      {legend && <p className="settings-card__hint">{legend}</p>}
     </div>
   )
 }

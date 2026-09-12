@@ -195,7 +195,9 @@ export function useHabitData() {
   // first finds the activity (now or after the user creates it later).
   useEffect(() => {
     if (localStorage.getItem(DIARIO_BACKFILL_FLAG_KEY)) return
-    const diario = activitiesMeta.find((a) => !a.deleted && a.name === 'Diario' && a.mode === 'checklist')
+    const diario = activitiesMeta.find(
+      (a) => !a.deleted && a.mode === 'checklist' && ['diario', 'diary'].includes(a.name.trim().toLowerCase()),
+    )
     if (!diario) return
     const yesterdayIso = toISODate(addDays(new Date(), -1))
     const already = new Set(checklistMeta.filter((c) => !c.deleted && c.activityId === diario.id).map((c) => c.date))
@@ -210,6 +212,36 @@ export function useHabitData() {
     if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
     localStorage.setItem(DIARIO_BACKFILL_FLAG_KEY, '1')
   }, [activitiesMeta, checklistMeta])
+
+  // Ongoing (not one-time): for every rating-mode activity, fill in a rating
+  // for any day that already has logged minutes but no rating yet -- using
+  // that activity's own thresholds (see ratingForMinutes). Runs on every
+  // load instead of only at the moment the mode switches, so an activity
+  // whose thresholds only become known later (a new one added to
+  // ratingForMinutes after it was already switched) still gets backfilled,
+  // and it's a no-op once every already-logged day has its rating.
+  useEffect(() => {
+    const ratingActivities = activitiesMeta.filter((a) => !a.deleted && a.mode === 'rating')
+    if (ratingActivities.length === 0) return
+    const nowMs = Date.now()
+    const additions = []
+    for (const activity of ratingActivities) {
+      const totalsByDate = new Map()
+      for (const d of durationsMeta) {
+        if (d.deleted || d.activityId !== activity.id) continue
+        totalsByDate.set(d.date, (totalsByDate.get(d.date) || 0) + d.minutes)
+      }
+      if (totalsByDate.size === 0) continue
+      const already = new Set(ratingsMeta.filter((r) => !r.deleted && r.activityId === activity.id).map((r) => r.date))
+      for (const [date, minutes] of totalsByDate) {
+        if (already.has(date)) continue
+        const value = ratingForMinutes(activity.name, minutes)
+        if (!value) continue
+        additions.push({ id: makeRatingId(), activityId: activity.id, date, value, updatedAt: nowMs, deleted: false })
+      }
+    }
+    if (additions.length > 0) setRatingsMeta((prev) => [...prev, ...additions])
+  }, [activitiesMeta, durationsMeta, ratingsMeta])
 
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const durations = useMemo(() => durationsMeta.filter((d) => !d.deleted), [durationsMeta])
@@ -263,17 +295,13 @@ export function useHabitData() {
 
   // Switching an activity to checklist mode retroactively turns every day it
   // already has tracked minutes for into a "done" checklist day, so its
-  // history in the new dot report doesn't start from a blank slate. Switching
-  // to rating mode does the same, but into a Bad/Medium/Good per day instead
-  // of a plain done -- using that activity's own thresholds (see
-  // ratingForMinutes), so Sleep/Put off's July-September hour logs show up
-  // rated instead of starting blank. Going to plain "a tempo" has no such
-  // conversion either way -- there's no duration to recover from a yes/no or
-  // a rating, so those days just stay at 0.
+  // history in the new dot report doesn't start from a blank slate. Going to
+  // plain "a tempo" has no such conversion -- there's no duration to recover
+  // from a yes/no, so those days just stay at 0. Rating mode's own backfill
+  // happens separately (see the reconciliation effect below).
   const setActivityMode = useCallback(
     (id, mode) => {
       const nextMode = normalizeMode(mode)
-      const activityName = activitiesMeta.find((a) => a.id === id)?.name
       setActivitiesMeta((prev) =>
         prev.map((a) => (a.id === id ? { ...a, mode: nextMode, updatedAt: Date.now() } : a)),
       )
@@ -288,26 +316,12 @@ export function useHabitData() {
           .filter((date) => !already.has(date))
           .map((date) => ({ id: makeChecklistId(), activityId: id, date, updatedAt: nowMs, deleted: false }))
         if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
-      } else if (nextMode === 'rating') {
-        const totalsByDate = new Map()
-        for (const d of durationsMeta) {
-          if (d.deleted || d.activityId !== id) continue
-          totalsByDate.set(d.date, (totalsByDate.get(d.date) || 0) + d.minutes)
-        }
-        if (totalsByDate.size === 0) return
-        const already = new Set(ratingsMeta.filter((r) => !r.deleted && r.activityId === id).map((r) => r.date))
-        const nowMs = Date.now()
-        const additions = []
-        for (const [date, minutes] of totalsByDate) {
-          if (already.has(date)) continue
-          const value = ratingForMinutes(activityName, minutes)
-          if (!value) continue
-          additions.push({ id: makeRatingId(), activityId: id, date, value, updatedAt: nowMs, deleted: false })
-        }
-        if (additions.length > 0) setRatingsMeta((prev) => [...prev, ...additions])
       }
+      // Rating mode's own backfill isn't done here -- see the reconciliation
+      // effect below, which also covers an activity whose thresholds (see
+      // ratingForMinutes) only became known after it was already switched.
     },
-    [activitiesMeta, durationsMeta, checklistMeta, ratingsMeta],
+    [durationsMeta, checklistMeta],
   )
 
   const deleteActivity = useCallback((id) => {
