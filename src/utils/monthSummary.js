@@ -38,7 +38,7 @@ function goalPeriodLabel(goal) {
 
 // Lines for a single week within the month, one topic per line -- so
 // nothing is summed across weeks.
-function weekSummaryLines(weekDays, { activities, durations, checklist, outputs, cigarettes, food, diary, goals, monthIso }) {
+function weekSummaryLines(weekDays, { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }) {
   const lines = []
   const weekIsoDates = weekDays.map(toISODate)
 
@@ -140,21 +140,16 @@ function weekSummaryLines(weekDays, { activities, durations, checklist, outputs,
     }
   }
 
-  const diaryDaysWritten = weekDays.filter((d) => (diary ?? []).some((entry) => entry.date === toISODate(d))).length
-  if (diaryDaysWritten > 0) {
-    lines.push(`Diary: ${diaryDaysWritten}/${weekDays.length} giorni scritti`)
-  }
-
   return lines
 }
 
 // Same per-week breakdown as one week inside buildMonthSummaryText, but
 // standalone -- for when you want just that one week's summary, not the
 // whole month it falls in.
-export function buildWeekSummaryText(weekStart, { activities, durations, checklist, outputs, cigarettes, food, diary, goals }) {
+export function buildWeekSummaryText(weekStart, { activities, durations, checklist, outputs, cigarettes, food, goals }) {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const monthIso = toMonthISO(weekDays[weekDays.length - 1])
-  const ctx = { activities, durations, checklist, outputs, cigarettes, food, diary, goals, monthIso }
+  const ctx = { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }
   const label = formatDateRange(weekStart, addDays(weekStart, 7))
 
   const lines = [`Riepilogo settimana ${label}`, '']
@@ -164,11 +159,11 @@ export function buildWeekSummaryText(weekStart, { activities, durations, checkli
   return lines.join('\n').trimEnd()
 }
 
-export function buildMonthSummaryText(monthDate, { activities, durations, checklist, outputs, cigarettes, food, diary, goals }) {
+export function buildMonthSummaryText(monthDate, { activities, durations, checklist, outputs, cigarettes, food, goals }) {
   const days = monthDays(monthDate)
   const monthIso = toMonthISO(monthDate)
   const weeks = groupDaysByWeek(days)
-  const ctx = { activities, durations, checklist, outputs, cigarettes, food, diary, goals, monthIso }
+  const ctx = { activities, durations, checklist, outputs, cigarettes, food, goals, monthIso }
 
   const lines = [`Riepilogo ${formatMonthLabel(monthDate)}`, '']
 

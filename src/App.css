@@ -1103,7 +1103,7 @@
 
 /* A fixed-size dot doesn't need the 30px of vertical room a variable-height
    bar does (see .mini-row__bars) -- that height was mostly empty space
-   around an 8px circle, making Lavoro/Diary's cards look disproportionately
+   around an 8px circle, making Lavoro's card look disproportionately
    tall next to the bar-chart cards around them for how little they show. */
 .mini-row__dots {
   flex: 1;
@@ -1128,13 +1128,12 @@
 }
 
 .mini-row__dots > span.is-on::after {
-  /* Diary's dots have no per-activity color to fall back to (--dot-color
-     isn't set there), so they keep the fixed accent; ActivityChecklist
-     ReportCard sets --dot-color to the activity's own chosen color. */
+  /* ActivityChecklistReportCard sets --dot-color to the activity's own
+     chosen color; falls back to the fixed accent if it isn't set. */
   background: var(--dot-color, var(--accent-strong));
 }
 
-/* Stand-in for .trend-chart__yaxis's reserved width (Diary's dots have no
+/* Stand-in for .trend-chart__yaxis's reserved width (a dots row has no
    number scale to show) so its day columns land the same width as Uscite's
    bar columns, instead of the much wider 84px gutter .mini-row__label
    reserves for Alimentazione's row labels. */

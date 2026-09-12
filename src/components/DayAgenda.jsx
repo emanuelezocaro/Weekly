@@ -4,14 +4,12 @@ import { useSwipeNav } from '../hooks/useSwipeNav'
 import { colorVar } from '../utils/palette'
 import CigarettesCard from './CigarettesCard'
 import FoodCard from './FoodCard'
-import DiaryCard from './DiaryCard'
 
 const DAY_TABS = [
   { id: 'calendar', label: 'Act' },
   { id: 'outputs', label: 'Exit' },
   { id: 'cigarettes', label: 'Cig' },
   { id: 'food', label: 'Food' },
-  { id: 'diary', label: 'Diary' },
 ]
 
 const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
@@ -185,7 +183,6 @@ export default function DayAgenda({
   outputsSkipped,
   cigarettes,
   food,
-  diary,
   onAddDuration,
   onRemoveDuration,
   onToggleChecklist,
@@ -195,7 +192,6 @@ export default function DayAgenda({
   onUndoNoOutputs,
   onSetCigarettes,
   onSetFoodField,
-  onToggleDiary,
   onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
@@ -236,13 +232,11 @@ export default function DayAgenda({
   const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayCigaretteRecord = cigarettes.find((c) => c.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
-  const dayDiaryRecord = diary.find((d) => d.date === dayIso)
   const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now) && !forceUnlock
   const cigarettesLocked = isDayLocked(isToday, !!dayCigaretteRecord, cursor, now) && !forceUnlock
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
-  const diaryLocked = isDayLocked(isToday, !!dayDiaryRecord, cursor, now) && !forceUnlock
-  const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || cigarettesLocked || foodLocked || diaryLocked)
+  const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || cigarettesLocked || foodLocked)
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
@@ -252,7 +246,6 @@ export default function DayAgenda({
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
     cigarettes: isToday && !dayCigaretteRecord,
     food: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
-    diary: isToday && !dayDiaryRecord,
   }
 
   return (
@@ -306,14 +299,6 @@ export default function DayAgenda({
             food={dayFoodRecord}
             onChange={(field, value) => onSetFoodField(dayIso, field, value)}
             locked={foodLocked}
-          />
-        )}
-
-        {activeTab === 'diary' && (
-          <DiaryCard
-            done={!!dayDiaryRecord}
-            onToggle={() => onToggleDiary(dayIso)}
-            locked={diaryLocked}
           />
         )}
 

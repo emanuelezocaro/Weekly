@@ -102,8 +102,6 @@ function App() {
     setCigarettes,
     food,
     setFoodField,
-    diary,
-    toggleDiary,
     goals,
     setGoal,
     exportData,
@@ -152,7 +150,6 @@ function App() {
             outputsSkipped={outputsSkipped}
             cigarettes={cigarettes}
             food={food}
-            diary={diary}
             onAddDuration={addDuration}
             onRemoveDuration={removeDuration}
             onToggleChecklist={toggleChecklist}
@@ -162,7 +159,6 @@ function App() {
             onUndoNoOutputs={undoNoOutputs}
             onSetCigarettes={setCigarettes}
             onSetFoodField={setFoodField}
-            onToggleDiary={toggleDiary}
             onPeriodLabel={setPeriodLabel}
           />
         )}
@@ -174,7 +170,6 @@ function App() {
             outputs={outputs}
             cigarettes={cigarettes}
             food={food}
-            diary={diary}
             goals={goals}
             onPeriodLabel={setPeriodLabel}
           />

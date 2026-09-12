@@ -18,7 +18,6 @@ import ActivityChecklistReportCard from './ActivityChecklistReportCard'
 import OutputsWeekCard from './OutputsWeekCard'
 import CigarettesReportCard from './CigarettesReportCard'
 import FoodReportCard from './FoodReportCard'
-import DiaryReportCard from './DiaryReportCard'
 
 // Fixed reading order for the per-activity report cards, chosen by hand
 // rather than alphabetical -- an activity not in this list (renamed, or
@@ -112,7 +111,7 @@ function isPrevDisabled(period, cursor) {
   return startOfYear(cursor) <= startOfYear(APP_START_DATE)
 }
 
-export default function ReportView({ activities, durations, checklist, outputs, cigarettes, food, diary, goals, onPeriodLabel }) {
+export default function ReportView({ activities, durations, checklist, outputs, cigarettes, food, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
@@ -140,7 +139,7 @@ export default function ReportView({ activities, durations, checklist, outputs, 
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const ctx = { activities, durations, checklist, outputs, cigarettes, food, diary, goals }
+    const ctx = { activities, durations, checklist, outputs, cigarettes, food, goals }
     const text =
       period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
     const filename =
@@ -211,7 +210,6 @@ export default function ReportView({ activities, durations, checklist, outputs, 
         <hr className="report-divider" />
 
         <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
-        <DiaryReportCard diary={diary} days={days} period={period} />
         <CigarettesReportCard cigarettes={cigarettes} days={days} prevDays={prevDays} period={period} goals={goals} />
         <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
       </>

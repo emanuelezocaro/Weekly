@@ -19,9 +19,8 @@ function doneSetFor(checklist, activityId) {
 }
 
 // One dot per day -- filled (in the activity's own color) if done, empty if
-// not. Same scaffolding as DiaryReportCard's DotsRow. The color is set as a
-// CSS variable on the span rather than a direct style, since the dot itself
-// is drawn by ::after.
+// not. The color is set as a CSS variable on the span rather than a direct
+// style, since the dot itself is drawn by ::after.
 function DotsRow({ isOnByKey, color }) {
   return (
     <div className="trend-chart__row">
@@ -52,9 +51,9 @@ function WeekAxisRow({ days }) {
   )
 }
 
-// Same done/not-done dots report shape as Diary -- for attività "a
-// checklist" (mode: 'checklist'), plus the same goal-vs-count comparison
-// Sigarette/Uscite already use ("X volte a settimana").
+// Done/not-done dots report shape for attività "a checklist" (mode:
+// 'checklist'), plus the same goal-vs-count comparison Sigarette/Uscite
+// already use ("X volte a settimana").
 export default function ActivityChecklistReportCard({ activity, checklist, days, prevDays, period, goals }) {
   const doneSet = doneSetFor(checklist, activity.id)
   const doneCount = days.filter((d) => doneSet.has(toISODate(d))).length

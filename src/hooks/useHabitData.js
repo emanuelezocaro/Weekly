@@ -11,9 +11,6 @@ const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
 const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
-// v3: diary stopped storing freeform text (now just a done/not-done mark
-// per day, like a checklist activity) -- bumped to drop everyone's old notes.
-const DIARY_KEY = 'weekly:v3:diaryMeta'
 const GOALS_KEY = 'weekly:v2:goalsMeta'
 // One-time migration marker: once every activity's old time-blocks have been
 // folded into durationsMeta, this stops re-running on every load (which
@@ -57,10 +54,6 @@ function makeCigaretteId() {
 
 function makeFoodId() {
   return `f_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
-function makeDiaryId() {
-  return `dy_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
 function makeGoalId() {
@@ -133,7 +126,6 @@ export function useHabitData() {
   const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   const [cigarettesMeta, setCigarettesMeta] = useState(() => loadJSON(CIGARETTES_KEY, []))
   const [foodMeta, setFoodMeta] = useState(() => loadJSON(FOOD_KEY, []))
-  const [diaryMeta, setDiaryMeta] = useState(() => loadJSON(DIARY_KEY, []))
   const [goalsMeta, setGoalsMeta] = useState(() => loadJSON(GOALS_KEY, []))
 
   useEffect(() => {
@@ -169,10 +161,6 @@ export function useHabitData() {
   }, [foodMeta])
 
   useEffect(() => {
-    localStorage.setItem(DIARY_KEY, JSON.stringify(diaryMeta))
-  }, [diaryMeta])
-
-  useEffect(() => {
     localStorage.setItem(GOALS_KEY, JSON.stringify(goalsMeta))
   }, [goalsMeta])
 
@@ -186,7 +174,6 @@ export function useHabitData() {
   )
   const cigarettes = useMemo(() => cigarettesMeta.filter((c) => !c.deleted), [cigarettesMeta])
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
-  const diary = useMemo(() => diaryMeta.filter((d) => !d.deleted), [diaryMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
 
   // --- Activities ---
@@ -367,20 +354,6 @@ export function useHabitData() {
     })
   }, [])
 
-  // --- Diary (done/not-done mark per day, same shape as a checklist item) ---
-
-  const toggleDiary = useCallback((date) => {
-    setDiaryMeta((prev) => {
-      const idx = prev.findIndex((d) => !d.deleted && d.date === date)
-      if (idx === -1) {
-        return [...prev, { id: makeDiaryId(), date, updatedAt: Date.now(), deleted: false }]
-      }
-      const next = [...prev]
-      next[idx] = { ...next[idx], deleted: true, updatedAt: Date.now() }
-      return next
-    })
-  }, [])
-
   // --- Goals (per item, versioned month by month) ---
 
   const setGoal = useCallback((itemKey, month, period, value, direction) => {
@@ -412,7 +385,6 @@ export function useHabitData() {
         outputsSkipped: outputsSkippedMeta,
         cigarettes: cigarettesMeta,
         food: foodMeta,
-        diary: diaryMeta,
         goals: goalsMeta,
       },
       null,
@@ -427,7 +399,6 @@ export function useHabitData() {
     outputsSkippedMeta,
     cigarettesMeta,
     foodMeta,
-    diaryMeta,
     goalsMeta,
   ])
 
@@ -450,7 +421,6 @@ export function useHabitData() {
     setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
     setFoodMeta(Array.isArray(parsed.food) ? parsed.food : [])
-    setDiaryMeta(Array.isArray(parsed.diary) ? parsed.diary : [])
     setGoalsMeta(Array.isArray(parsed.goals) ? parsed.goals : [])
   }, [])
 
@@ -475,8 +445,6 @@ export function useHabitData() {
     setCigarettes,
     food,
     setFoodField,
-    diary,
-    toggleDiary,
     goals,
     setGoal,
     exportData,
