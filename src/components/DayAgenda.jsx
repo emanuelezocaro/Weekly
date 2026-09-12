@@ -87,10 +87,18 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
 // Checklist activities are a single yes/no tap, so unlike the other modes
 // they don't need a full-width row -- a compact square/rectangular tile
 // lets three fit per line, cutting a long stack of near-identical rows down
-// to a grid.
-function ChecklistActivityTile({ activity, done, onToggle }) {
+// to a grid. Today's still-untouched tiles turn red (not just neutral) --
+// every one of them needs an explicit done/not-done by end of day, so an
+// unmarked tile is a real gap to close, not a quiet default. Past days
+// don't get this: whatever they ended up as is just history now, nothing
+// left to nag about.
+function ChecklistActivityTile({ activity, done, missing, onToggle }) {
   return (
-    <button type="button" className={`day-activity-tile ${done ? 'is-done' : ''}`} onClick={onToggle}>
+    <button
+      type="button"
+      className={`day-activity-tile ${done ? 'is-done' : ''} ${missing ? 'is-missing' : ''}`}
+      onClick={onToggle}
+    >
       <span className="day-activity-tile__swatch" style={{ background: colorVar(activity.colorSlot) }} />
       <span className="day-activity-tile__name">{activity.name}</span>
       {done && <span className="day-activity-tile__check-state">Fatto ✓</span>}
@@ -271,11 +279,16 @@ export default function DayAgenda({
 
   // Only today can be "missing" data -- past days are either filled in or
   // already gone, and there's nothing to fill in for the future. Uscite also
-  // clears once the day is confirmed to have had none. Attività proper has
-  // no missing-data notion of its own, but Cibo (now living inside this same
-  // tab) still does, so its flag carries over to the tab as a whole.
+  // clears once the day is confirmed to have had none. Attività's own
+  // duration/rating activities have no missing-data notion, but a checklist
+  // activity does (every one wants an explicit done/not-done each day, see
+  // ChecklistActivityTile), and so does Cibo (now living inside this same
+  // tab) -- either one being unmarked shows up as the tab's own dot.
   const missingByTab = {
-    calendar: isToday && FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]),
+    calendar:
+      isToday &&
+      (FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]) ||
+        activities.some((a) => a.mode === 'checklist' && !dayChecklistDone.has(a.id))),
     outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
   }
 
@@ -352,6 +365,7 @@ export default function DayAgenda({
                           key={a.id}
                           activity={a}
                           done={dayChecklistDone.has(a.id)}
+                          missing={isToday && !dayChecklistDone.has(a.id)}
                           onToggle={() => onToggleChecklist(a.id, dayIso)}
                         />
                       ))}
