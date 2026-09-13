@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { POINT_VALUE, RATING_COLOR, clusterFor } from '../utils/foodPoints'
 import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
@@ -180,6 +181,7 @@ function RatingMonthlyChart({ months, ratingMap }) {
 // day, x7) instead of Food's own 0-12 -- plus the "how many Good days" goal
 // Cibo/checklist activities already use.
 export default function ActivityRatingReportCard({ activity, ratings, days, period, goals }) {
+  const [expanded, setExpanded] = useState(false)
   const ratingMap = ratingMapFor(ratings, activity.id)
   const values = days.map((d) => ratingMap.get(toISODate(d)) ?? null)
   const goodCount = values.filter((v) => v === 'good').length
@@ -196,32 +198,39 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
         <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
       </div>
       <RatingGauge dailyAverage={dailyAverage} />
-      {period === 'year' ? (
+      <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
+        <span className="trend-chart__toggle-hint">{expanded ? '▴ Nascondi dettaglio' : '▾ Tocca per il dettaglio'}</span>
+      </button>
+      {expanded && (
         <>
-          <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
-          <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
-        </>
-      ) : (
-        <>
-          <p className="trend-chart__caption">Punteggio di ogni giorno (0-{DAY_POINTS_MAX})</p>
-          <RatingDailyChart days={days} ratingMap={ratingMap} />
-          {days.length <= 7 ? null : (
-            <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-              {axisLegend(days)}
-            </p>
+          {period === 'year' ? (
+            <>
+              <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
+              <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
+            </>
+          ) : (
+            <>
+              <p className="trend-chart__caption">Punteggio di ogni giorno (0-{DAY_POINTS_MAX})</p>
+              <RatingDailyChart days={days} ratingMap={ratingMap} />
+              {days.length <= 7 ? null : (
+                <p className="trend-chart__caption" style={{ marginTop: 4 }}>
+                  {axisLegend(days)}
+                </p>
+              )}
+            </>
           )}
+          <p className="trend-chart__caption">
+            {goodCount}/{days.length} giorni buono
+            {goal && target !== null && (
+              <span className="report-card__delta">
+                {' '}
+                (obiettivo {goal.value}/{goal.period === 'day' ? 'giorno' : 'settimana'}:{' '}
+                {isGoalMet(goal, goodCount, Math.round(target)) ? 'raggiunto' : 'non raggiunto'})
+              </span>
+            )}
+          </p>
         </>
       )}
-      <p className="trend-chart__caption">
-        {goodCount}/{days.length} giorni buono
-        {goal && target !== null && (
-          <span className="report-card__delta">
-            {' '}
-            (obiettivo {goal.value}/{goal.period === 'day' ? 'giorno' : 'settimana'}:{' '}
-            {isGoalMet(goal, goodCount, Math.round(target)) ? 'raggiunto' : 'non raggiunto'})
-          </span>
-        )}
-      </p>
     </section>
   )
 }
