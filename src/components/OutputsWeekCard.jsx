@@ -7,11 +7,6 @@ import GoalLine from './GoalLine'
 import GoalTrendIndicator from './GoalTrendIndicator'
 import TrendChartYAxis from './TrendChartYAxis'
 
-// A regular space collapses to zero height when it's a block element's only
-// content -- this reserves a row's height even with nothing to say, so
-// swiping between periods doesn't shift every chart below it up or down.
-const NBSP = String.fromCharCode(160)
-
 const COPY_MESSAGES = {
   copied: 'Elenco copiato ✓',
   shared: 'Elenco condiviso ✓',
@@ -100,80 +95,74 @@ export default function OutputsWeekCard({ outputs, days, prevDays, period, goals
 
   return (
     <section className="settings-card">
-      <div className="settings-card__title-row">
-        <h2 className="settings-card__title">Exit</h2>
-        <GoalTrendIndicator goal={goal} actual={total} target={target} />
-      </div>
-      <p className="trend-chart__caption">
-        {daysWithOutputs}/{days.length} giorni con almeno un'uscita
-        {delta !== null && (
-          <span className="report-card__delta">
-            {' '}
-            ({delta > 0 ? '+' : ''}
-            {delta}%)
-          </span>
-        )}
-      </p>
-      <button
-        type="button"
-        className="trend-chart__toggle"
-        onClick={() => setExpanded((e) => !e)}
-        disabled={grouped.length === 0}
-      >
-        <div className="trend-chart__row">
-          <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
-          <div className="trend-chart__bars-wrap">
-            <GoalLine
-              goals={goals}
-              itemKey="outputs"
-              monthIso={toMonthISO(days[days.length - 1])}
-              barGranularity="day"
-              maxValue={maxValue}
-              formatValue={(v) => String(v)}
-            />
-            <div className="trend-chart__bars">
-              {bars.map((b) => {
-                const heightPct = Math.max(2, (b.value / maxValue) * 100)
-                return (
-                  <div key={b.key} className="trend-chart__col">
-                    <span className="trend-chart__bar-track">
-                      <span className="outputs-chart__bar" style={{ height: `${heightPct}%` }} />
-                    </span>
-                    <span className="trend-chart__label">{b.label}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+      <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
+        <div className="settings-card__title-row">
+          <h2 className="settings-card__title">Exit</h2>
+          <GoalTrendIndicator goal={goal} actual={total} target={target} />
+          <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
         </div>
-        <span className="trend-chart__toggle-hint">
-          {grouped.length === 0
-            ? NBSP
-            : expanded
-              ? '▴ Nascondi elenco giornaliero'
-              : "▾ Tocca per l'elenco giornaliero"}
-        </span>
+        <p className="trend-chart__caption">
+          {daysWithOutputs}/{days.length} giorni con almeno un'uscita
+          {delta !== null && (
+            <span className="report-card__delta">
+              {' '}
+              ({delta > 0 ? '+' : ''}
+              {delta}%)
+            </span>
+          )}
+        </p>
       </button>
 
-      {expanded && grouped.length > 0 && (
-        <div className="outputs-detail">
-          <div className="backup-card__actions">
-            <button type="button" className="backup-card__secondary" onClick={handleCopyList}>
-              Copia elenco
-            </button>
-          </div>
-          {copyMessage && <p className="backup-card__message">{copyMessage}</p>}
-          {grouped.map((d) => (
-            <div key={toISODate(d.date)} className="outputs-detail__day">
-              <p className="outputs-detail__date">{formatFullDate(d.date)}</p>
-              <ul className="outputs-detail__list">
-                {d.items.map((o) => (
-                  <li key={o.id}>{o.text}</li>
-                ))}
-              </ul>
+      {expanded && (
+        <>
+          <div className="trend-chart__row">
+            <TrendChartYAxis maxValue={maxValue} formatValue={formatAxisValue} />
+            <div className="trend-chart__bars-wrap">
+              <GoalLine
+                goals={goals}
+                itemKey="outputs"
+                monthIso={toMonthISO(days[days.length - 1])}
+                barGranularity="day"
+                maxValue={maxValue}
+                formatValue={(v) => String(v)}
+              />
+              <div className="trend-chart__bars">
+                {bars.map((b) => {
+                  const heightPct = Math.max(2, (b.value / maxValue) * 100)
+                  return (
+                    <div key={b.key} className="trend-chart__col">
+                      <span className="trend-chart__bar-track">
+                        <span className="outputs-chart__bar" style={{ height: `${heightPct}%` }} />
+                      </span>
+                      <span className="trend-chart__label">{b.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
+
+          {grouped.length > 0 && (
+            <div className="outputs-detail">
+              <div className="backup-card__actions">
+                <button type="button" className="backup-card__secondary" onClick={handleCopyList}>
+                  Copia elenco
+                </button>
+              </div>
+              {copyMessage && <p className="backup-card__message">{copyMessage}</p>}
+              {grouped.map((d) => (
+                <div key={toISODate(d.date)} className="outputs-detail__day">
+                  <p className="outputs-detail__date">{formatFullDate(d.date)}</p>
+                  <ul className="outputs-detail__list">
+                    {d.items.map((o) => (
+                      <li key={o.id}>{o.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </section>
   )
