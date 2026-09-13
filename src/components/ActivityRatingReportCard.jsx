@@ -193,13 +193,13 @@ export default function ActivityRatingReportCard({ activity, ratings, days, peri
 
   return (
     <section className="settings-card">
-      <div className="settings-card__title-row">
-        <h2 className="settings-card__title">{activity.name}</h2>
-        <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
-      </div>
-      <RatingGauge dailyAverage={dailyAverage} />
       <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-        <span className="trend-chart__toggle-hint">{expanded ? '▴ Nascondi dettaglio' : '▾ Tocca per il dettaglio'}</span>
+        <div className="settings-card__title-row">
+          <h2 className="settings-card__title">{activity.name}</h2>
+          <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
+          <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
+        </div>
+        <RatingGauge dailyAverage={dailyAverage} />
       </button>
       {expanded && (
         <>

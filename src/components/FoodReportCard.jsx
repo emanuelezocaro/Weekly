@@ -468,10 +468,12 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
     })
     return (
       <section className="settings-card">
-        <h2 className="settings-card__title">Food</h2>
-        <FoodGauge value={gaugeValue} />
         <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-          <span className="trend-chart__toggle-hint">{expanded ? '▴ Nascondi dettaglio' : '▾ Tocca per il dettaglio'}</span>
+          <div className="settings-card__title-row">
+            <h2 className="settings-card__title">Food</h2>
+            <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
+          </div>
+          <FoodGauge value={gaugeValue} />
         </button>
         {expanded && (
           <>
@@ -503,10 +505,12 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
 
   return (
     <section className="settings-card">
-      <h2 className="settings-card__title">Food</h2>
-      <FoodGauge value={gaugeValue} />
       <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-        <span className="trend-chart__toggle-hint">{expanded ? '▴ Nascondi dettaglio' : '▾ Tocca per il dettaglio'}</span>
+        <div className="settings-card__title-row">
+          <h2 className="settings-card__title">Food</h2>
+          <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
+        </div>
+        <FoodGauge value={gaugeValue} />
       </button>
       {expanded && (
         <>
