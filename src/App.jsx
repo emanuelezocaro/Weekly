@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import TopNav from './components/TopNav'
-import DashboardView from './components/DashboardView'
 import DayAgenda from './components/DayAgenda'
 import ReportView from './components/ReportView'
 import SettingsView from './components/SettingsView'
@@ -41,7 +40,7 @@ function SkipIcon({ direction }) {
 }
 
 function App() {
-  const [tab, setTab] = useState('dashboard')
+  const [tab, setTab] = useState('calendar')
   const [periodLabel, setPeriodLabel] = useState(null)
 
   // Switching top-level tab swaps what's rendered in the same scrolling
@@ -92,17 +91,6 @@ function App() {
       </div>
 
       <main className="app-main">
-        {tab === 'dashboard' && (
-          <DashboardView
-            activities={activities}
-            durations={durations}
-            checklist={checklist}
-            food={food}
-            ratings={ratings}
-            goals={goals}
-            onPeriodLabel={setPeriodLabel}
-          />
-        )}
         {tab === 'calendar' && (
           <DayAgenda
             activities={activities}

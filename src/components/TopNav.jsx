@@ -1,12 +1,3 @@
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 11 L12 4 L20 11" />
-      <path d="M6 10 V20 H18 V10" />
-    </svg>
-  )
-}
-
 // A day tile with a "+" instead of the usual calendar grid -- this is the
 // section where you add entries (blocks, cibo), so the
 // icon should say that at a glance, not just "calendar".
@@ -44,7 +35,6 @@ function SettingsIcon() {
 }
 
 const TABS = [
-  { id: 'dashboard', label: 'Dash', Icon: HomeIcon },
   { id: 'calendar', label: 'Add', Icon: CalendarIcon },
   { id: 'report', label: 'Report', Icon: ReportIcon },
   { id: 'settings', label: 'Set', Icon: SettingsIcon },
