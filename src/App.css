@@ -442,19 +442,6 @@
   width: 26px;
 }
 
-/* Inline right after the label text (not position:absolute pinned to the
-   button's own corner) so it sits right next to the word regardless of
-   how wide the tab column is or where the text lands inside it. */
-.segmented__dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-left: 4px;
-  vertical-align: top;
-  border-radius: 50%;
-  background: var(--danger);
-}
-
 /* Reusable dropdown (activity picker, quarter-hour picker) */
 .quarter-select {
   width: 100%;
@@ -994,14 +981,6 @@
   opacity: 1;
 }
 
-.outputs-chart__bar {
-  width: 100%;
-  max-width: 20px;
-  min-height: 2px;
-  border-radius: 4px 4px 0 0;
-  background: var(--accent);
-}
-
 .cigarettes-chart__bar {
   width: 100%;
   max-width: 20px;
@@ -1116,9 +1095,9 @@
 }
 
 /* Stand-in for .trend-chart__yaxis's reserved width (a dots row has no
-   number scale to show) so its day columns land the same width as Uscite's
-   bar columns, instead of the much wider 84px gutter .mini-row__label
-   reserves for Alimentazione's row labels. */
+   number scale to show) so its day columns line up with any bar-chart's
+   columns above/below it, instead of the much wider 84px gutter
+   .mini-row__label reserves for Alimentazione's row labels. */
 .mini-row__gutter {
   flex-shrink: 0;
   width: 13px;
@@ -1422,31 +1401,6 @@
   text-align: center;
 }
 
-.outputs-detail {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.outputs-detail__day {
-  margin-top: 12px;
-}
-
-.outputs-detail__date {
-  margin: 0 0 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-}
-
-.outputs-detail__list {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
 /* Settings cards */
 .settings-card {
   border: 1px solid var(--border);
@@ -1657,44 +1611,6 @@
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
-}
-
-.outputs-add-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.outputs-add-form textarea {
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 16px;
-  font-family: inherit;
-  resize: vertical;
-  min-height: 84px;
-}
-
-.outputs-add-form button {
-  align-self: flex-end;
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: none;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.outputs-skip {
-  margin: 10px 0 0;
-  font-size: 13px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .activity-manage-list {

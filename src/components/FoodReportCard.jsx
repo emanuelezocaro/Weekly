@@ -105,9 +105,10 @@ function ExtraMiniRow({ values, goalBadge }) {
 
 // Anno: troppi giorni per una barra a testa, si aggrega per mese contando
 // quante valutazioni buone/medie/male ci sono state, invece di mostrare il
-// singolo giorno. A differenza di Sonno/Sigarette/Uscite, qui non serve una
-// media giornaliera: ogni barra è già una proporzione (quota di buono/medio/
-// male su quel mese), non una somma che un mese più lungo gonfierebbe.
+// singolo giorno. A differenza delle attività rating (Sonno, Put off), qui
+// non serve una media giornaliera: ogni barra è già una proporzione (quota
+// di buono/medio/male su quel mese), non una somma che un mese più lungo
+// gonfierebbe.
 function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
   return (
     <div className="mini-row">

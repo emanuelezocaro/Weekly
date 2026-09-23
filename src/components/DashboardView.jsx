@@ -121,7 +121,7 @@ const CARD_BY_TAB = { behind: BehindCard, met: MetCard, failed: FailedCard }
 // trattino se ancora niente.
 const TIME_RATING_LABELS = { bad: 'Bad', mid: 'Medium', good: 'Good' }
 
-function buildTodayTiles({ activities, durations, checklist, ratings, outputs, food, now }) {
+function buildTodayTiles({ activities, durations, checklist, ratings, food, now }) {
   const todayIso = toISODate(now)
   const tiles = []
 
@@ -153,15 +153,6 @@ function buildTodayTiles({ activities, durations, checklist, ratings, outputs, f
       })
     }
   }
-
-  const outputsToday = outputs.filter((o) => o.date === todayIso).length
-  tiles.push({
-    key: 'outputs',
-    label: 'Exit',
-    color: 'var(--accent)',
-    value: outputsToday > 0 ? String(outputsToday) : '—',
-    muted: outputsToday === 0,
-  })
 
   const foodToday = food.find((f) => f.date === todayIso)
   const points = dayPoints(foodToday)
@@ -207,7 +198,6 @@ export default function DashboardView({
   durations,
   checklist,
   ratings,
-  outputs,
   food,
   goals,
   now: nowProp,
@@ -225,7 +215,6 @@ export default function DashboardView({
     durations,
     checklist,
     ratings,
-    outputs,
     food,
     goals,
     now,
@@ -238,7 +227,7 @@ export default function DashboardView({
     return () => onPeriodLabel(null)
   }, [now, onPeriodLabel])
 
-  const todayTiles = buildTodayTiles({ activities, durations, checklist, ratings, outputs, food, now })
+  const todayTiles = buildTodayTiles({ activities, durations, checklist, ratings, food, now })
 
   if (behind.length === 0 && failed.length === 0 && onTrack.length === 0) {
     return (

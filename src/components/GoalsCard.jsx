@@ -153,8 +153,8 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
     <section className="settings-card">
       <h2 className="settings-card__title">Obiettivi</h2>
       <p className="settings-card__hint">
-        Imposta un valore di riferimento per attività, sigarette, uscite e alimentazione: per le
-        prime tre lo vedrai come linea nei grafici del Report, per l'alimentazione come conteggio
+        Imposta un valore di riferimento per attività, sigarette e alimentazione: per le
+        prime due lo vedrai come linea nei grafici del Report, per l'alimentazione come conteggio
         "X/obiettivo" accanto a ogni riga. Per le attività scegli anche se superare l'obiettivo è
         un bene o un male: nel grafico la zona sopra e sotto la linea si colora di verde/rosso di
         conseguenza. Le modifiche valgono da questo mese in poi; i mesi passati mantengono
@@ -192,14 +192,6 @@ export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
           />
         ),
       )}
-      <CountGoalRow
-        itemKey="outputs"
-        label="Uscite"
-        withDirection
-        defaultDirection="higher_is_better"
-        goal={goalForMonth(goals, 'outputs', monthIso)}
-        onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-      />
       {FOOD_GOALS.map((f) => (
         <CountGoalRow
           key={f.itemKey}

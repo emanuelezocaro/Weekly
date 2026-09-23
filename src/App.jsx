@@ -63,12 +63,6 @@ function App() {
     renameActivity,
     setActivityMode,
     deleteActivity,
-    outputs,
-    addOutput,
-    removeOutput,
-    outputsSkipped,
-    confirmNoOutputs,
-    undoNoOutputs,
     food,
     setFoodField,
     ratings,
@@ -103,7 +97,6 @@ function App() {
             activities={activities}
             durations={durations}
             checklist={checklist}
-            outputs={outputs}
             food={food}
             ratings={ratings}
             goals={goals}
@@ -115,17 +108,11 @@ function App() {
             activities={activities}
             durations={durations}
             checklist={checklist}
-            outputs={outputs}
-            outputsSkipped={outputsSkipped}
             food={food}
             ratings={ratings}
             onAddDuration={addDuration}
             onRemoveDuration={removeDuration}
             onToggleChecklist={toggleChecklist}
-            onAddOutput={addOutput}
-            onRemoveOutput={removeOutput}
-            onConfirmNoOutputs={confirmNoOutputs}
-            onUndoNoOutputs={undoNoOutputs}
             onSetFoodField={setFoodField}
             onSetRating={setRating}
             onPeriodLabel={setPeriodLabel}
@@ -136,7 +123,6 @@ function App() {
             activities={activities}
             durations={durations}
             checklist={checklist}
-            outputs={outputs}
             food={food}
             ratings={ratings}
             goals={goals}

@@ -157,7 +157,7 @@ const roundMinutes = (n) => Math.round(n)
 // period against its full target with no notion of "so far"), this always
 // compares the week's cumulative total against a target scaled to how much
 // of the week has elapsed.
-export function buildDashboardItems({ activities, durations, checklist, ratings, outputs, food, goals, now = new Date() }) {
+export function buildDashboardItems({ activities, durations, checklist, ratings, food, goals, now = new Date() }) {
   const monthIso = toMonthISO(now)
   const items = []
   const weekDays = daysSoFarThisWeek(now)
@@ -220,21 +220,6 @@ export function buildDashboardItems({ activities, durations, checklist, ratings,
         round: roundMinutes,
       })
     }
-  }
-
-  const outputsGoal = goalForMonth(goals, 'outputs', monthIso)
-  if (outputsGoal && isGoalTracked(outputsGoal)) {
-    const actual = outputs.filter((o) => isoWeekDays.has(o.date)).length
-    pushItem({
-      key: 'outputs',
-      label: 'Exit',
-      swatchColor: 'var(--accent)',
-      goal: outputsGoal,
-      actual,
-      elapsedDaysThisWeek,
-      fallbackDirection: 'higher_is_better',
-      formatDiff: formatCount,
-    })
   }
 
   for (const field of FOOD_FIELDS) {

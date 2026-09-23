@@ -8,7 +8,7 @@ function HomeIcon() {
 }
 
 // A day tile with a "+" instead of the usual calendar grid -- this is the
-// section where you add entries (blocks, uscite, sigarette, cibo), so the
+// section where you add entries (blocks, cibo), so the
 // icon should say that at a glance, not just "calendar".
 function CalendarIcon() {
   return (

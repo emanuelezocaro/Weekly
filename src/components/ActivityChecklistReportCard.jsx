@@ -52,8 +52,8 @@ function WeekAxisRow({ days }) {
 }
 
 // Done/not-done dots report shape for attività "a checklist" (mode:
-// 'checklist'), plus the same goal-vs-count comparison Sigarette/Uscite
-// already use ("X volte a settimana").
+// 'checklist'), plus the same goal-vs-count comparison ("X volte a
+// settimana") the rating-mode activities already use.
 export default function ActivityChecklistReportCard({ activity, checklist, days, prevDays, period, goals }) {
   const doneSet = doneSetFor(checklist, activity.id)
   const doneCount = days.filter((d) => doneSet.has(toISODate(d))).length

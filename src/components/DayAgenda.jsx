@@ -5,20 +5,14 @@ import { colorVar } from '../utils/palette'
 import FoodCard from './FoodCard'
 import { RATING_OPTIONS, thresholdHint } from '../utils/timeRatings'
 
-const DAY_TABS = [
-  { id: 'calendar', label: 'Log' },
-  { id: 'outputs', label: 'Exit' },
-]
-
 const FOOD_FIELD_KEYS = ['colazione', 'pranzo', 'cena', 'alcol', 'dolci', 'extra']
 
 // A day that's "done" is locked 48h after it ends, so old history can't be
-// edited by accident. What counts as "done" depends on the tab: all fields
-// for Cibo, at least one output (or a confirmed "niente") for Uscite.
-// Attività has no such notion -- logging a duration, ticking a checklist
-// item, or tapping a rating is never "complete" or "incomplete", so that
-// tab is never locked on its own; the shared unlock button below still
-// applies to whichever OTHER tab is locked for that day.
+// edited by accident. Only Cibo (all fields filled in) has such a notion --
+// Attività never counts as "complete" or "incomplete", so logging a
+// duration, ticking a checklist item, or tapping a rating never locks on
+// its own; the shared unlock button below still applies to Cibo even while
+// looking at the rest of the day.
 const LOCK_AFTER_MS = 48 * 60 * 60 * 1000
 
 function isDayLocked(isToday, complete, cursor, now) {
@@ -108,9 +102,9 @@ function ChecklistActivityTile({ activity, done, missing, onToggle }) {
 
 // A single Bad/Medium/Good tap per day -- same input shape as Food's rating
 // buttons, just one field instead of six. Each button carries its own
-// threshold (only known for Sleep, Put off and Work) right inside it,
-// instead of a separate legend line, since there's no number entry here to
-// make it obvious otherwise.
+// threshold (only known for Sleep and Put off) right inside it, instead of
+// a separate legend line, since there's no number entry here to make it
+// obvious otherwise.
 function RatingActivityRow({ activity, value, onSet }) {
   return (
     <div className="day-activity-row">
@@ -138,104 +132,20 @@ function RatingActivityRow({ activity, value, onSet }) {
   )
 }
 
-function OutputsCard({ dayOutputs, onAdd, onRemove, isToday, isSkipped, onConfirmNoOutputs, onUndoNoOutputs, locked }) {
-  const [text, setText] = useState('')
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (!text.trim()) return
-    onAdd(text)
-    setText('')
-  }
-
-  return (
-    <section className="settings-card">
-      <h2 className="settings-card__title">Uscite</h2>
-      {!locked && (
-        <form className="outputs-add-form" onSubmit={handleSubmit}>
-          <textarea
-            placeholder="Es. Fattura inviata a..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={3}
-          />
-          <button type="submit">Aggiungi</button>
-        </form>
-      )}
-      {locked && <p className="settings-card__hint">Non più modificabile.</p>}
-      {isToday && dayOutputs.length === 0 && (
-        <p className="outputs-skip">
-          {isSkipped ? (
-            <>
-              Segnato: nessuna uscita oggi.{' '}
-              <button type="button" className="text-btn" onClick={onUndoNoOutputs}>
-                Annulla
-              </button>
-            </>
-          ) : (
-            <button type="button" className="backup-card__secondary" onClick={onConfirmNoOutputs}>
-              Niente da segnalare oggi
-            </button>
-          )}
-        </p>
-      )}
-      <p className="settings-card__hint">
-        Cose uscite dalle mie mani oggi.
-        <br />
-        <br />
-        Vale solo se è arrivato a qualcun altro ed è irreversibile: fattura inviata, preventivo
-        mandato, lavoro consegnato, data comunicata, decisione detta al cliente, sollecito
-        partito.
-        <br />
-        <br />
-        Non vale: averci lavorato, averci pensato, "quasi pronto", aver parlato con qualcuno senza
-        che ne sia uscito un documento o una data.
-        <br />
-        <br />
-        Test: qualcun altro sa che è successo? Se no, non è un'uscita.
-      </p>
-      {dayOutputs.length > 0 && (
-        <ul className="outputs-list">
-          {dayOutputs.map((o) => (
-            <li key={o.id} className="outputs-list__item">
-              <span className="outputs-list__text">{o.text}</span>
-              <button
-                type="button"
-                className="text-btn text-btn--danger"
-                onClick={() => onRemove(o.id)}
-                disabled={locked}
-              >
-                Elimina
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
-}
-
 export default function DayAgenda({
   activities,
   durations,
   checklist,
-  outputs,
-  outputsSkipped,
   food,
   ratings,
   onAddDuration,
   onRemoveDuration,
   onToggleChecklist,
-  onAddOutput,
-  onRemoveOutput,
-  onConfirmNoOutputs,
-  onUndoNoOutputs,
   onSetFoodField,
   onSetRating,
   onPeriodLabel,
 }) {
   const [cursor, onCursorChange] = useState(() => new Date())
-  const [activeTab, setActiveTab] = useState('calendar')
   const isToday = isSameDay(cursor, new Date())
   const nextDisabled = isFuture(addDays(cursor, 1))
   const prevDisabled = toISODate(cursor) <= toISODate(APP_START_DATE)
@@ -269,118 +179,67 @@ export default function DayAgenda({
   const dayDurations = durations.filter((d) => d.date === dayIso)
   const dayChecklistDone = new Set(checklist.filter((c) => c.date === dayIso).map((c) => c.activityId))
   const dayRatingByActivity = new Map(ratings.filter((r) => r.date === dayIso).map((r) => [r.activityId, r.value]))
-  const dayOutputs = outputs.filter((o) => o.date === dayIso)
-  const dayOutputsSkipped = outputsSkipped.some((o) => o.date === dayIso)
   const dayFoodRecord = food.find((f) => f.date === dayIso)
-  const outputsLocked = isDayLocked(isToday, dayOutputs.length > 0 || dayOutputsSkipped, cursor, now) && !forceUnlock
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
-  const anyOtherTabLocked = !forceUnlock && !isToday && (outputsLocked || foodLocked)
-
-  // Only today can be "missing" data -- past days are either filled in or
-  // already gone, and there's nothing to fill in for the future. Uscite also
-  // clears once the day is confirmed to have had none. Attività's own
-  // duration/rating activities have no missing-data notion, but a checklist
-  // activity does (every one wants an explicit done/not-done each day, see
-  // ChecklistActivityTile), and so does Cibo (now living inside this same
-  // tab) -- either one being unmarked shows up as the tab's own dot.
-  const missingByTab = {
-    calendar:
-      isToday &&
-      (FOOD_FIELD_KEYS.some((k) => !dayFoodRecord?.[k]) ||
-        activities.some((a) => a.mode === 'checklist' && !dayChecklistDone.has(a.id))),
-    outputs: isToday && dayOutputs.length === 0 && !dayOutputsSkipped,
-  }
+  const showUnlockButton = !forceUnlock && !isToday && foodLocked
 
   return (
     <div className="panel" {...swipeHandlers}>
-      <div className="segmented-wrap">
-        <div className="segmented">
-          {DAY_TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`segmented__item ${activeTab === t.id ? 'is-active' : ''}`}
-              onClick={() => setActiveTab(t.id)}
-            >
-              {t.label}
-              {missingByTab[t.id] && <span className="segmented__dot" aria-label="Dati mancanti" />}
-            </button>
-          ))}
-        </div>
-      </div>
+      {showUnlockButton && (
+        <button type="button" className="text-btn" style={{ marginBottom: 12 }} onClick={() => setForceUnlock(true)}>
+          Sblocca per modificare
+        </button>
+      )}
 
-      <>
-        {anyOtherTabLocked && (
-          <button type="button" className="text-btn" style={{ marginBottom: 12 }} onClick={() => setForceUnlock(true)}>
-            Sblocca per modificare
-          </button>
-        )}
-
-        {activeTab === 'outputs' && (
-          <OutputsCard
-            dayOutputs={dayOutputs}
-            onAdd={(text) => onAddOutput(dayIso, text)}
-            onRemove={onRemoveOutput}
-            isToday={isToday}
-            isSkipped={dayOutputsSkipped}
-            onConfirmNoOutputs={() => onConfirmNoOutputs(dayIso)}
-            onUndoNoOutputs={() => onUndoNoOutputs(dayIso)}
-            locked={outputsLocked}
-          />
-        )}
-
-        {activeTab === 'calendar' && (
-          <div className="activity-day-list">
-            {activities.length === 0 ? (
-              <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
-            ) : (
-              <>
+      <div className="activity-day-list">
+        {activities.length === 0 ? (
+          <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+        ) : (
+          <>
+            {activities
+              .filter((a) => a.mode !== 'checklist')
+              .map((a) =>
+                a.mode === 'rating' ? (
+                  <RatingActivityRow
+                    key={a.id}
+                    activity={a}
+                    value={dayRatingByActivity.get(a.id) ?? null}
+                    onSet={(value) => onSetRating(a.id, dayIso, value)}
+                  />
+                ) : (
+                  <DurationActivityRow
+                    key={a.id}
+                    activity={a}
+                    logs={dayDurations.filter((d) => d.activityId === a.id)}
+                    onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
+                    onRemove={onRemoveDuration}
+                  />
+                ),
+              )}
+            {activities.some((a) => a.mode === 'checklist') && (
+              <div className="day-activity-grid">
                 {activities
-                  .filter((a) => a.mode !== 'checklist')
-                  .map((a) =>
-                    a.mode === 'rating' ? (
-                      <RatingActivityRow
-                        key={a.id}
-                        activity={a}
-                        value={dayRatingByActivity.get(a.id) ?? null}
-                        onSet={(value) => onSetRating(a.id, dayIso, value)}
-                      />
-                    ) : (
-                      <DurationActivityRow
-                        key={a.id}
-                        activity={a}
-                        logs={dayDurations.filter((d) => d.activityId === a.id)}
-                        onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
-                        onRemove={onRemoveDuration}
-                      />
-                    ),
-                  )}
-                {activities.some((a) => a.mode === 'checklist') && (
-                  <div className="day-activity-grid">
-                    {activities
-                      .filter((a) => a.mode === 'checklist')
-                      .map((a) => (
-                        <ChecklistActivityTile
-                          key={a.id}
-                          activity={a}
-                          done={dayChecklistDone.has(a.id)}
-                          missing={isToday && !dayChecklistDone.has(a.id)}
-                          onToggle={() => onToggleChecklist(a.id, dayIso)}
-                        />
-                      ))}
-                  </div>
-                )}
-              </>
+                  .filter((a) => a.mode === 'checklist')
+                  .map((a) => (
+                    <ChecklistActivityTile
+                      key={a.id}
+                      activity={a}
+                      done={dayChecklistDone.has(a.id)}
+                      missing={isToday && !dayChecklistDone.has(a.id)}
+                      onToggle={() => onToggleChecklist(a.id, dayIso)}
+                    />
+                  ))}
+              </div>
             )}
-            <FoodCard
-              food={dayFoodRecord}
-              onChange={(field, value) => onSetFoodField(dayIso, field, value)}
-              locked={foodLocked}
-            />
-          </div>
+          </>
         )}
-      </>
+        <FoodCard
+          food={dayFoodRecord}
+          onChange={(field, value) => onSetFoodField(dayIso, field, value)}
+          locked={foodLocked}
+        />
+      </div>
     </div>
   )
 }

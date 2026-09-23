@@ -8,8 +8,6 @@ const ACTIVITIES_KEY = 'weekly:v2:activitiesMeta'
 const ENTRIES_KEY = 'weekly:v2:entriesMeta'
 const DURATIONS_KEY = 'weekly:v2:durationsMeta'
 const CHECKLIST_KEY = 'weekly:v2:checklistMeta'
-const OUTPUTS_KEY = 'weekly:v2:outputsMeta'
-const OUTPUTS_SKIPPED_KEY = 'weekly:v2:outputsSkippedMeta'
 const CIGARETTES_KEY = 'weekly:v2:cigarettesMeta'
 const FOOD_KEY = 'weekly:v2:foodMeta'
 const RATINGS_KEY = 'weekly:v2:ratingsMeta'
@@ -56,14 +54,6 @@ function makeDurationId() {
 
 function makeChecklistId() {
   return `ck_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
-function makeOutputId() {
-  return `o_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-}
-
-function makeOutputsSkippedId() {
-  return `os_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
 }
 
 function makeFoodId() {
@@ -145,8 +135,6 @@ export function useHabitData() {
   const [entriesMeta, setEntriesMeta] = useState(() => loadEntries())
   const [durationsMeta, setDurationsMeta] = useState(() => loadDurationsWithMigration(entriesMeta))
   const [checklistMeta, setChecklistMeta] = useState(() => loadJSON(CHECKLIST_KEY, []))
-  const [outputsMeta, setOutputsMeta] = useState(() => loadJSON(OUTPUTS_KEY, []))
-  const [outputsSkippedMeta, setOutputsSkippedMeta] = useState(() => loadJSON(OUTPUTS_SKIPPED_KEY, []))
   // Kept only as a passive historical record now (still exported in
   // backups, and read once by the rating reconciliation effect above) --
   // nothing writes to it anymore since Cigarettes became a rating-mode
@@ -171,14 +159,6 @@ export function useHabitData() {
   useEffect(() => {
     localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checklistMeta))
   }, [checklistMeta])
-
-  useEffect(() => {
-    localStorage.setItem(OUTPUTS_KEY, JSON.stringify(outputsMeta))
-  }, [outputsMeta])
-
-  useEffect(() => {
-    localStorage.setItem(OUTPUTS_SKIPPED_KEY, JSON.stringify(outputsSkippedMeta))
-  }, [outputsSkippedMeta])
 
   useEffect(() => {
     localStorage.setItem(CIGARETTES_KEY, JSON.stringify(cigarettesMeta))
@@ -279,11 +259,6 @@ export function useHabitData() {
   const activities = useMemo(() => toPlainActivities(activitiesMeta), [activitiesMeta])
   const durations = useMemo(() => durationsMeta.filter((d) => !d.deleted), [durationsMeta])
   const checklist = useMemo(() => checklistMeta.filter((c) => !c.deleted), [checklistMeta])
-  const outputs = useMemo(() => outputsMeta.filter((o) => !o.deleted), [outputsMeta])
-  const outputsSkipped = useMemo(
-    () => outputsSkippedMeta.filter((o) => !o.deleted),
-    [outputsSkippedMeta],
-  )
   const food = useMemo(() => foodMeta.filter((f) => !f.deleted), [foodMeta])
   const ratings = useMemo(() => ratingsMeta.filter((r) => !r.deleted), [ratingsMeta])
   const goals = useMemo(() => goalsMeta.filter((g) => !g.deleted), [goalsMeta])
@@ -390,43 +365,6 @@ export function useHabitData() {
     })
   }, [])
 
-  // --- Outputs (per-day list of short "cosa e uscito oggi" strings) ---
-
-  const addOutput = useCallback((date, text) => {
-    const trimmed = text.trim()
-    if (!trimmed) return
-    setOutputsMeta((prev) => [
-      ...prev,
-      { id: makeOutputId(), date, text: trimmed, updatedAt: Date.now(), deleted: false },
-    ])
-    // A real output beats an earlier "niente da segnalare" for the same day.
-    setOutputsSkippedMeta((prev) =>
-      prev.map((o) => (!o.deleted && o.date === date ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
-    )
-  }, [])
-
-  const removeOutput = useCallback((id) => {
-    setOutputsMeta((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
-    )
-  }, [])
-
-  // --- Outputs skipped (per-day "niente da segnalare oggi" confirmation) ---
-
-  const confirmNoOutputs = useCallback((date) => {
-    setOutputsSkippedMeta((prev) => {
-      const idx = prev.findIndex((o) => !o.deleted && o.date === date)
-      if (idx !== -1) return prev
-      return [...prev, { id: makeOutputsSkippedId(), date, updatedAt: Date.now(), deleted: false }]
-    })
-  }, [])
-
-  const undoNoOutputs = useCallback((date) => {
-    setOutputsSkippedMeta((prev) =>
-      prev.map((o) => (!o.deleted && o.date === date ? { ...o, deleted: true, updatedAt: Date.now() } : o)),
-    )
-  }, [])
-
   // Note: cigarettesMeta itself (the old daily-count feature) is kept as a
   // passive historical record only -- nothing writes to it anymore, see the
   // reconciliation effect above, which reads it once to seed Cigarettes'
@@ -502,8 +440,6 @@ export function useHabitData() {
         entries: entriesMeta,
         durations: durationsMeta,
         checklist: checklistMeta,
-        outputs: outputsMeta,
-        outputsSkipped: outputsSkippedMeta,
         cigarettes: cigarettesMeta,
         food: foodMeta,
         ratings: ratingsMeta,
@@ -517,8 +453,6 @@ export function useHabitData() {
     entriesMeta,
     durationsMeta,
     checklistMeta,
-    outputsMeta,
-    outputsSkippedMeta,
     cigarettesMeta,
     foodMeta,
     ratingsMeta,
@@ -540,8 +474,6 @@ export function useHabitData() {
       Array.isArray(parsed.durations) ? parsed.durations : migrateEntriesToDurations(cleanedEntries, new Date()),
     )
     setChecklistMeta(Array.isArray(parsed.checklist) ? parsed.checklist : [])
-    setOutputsMeta(Array.isArray(parsed.outputs) ? parsed.outputs : [])
-    setOutputsSkippedMeta(Array.isArray(parsed.outputsSkipped) ? parsed.outputsSkipped : [])
     setCigarettesMeta(Array.isArray(parsed.cigarettes) ? parsed.cigarettes : [])
     setFoodMeta(Array.isArray(parsed.food) ? parsed.food : [])
     setRatingsMeta(Array.isArray(parsed.ratings) ? parsed.ratings : [])
@@ -559,12 +491,6 @@ export function useHabitData() {
     removeDuration,
     checklist,
     toggleChecklist,
-    outputs,
-    addOutput,
-    removeOutput,
-    outputsSkipped,
-    confirmNoOutputs,
-    undoNoOutputs,
     food,
     setFoodField,
     ratings,

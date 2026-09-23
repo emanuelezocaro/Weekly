@@ -1,12 +1,12 @@
-// Rating-mode activities (Sleep, Put off, Work, Cigarettes) are logged the
-// same way Food is: a single Bad/Medium/Good tap per day, no numbers. The
+// Rating-mode activities (Sleep, Put off, Cigarettes) are logged the same
+// way Food is: a single Bad/Medium/Good tap per day, no numbers. The
 // thresholds below exist to (a) label each button with what it means -- no
 // separate legend line, the hint sits inside the button itself -- and (b)
-// migrate old logs (hours for Sleep/Put off/Work, a daily count for
-// Cigarettes) into this scale (see the reconciliation effect in
-// useHabitData.js). The matching logic doesn't care what unit `upTo` is in
-// -- minutes for the time-tracked ones, a plain count for Cigarettes -- it's
-// just "which zone does this raw number fall into" either way.
+// migrate old logs (hours for Sleep/Put off, a daily count for Cigarettes)
+// into this scale (see the reconciliation effect in useHabitData.js). The
+// matching logic doesn't care what unit `upTo` is in -- minutes for the
+// time-tracked ones, a plain count for Cigarettes -- it's just "which zone
+// does this raw number fall into" either way.
 // Each activity's zones list its thresholds in ascending order; `upTo` is
 // that zone's inclusive upper bound (Infinity for the last one). `hint` is
 // the short text shown inside that zone's button and used to build the
@@ -21,11 +21,6 @@ const THRESHOLDS = {
     { value: 'good', upTo: 30, hint: '- 30 min' },
     { value: 'mid', upTo: 60, hint: '30-60 min' },
     { value: 'bad', upTo: Infinity, hint: '+ 1 h' },
-  ],
-  Work: [
-    { value: 'bad', upTo: 59, hint: '- 1 h' },
-    { value: 'mid', upTo: 240, hint: '1-4 h' },
-    { value: 'good', upTo: Infinity, hint: '+ 4 h' },
   ],
   Cigarettes: [
     { value: 'good', upTo: 4, hint: '- 5' },

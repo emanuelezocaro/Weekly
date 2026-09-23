@@ -16,14 +16,13 @@ import { copyOrShareText } from '../utils/shareFile'
 import ActivityTimeReportCard from './ActivityTimeReportCard'
 import ActivityChecklistReportCard from './ActivityChecklistReportCard'
 import ActivityRatingReportCard from './ActivityRatingReportCard'
-import OutputsWeekCard from './OutputsWeekCard'
 import FoodReportCard from './FoodReportCard'
 
 // Fixed reading order for the per-activity report cards, chosen by hand
 // rather than alphabetical -- an activity not in this list (renamed, or
 // newly added) just falls back after these, in whatever order `activities`
 // itself has them.
-const ACTIVITY_ORDER = ['Work', 'Growth', 'Sleep', 'Body', 'Free', 'Put off']
+const ACTIVITY_ORDER = ['Sleep', 'Put off']
 
 function sortByCustomOrder(activities) {
   return [...activities].sort((a, b) => {
@@ -111,7 +110,7 @@ function isPrevDisabled(period, cursor) {
   return startOfYear(cursor) <= startOfYear(APP_START_DATE)
 }
 
-export default function ReportView({ activities, durations, checklist, outputs, food, ratings, goals, onPeriodLabel }) {
+export default function ReportView({ activities, durations, checklist, food, ratings, goals, onPeriodLabel }) {
   const [period, setPeriod] = useState('week')
   const [cursor, setCursor] = useState(() => new Date())
   const [summaryMessage, setSummaryMessage] = useState('')
@@ -139,7 +138,7 @@ export default function ReportView({ activities, durations, checklist, outputs, 
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
   async function handleCopySummary() {
-    const ctx = { activities, durations, checklist, outputs, food, ratings, goals }
+    const ctx = { activities, durations, checklist, food, ratings, goals }
     const text =
       period === 'week' ? buildWeekSummaryText(startOfWeek(cursor), ctx) : buildMonthSummaryText(cursor, ctx)
     const filename =
@@ -219,7 +218,6 @@ export default function ReportView({ activities, durations, checklist, outputs, 
 
         <hr className="report-divider" />
 
-        <OutputsWeekCard outputs={outputs} days={days} prevDays={prevDays} period={period} goals={goals} />
         <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
       </>
     </div>
