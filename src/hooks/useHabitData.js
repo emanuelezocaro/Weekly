@@ -27,6 +27,13 @@ const MIGRATED_FLAG_KEY = 'weekly:v2:migratedToDurations'
 // it only ever runs once.
 const DIARIO_BACKFILL_FLAG_KEY = 'weekly:v2:diarioBackfilled'
 const DIARIO_BACKFILL_START = '2026-08-04'
+// One-time cleanup marker: Sleep/Put off/Work used to have duration goals
+// (a value in hours, e.g. "7.5"), but once an activity switches to rating
+// mode its goal becomes "N giorni buoni a settimana" (0-7) -- the old hours
+// value left in place would be misread as that count (e.g. an old "40h"
+// goal compared against a max-7 actual, producing a nonsense delta like
+// -33). Guarded the same way as the other one-time migrations above.
+const RATING_GOALS_CLEANUP_FLAG_KEY = 'weekly:v2:ratingGoalsCleanedUp'
 
 const DEFAULT_ACTIVITIES = []
 
@@ -212,6 +219,22 @@ export function useHabitData() {
     if (additions.length > 0) setChecklistMeta((prev) => [...prev, ...additions])
     localStorage.setItem(DIARIO_BACKFILL_FLAG_KEY, '1')
   }, [activitiesMeta, checklistMeta])
+
+  // One-time: delete any goal still attached to a now-rating-mode activity --
+  // see RATING_GOALS_CLEANUP_FLAG_KEY above. Runs once activities are loaded,
+  // regardless of whether a rating activity currently exists, so it can't
+  // run twice and wipe a goal the user later sets correctly under the new
+  // "giorni buoni a settimana" scale.
+  useEffect(() => {
+    if (localStorage.getItem(RATING_GOALS_CLEANUP_FLAG_KEY)) return
+    if (activitiesMeta.length === 0) return
+    const ratingActivityIds = new Set(activitiesMeta.filter((a) => a.mode === 'rating').map((a) => a.id))
+    const nowMs = Date.now()
+    setGoalsMeta((prev) =>
+      prev.map((g) => (!g.deleted && ratingActivityIds.has(g.itemKey) ? { ...g, deleted: true, updatedAt: nowMs } : g)),
+    )
+    localStorage.setItem(RATING_GOALS_CLEANUP_FLAG_KEY, '1')
+  }, [activitiesMeta])
 
   // Ongoing (not one-time): for every rating-mode activity, fill in a rating
   // for any day that already has an old-style log but no rating yet, using
