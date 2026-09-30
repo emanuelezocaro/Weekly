@@ -12,20 +12,25 @@ const MODE_OPTIONS = [
 ]
 
 function modeLabel(mode) {
-  if (mode === 'checklist') return 'Checklist'
-  if (mode === 'rating') return 'Bad/Medio/Buono'
-  return 'A tempo'
+  return MODE_OPTIONS.find((m) => m.id === mode)?.label ?? 'A tempo'
 }
 
-function ModeSelect({ value, onChange }) {
+function ModeChoice({ value, onChange }) {
   return (
-    <select className="quarter-select" value={value} onChange={(e) => onChange(e.target.value)}>
+    <div className="choice choice--full" role="radiogroup" aria-label="Tipo">
       {MODE_OPTIONS.map((m) => (
-        <option key={m.id} value={m.id}>
+        <button
+          key={m.id}
+          type="button"
+          role="radio"
+          aria-checked={value === m.id}
+          className={`choice__opt is-neutral ${value === m.id ? 'is-selected' : ''}`}
+          onClick={() => onChange(m.id)}
+        >
           {m.label}
-        </option>
+        </button>
       ))}
-    </select>
+    </div>
   )
 }
 
@@ -65,15 +70,54 @@ function CopyRow({ label, value }) {
   }
 
   return (
-    <div className="copy-row">
-      <div className="copy-row__text">
-        <span className="copy-row__label">{label}</span>
-        <code className="copy-row__value">{value}</code>
-      </div>
-      <button type="button" className="text-btn" onClick={handleCopy}>
+    <div className="list-row">
+      <span className="list-row__label">
+        <span className="list-row__text">
+          <span className="list-row__meta">{label}</span>
+          <code className="copy-row__value">{value}</code>
+        </span>
+      </span>
+      <button type="button" className="row-btn" onClick={handleCopy}>
         {message || 'Copia'}
       </button>
     </div>
+  )
+}
+
+// Inline editor for a new or existing activity -- opens in place of the row.
+function ActivityEditor({ name, onName, mode, onMode, colorSlot, onColor, onSave, onCancel, onDelete }) {
+  return (
+    <form
+      className="list-item activity-editor"
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSave()
+      }}
+    >
+      <input
+        className="field-input"
+        type="text"
+        placeholder="Nome (es. Meditazione)"
+        value={name}
+        onChange={(e) => onName(e.target.value)}
+        autoFocus
+      />
+      <ModeChoice value={mode} onChange={onMode} />
+      <ColorPicker value={colorSlot} onChange={onColor} />
+      <div className="activity-editor__actions">
+        {onDelete && (
+          <button type="button" className="row-btn is-danger" onClick={onDelete}>
+            Elimina
+          </button>
+        )}
+        <button type="button" className="row-btn is-muted" onClick={onCancel}>
+          Annulla
+        </button>
+        <button type="submit" className="row-btn is-primary">
+          Salva
+        </button>
+      </div>
+    </form>
   )
 }
 
@@ -107,8 +151,7 @@ export default function SettingsView({
   const [backupMessage, setBackupMessage] = useState('')
   const fileInputRef = useRef(null)
 
-  function handleAdd(e) {
-    e.preventDefault()
+  function handleAdd() {
     if (!name.trim()) return
     onAdd(name, colorSlot, mode)
     setName('')
@@ -163,7 +206,7 @@ export default function SettingsView({
   }
 
   return (
-    <div className="view">
+    <div className="view list-view">
       <div className="segmented-wrap">
         <div className="segmented">
           {SETTINGS_TABS.map((t) => (
@@ -184,103 +227,80 @@ export default function SettingsView({
       )}
 
       {tab === 'activities' && (
-        <section className="settings-card">
-          <h2 className="settings-card__title">Nuova attività</h2>
-          {!addOpen ? (
-            <button type="button" className="add-activity__toggle" onClick={() => setAddOpen(true)}>
-              <span className="add-activity__toggle-icon">+</span>
-              Aggiungi attività
-            </button>
-          ) : (
-            <form className="add-activity" onSubmit={handleAdd}>
-              <div className="add-activity__row">
-                <input
-                  type="text"
-                  placeholder="Nuova attività (es. Meditazione)"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoFocus
+        <section className="list-section">
+          <h2 className="list-section__title">Le tue attività</h2>
+          <div className="list-card">
+            {activities.map((activity) =>
+              editingId === activity.id ? (
+                <ActivityEditor
+                  key={activity.id}
+                  name={editName}
+                  onName={setEditName}
+                  mode={editMode}
+                  onMode={setEditMode}
+                  colorSlot={editColorSlot}
+                  onColor={setEditColorSlot}
+                  onSave={() => saveEdit(activity.id)}
+                  onCancel={() => setEditingId(null)}
+                  onDelete={() => {
+                    if (confirm(`Eliminare "${activity.name}"? Verrà rimosso anche lo storico.`)) {
+                      onDelete(activity.id)
+                      setEditingId(null)
+                    }
+                  }}
                 />
-              </div>
-              <ModeSelect value={mode} onChange={setMode} />
-              <ColorPicker value={colorSlot} onChange={setColorSlot} />
-              <div className="add-activity__actions">
-                <button type="submit">Salva</button>
-                <button type="button" onClick={handleCancelAdd}>
-                  Annulla
+              ) : (
+                <button
+                  key={activity.id}
+                  type="button"
+                  className="list-row report-row"
+                  onClick={() => startEdit(activity)}
+                >
+                  <span className="list-row__label">
+                    <span className="list-row__dot" style={{ background: colorVar(activity.colorSlot) }} />
+                    <span className="list-row__name">{activity.name}</span>
+                  </span>
+                  <span className="report-row__unit">{modeLabel(activity.mode)}</span>
+                  <span className="report-row__chevron" aria-hidden="true" />
                 </button>
-              </div>
-            </form>
-          )}
-
-          <ul className="activity-manage-list">
-            {activities.map((activity) => (
-              <li key={activity.id} className="activity-manage-row">
-                {editingId === activity.id ? (
-                  <div className="activity-manage-row__edit">
-                    <div className="add-activity__row">
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                        autoFocus
-                      />
-                      <button type="button" onClick={() => saveEdit(activity.id)}>
-                        Salva
-                      </button>
-                    </div>
-                    <ModeSelect value={editMode} onChange={setEditMode} />
-                    <ColorPicker value={editColorSlot} onChange={setEditColorSlot} />
-                  </div>
-                ) : (
-                  <>
-                    <span
-                      className="activity-manage-row__swatch"
-                      style={{ background: colorVar(activity.colorSlot) }}
-                    />
-                    <span className="activity-manage-row__name">{activity.name}</span>
-                    <span className="activity-manage-row__mode">{modeLabel(activity.mode)}</span>
-                    <div className="activity-manage-row__actions">
-                      <button type="button" className="text-btn" onClick={() => startEdit(activity)}>
-                        Modifica
-                      </button>
-                      <button
-                        type="button"
-                        className="text-btn text-btn--danger"
-                        onClick={() => {
-                          if (confirm(`Eliminare "${activity.name}"? Verrà rimosso anche lo storico.`)) {
-                            onDelete(activity.id)
-                          }
-                        }}
-                      >
-                        Elimina
-                      </button>
-                    </div>
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
+              ),
+            )}
+            {addOpen ? (
+              <ActivityEditor
+                name={name}
+                onName={setName}
+                mode={mode}
+                onMode={setMode}
+                colorSlot={colorSlot}
+                onColor={setColorSlot}
+                onSave={handleAdd}
+                onCancel={handleCancelAdd}
+              />
+            ) : (
+              <button type="button" className="list-row list-action" onClick={() => setAddOpen(true)}>
+                + Aggiungi attività
+              </button>
+            )}
+          </div>
         </section>
       )}
 
       {tab === 'setup' && (
         <>
-          <section className="settings-card">
-            <h2 className="settings-card__title">Backup</h2>
-            <p className="settings-card__hint">
-              Esporta un file con tutte le tue attività e lo storico, da tenere come copia di sicurezza
-              e da usare per riportare i dati su un nuovo telefono.
-            </p>
-            <div className="backup-card__actions">
-              <button type="button" onClick={handleExport}>
+          <section className="list-section">
+            <h2 className="list-section__title">Backup</h2>
+            <div className="list-card">
+              <button type="button" className="list-row list-action" onClick={handleExport}>
                 Esporta backup
               </button>
-              <button type="button" className="backup-card__secondary" onClick={handleImportClick}>
+              <button type="button" className="list-row list-action is-secondary" onClick={handleImportClick}>
                 Importa backup
               </button>
             </div>
-            {backupMessage && <p className="backup-card__message">{backupMessage}</p>}
+            <p className="list-section__hint">
+              {backupMessage ||
+                'Un file con tutte le attività e lo storico: copia di sicurezza, e il modo per portare i dati su un nuovo telefono.'}
+            </p>
             <input
               ref={fileInputRef}
               type="file"
@@ -290,25 +310,29 @@ export default function SettingsView({
             />
           </section>
 
-          <section className="settings-card">
-            <h2 className="settings-card__title">Se cambi telefono</h2>
-            <ol className="setup-steps">
-              <li>Sul telefono vecchio tocca "Esporta backup" qui sopra e invia il file al telefono nuovo (email, WhatsApp, Drive...).</li>
-              <li>Sul telefono nuovo apri il link dell'app qui sotto e aggiungila alla schermata Home.</li>
-              <li>Vai su Impostazioni → Setup, tocca "Importa backup" e scegli il file ricevuto.</li>
-            </ol>
-            <div className="copy-row-list">
+          <section className="list-section">
+            <h2 className="list-section__title">Se cambi telefono</h2>
+            <div className="list-card">
+              <div className="list-item list-item--text">
+                <ol className="setup-steps">
+                  <li>Sul telefono vecchio tocca "Esporta backup" qui sopra e invia il file al telefono nuovo (email, WhatsApp, Drive...).</li>
+                  <li>Sul telefono nuovo apri il link dell'app qui sotto e aggiungila alla schermata Home.</li>
+                  <li>Vai su Set → Setup, tocca "Importa backup" e scegli il file ricevuto.</li>
+                </ol>
+              </div>
               <CopyRow label="URL dell'app" value={APP_URL} />
             </div>
           </section>
 
-          <section className="settings-card settings-card--warning">
-            <h2 className="settings-card__title">⚠️ Attenzione su iPhone</h2>
-            <p className="settings-card__hint">
-              Se cancelli l'icona dell'app dalla schermata Home e poi la aggiungi di nuovo (es. per
-              aggiornare l'icona), iOS crea una copia completamente nuova e <strong>cancella tutti i
-              dati salvati</strong>. Prima di cancellare l'icona, fai sempre "Esporta backup" qui sopra.
-            </p>
+          <section className="list-section">
+            <h2 className="list-section__title is-danger">Attenzione su iPhone</h2>
+            <div className="list-card">
+              <p className="list-item list-item--text">
+                Se cancelli l'icona dell'app dalla schermata Home e poi la aggiungi di nuovo, iOS crea una copia
+                nuova e <strong>cancella tutti i dati salvati</strong>. Prima di cancellare l'icona, fai sempre
+                "Esporta backup".
+              </p>
+            </div>
           </section>
         </>
       )}

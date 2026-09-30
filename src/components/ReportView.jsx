@@ -137,6 +137,13 @@ export default function ReportView({ activities, durations, checklist, food, rat
     return () => onPeriodLabel(null)
   }, [period, cursor, onPeriodLabel, prevDisabled, nextDisabled])
 
+  const sorted = sortByCustomOrder(activities)
+  const listActivities = sorted.filter((a) => a.mode !== 'checklist')
+  const checklistActivities = sorted.filter((a) => a.mode === 'checklist')
+  const canCopySummary =
+    (period === 'month' && startOfMonth(cursor) < startOfMonth(new Date())) ||
+    (period === 'week' && startOfWeek(cursor) < startOfWeek(new Date()))
+
   async function handleCopySummary() {
     const ctx = { activities, durations, checklist, food, ratings, goals }
     const text =
@@ -149,7 +156,7 @@ export default function ReportView({ activities, durations, checklist, food, rat
   }
 
   return (
-    <div className="view" {...swipeHandlers}>
+    <div className="view list-view" {...swipeHandlers}>
       <div className="segmented-wrap">
         <div className="segmented">
           {PERIODS.map((p) => (
@@ -165,24 +172,46 @@ export default function ReportView({ activities, durations, checklist, food, rat
         </div>
       </div>
 
-      <>
-        {((period === 'month' && startOfMonth(cursor) < startOfMonth(new Date())) ||
-          (period === 'week' && startOfWeek(cursor) < startOfWeek(new Date()))) && (
-          <div className="month-summary">
-            <div className="backup-card__actions">
-              <button type="button" className="backup-card__secondary" onClick={handleCopySummary}>
-                {period === 'week' ? 'Copia riepilogo della settimana' : 'Copia riepilogo del mese'}
-              </button>
-            </div>
-            {summaryMessage && <p className="backup-card__message">{summaryMessage}</p>}
-          </div>
-        )}
+      {activities.length === 0 && (
+        <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+      )}
 
-        {activities.length === 0 ? (
-          <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
-        ) : (
-          sortByCustomOrder(activities).map((activity) =>
-            activity.mode === 'checklist' ? (
+      {listActivities.length > 0 && (
+        <section className="list-section">
+          <h2 className="list-section__title">Activities</h2>
+          <div className="list-card">
+            {listActivities.map((activity) =>
+              activity.mode === 'rating' ? (
+                <ActivityRatingReportCard
+                  key={activity.id}
+                  activity={activity}
+                  ratings={ratings}
+                  days={days}
+                  prevDays={prevDays}
+                  period={period}
+                  goals={goals}
+                />
+              ) : (
+                <ActivityTimeReportCard
+                  key={activity.id}
+                  activity={activity}
+                  durations={durations}
+                  days={days}
+                  prevDays={prevDays}
+                  period={period}
+                  goals={goals}
+                />
+              ),
+            )}
+          </div>
+        </section>
+      )}
+
+      {checklistActivities.length > 0 && (
+        <section className="list-section">
+          <h2 className="list-section__title">Checklist</h2>
+          <div className="list-card">
+            {checklistActivities.map((activity) => (
               <ActivityChecklistReportCard
                 key={activity.id}
                 activity={activity}
@@ -192,34 +221,27 @@ export default function ReportView({ activities, durations, checklist, food, rat
                 period={period}
                 goals={goals}
               />
-            ) : activity.mode === 'rating' ? (
-              <ActivityRatingReportCard
-                key={activity.id}
-                activity={activity}
-                ratings={ratings}
-                days={days}
-                prevDays={prevDays}
-                period={period}
-                goals={goals}
-              />
-            ) : (
-              <ActivityTimeReportCard
-                key={activity.id}
-                activity={activity}
-                durations={durations}
-                days={days}
-                prevDays={prevDays}
-                period={period}
-                goals={goals}
-              />
-            ),
-          )
-        )}
+            ))}
+          </div>
+        </section>
+      )}
 
-        <hr className="report-divider" />
+      <section className="list-section">
+        <h2 className="list-section__title">Food</h2>
+        <div className="list-card">
+          <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
+        </div>
+      </section>
 
-        <FoodReportCard food={food} days={days} prevDays={prevDays} period={period} goals={goals} />
-      </>
+      {canCopySummary && (
+        <section className="list-section">
+          <div className="list-card">
+            <button type="button" className="list-row list-action" onClick={handleCopySummary}>
+              {summaryMessage || (period === 'week' ? 'Copia riepilogo della settimana' : 'Copia riepilogo del mese')}
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 import { dayLabel, formatDuration, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth, goalTargetForDays, minutesToHours } from '../utils/goals'
+import { goalForMonth, goalNote, goalTargetForDays, minutesToHours } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
 import GoalLine from './GoalLine'
-import GoalTrendIndicator from './GoalTrendIndicator'
+import ReportRow from './ReportRow'
 import TrendChartYAxis from './TrendChartYAxis'
 
 function shouldLabel(index, total) {
@@ -70,20 +70,25 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
     0,
   )
   const delta = deltaPct(total, prevTotal)
+  const note = goalNote(goal, total, target, (minutes) => formatDuration(minutes * 60000))
 
   return (
-    <section className="settings-card">
-      <div className="settings-card__title-row">
-        <h2 className="settings-card__title">{activity.name}</h2>
-        <GoalTrendIndicator
-          goal={goal}
-          actual={total}
-          target={target}
-          formatDiff={(minutes) => formatDuration(minutes * 60000)}
-        />
-      </div>
+    <ReportRow
+      label={activity.name}
+      color={colorVar(activity.colorSlot)}
+      summary={
+        avg > 0 ? (
+          <>
+            <span className="report-row__value">{formatDuration(avg * 60000)}</span>
+            <span className="report-row__unit">/giorno</span>
+          </>
+        ) : (
+          <span className="report-row__empty">—</span>
+        )
+      }
+    >
       <p className="trend-chart__caption">
-        {formatDuration(avg * 60000)}/giorno
+        Totale {formatDuration(total * 60000)}
         {delta !== null && (
           <span className="report-card__delta">
             {' '}
@@ -91,6 +96,7 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
             {delta}%)
           </span>
         )}
+        {note && <span className="report-card__delta"> · {note}</span>}
       </p>
       <div className="trend-chart__row">
         <TrendChartYAxis maxValue={maxValue} formatValue={(v) => formatDuration(v * 60000)} />
@@ -121,6 +127,6 @@ export default function ActivityTimeReportCard({ activity, durations, days, prev
           </div>
         </div>
       </div>
-    </section>
+    </ReportRow>
   )
 }

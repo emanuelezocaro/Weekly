@@ -35,6 +35,18 @@ export function isGoalMet(goal, actualValue, target, fallback = 'higher_is_bette
   return goalDirection(goal, fallback) === 'lower_is_better' ? actualValue <= target : actualValue >= target
 }
 
+// Plain-language goal status for a report detail: "obiettivo 5 ✓", or how
+// far off it is ("mancano 2" / "2 di troppo"). Null when there's no goal to
+// judge against.
+export function goalNote(goal, actual, target, format = (n) => String(Math.round(n))) {
+  if (!goal || goal.direction === 'none' || target === null || target === undefined) return null
+  if (isGoalMet(goal, actual, target)) return `obiettivo ${format(target)} ✓`
+  const gap = format(Math.abs(target - actual))
+  return goalDirection(goal) === 'lower_is_better'
+    ? `obiettivo ${format(target)} · ${gap} di troppo`
+    : `obiettivo ${format(target)} · mancano ${gap}`
+}
+
 // Scales a goal (expressed per day or per week) to a target for an arbitrary
 // number of days, so a card showing e.g. a whole month can compare its total
 // against a same-shape target instead of only per-bar amounts.

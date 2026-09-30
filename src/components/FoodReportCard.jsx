@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import {
   GAUGE_MAX,
@@ -10,6 +9,7 @@ import {
   dayPoints,
 } from '../utils/foodPoints'
 import { goalDirection, goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
+import ReportRow, { ScoreSummary } from './ReportRow'
 import TrendChartYAxis from './TrendChartYAxis'
 
 const RATING_LABELS = { bad: 'Bad', mid: 'Medium', good: 'Good' }
@@ -140,16 +140,10 @@ function RatingMiniRowGrouped({ label, groupedCounts, goalBadge }) {
 
 function FoodGauge({ value }) {
   if (value === null) return <p className="trend-chart__caption">Nessun dato per questo periodo</p>
-  const cluster = clusterFor(value)
   const pct = Math.min(100, Math.max(0, (value / GAUGE_MAX) * 100))
 
   return (
     <>
-      <div className="gauge-head">
-        <span className={`gauge-head__value is-${cluster.key}`}>{value.toFixed(1)}</span>
-        <span className="gauge-head__unit">/ 12 punti al giorno</span>
-      </div>
-      <p className={`gauge-cluster is-${cluster.key}`}>{cluster.label}</p>
       <div className="gauge-track">
         {GAUGE_ZONES.map((z, i) => (
           <span
@@ -387,47 +381,48 @@ function ExtraMiniRowGrouped({ groupedExtra, goalBadge }) {
 }
 
 export default function FoodReportCard({ food, days, period, goals, now = new Date() }) {
-  const [expanded, setExpanded] = useState(false)
   const records = days.map((date) => {
     const iso = toISODate(date)
     return food.find((f) => f.date === iso) || null
   })
+  const gaugeValue = days.length === 1 ? dayPoints(records[0]) : averageDayPoints(records)
+  const row = (children) => (
+    <ReportRow label="Food" summary={<ScoreSummary value={gaugeValue} max={GAUGE_MAX} />}>
+      {children}
+    </ReportRow>
+  )
 
   if (days.length === 1) {
     const rec = records[0]
-    return (
-      <section className="settings-card">
-        <h2 className="settings-card__title">Food</h2>
-        {!rec ? (
-          <p className="trend-chart__caption">Nessun dato per questo giorno</p>
-        ) : (
-          <>
-            <p className="field-readout">
-              Breakfast: <strong>{RATING_LABELS[rec.colazione] ?? '—'}</strong>
-            </p>
-            <p className="field-readout">
-              Lunch: <strong>{RATING_LABELS[rec.pranzo] ?? '—'}</strong>
-            </p>
-            <p className="field-readout">
-              Dinner: <strong>{RATING_LABELS[rec.cena] ?? '—'}</strong>
-            </p>
-            <p className="field-readout">
-              Alcohol: <strong>{RATING_LABELS[rec.alcol] ?? '—'}</strong>
-            </p>
-            <p className="field-readout">
-              Sweets: <strong>{RATING_LABELS[rec.dolci] ?? '—'}</strong>
-            </p>
-            <p className="field-readout">
-              Extra: <strong>{EXTRA_LABELS[rec.extra] ?? '—'}</strong>
-            </p>
-          </>
-        )}
-      </section>
+    return row(
+      !rec ? (
+        <p className="trend-chart__caption">Nessun dato per questo giorno</p>
+      ) : (
+        <>
+          <p className="field-readout">
+            Breakfast: <strong>{RATING_LABELS[rec.colazione] ?? '—'}</strong>
+          </p>
+          <p className="field-readout">
+            Lunch: <strong>{RATING_LABELS[rec.pranzo] ?? '—'}</strong>
+          </p>
+          <p className="field-readout">
+            Dinner: <strong>{RATING_LABELS[rec.cena] ?? '—'}</strong>
+          </p>
+          <p className="field-readout">
+            Alcohol: <strong>{RATING_LABELS[rec.alcol] ?? '—'}</strong>
+          </p>
+          <p className="field-readout">
+            Sweets: <strong>{RATING_LABELS[rec.dolci] ?? '—'}</strong>
+          </p>
+          <p className="field-readout">
+            Extra: <strong>{EXTRA_LABELS[rec.extra] ?? '—'}</strong>
+          </p>
+        </>
+      ),
     )
   }
 
   const monthIso = toMonthISO(days[days.length - 1])
-  const gaugeValue = averageDayPoints(records)
 
   const fieldBadge = (field) => {
     const goal = goalForMonth(goals, FOOD_GOAL_KEYS[field], monthIso)
@@ -467,79 +462,49 @@ export default function FoodReportCard({ food, days, period, goals, now = new Da
       }
       return { yes, total }
     })
-    return (
-      <section className="settings-card">
-        <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-          <div className="settings-card__title-row">
-            <h2 className="settings-card__title">Food</h2>
-            <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
+    return row(
+      <>
+        <FoodGauge value={gaugeValue} />
+        <p className="trend-chart__caption">Media punti di ogni mese (0-12)</p>
+        <FoodMonthlyChart months={months} food={food} />
+        <hr className="report-divider" />
+        <RatingMiniRowGrouped label="Breakfast" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
+        <RatingMiniRowGrouped label="Lunch" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
+        <RatingMiniRowGrouped label="Dinner" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
+        <RatingMiniRowGrouped label="Alcohol" groupedCounts={monthlyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
+        <RatingMiniRowGrouped label="Sweets" groupedCounts={monthlyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
+        <ExtraMiniRowGrouped groupedExtra={monthlyExtra} goalBadge={extraBadge} />
+        <div className="mini-row">
+          <span className="mini-row__label" />
+          <div className="mini-row__axis">
+            {months.map((m) => (
+              <span key={toMonthISO(m.monthStart)}>{formatMonthShort(toMonthISO(m.monthStart))}</span>
+            ))}
           </div>
-          <FoodGauge value={gaugeValue} />
-        </button>
-        {expanded && (
-          <>
-            <p className="trend-chart__caption">Media punti di ogni mese (0-12)</p>
-            <FoodMonthlyChart months={months} food={food} />
-            <hr className="report-divider" />
-            <RatingMiniRowGrouped label="Breakfast" groupedCounts={monthlyRecordsByField('colazione')} goalBadge={fieldBadge('colazione')} />
-            <RatingMiniRowGrouped label="Lunch" groupedCounts={monthlyRecordsByField('pranzo')} goalBadge={fieldBadge('pranzo')} />
-            <RatingMiniRowGrouped label="Dinner" groupedCounts={monthlyRecordsByField('cena')} goalBadge={fieldBadge('cena')} />
-            <RatingMiniRowGrouped label="Alcohol" groupedCounts={monthlyRecordsByField('alcol')} goalBadge={fieldBadge('alcol')} />
-            <RatingMiniRowGrouped label="Sweets" groupedCounts={monthlyRecordsByField('dolci')} goalBadge={fieldBadge('dolci')} />
-            <ExtraMiniRowGrouped groupedExtra={monthlyExtra} goalBadge={extraBadge} />
-            <div className="mini-row">
-              <span className="mini-row__label" />
-              <div className="mini-row__axis">
-                {months.map((m) => (
-                  <span key={toMonthISO(m.monthStart)}>{formatMonthShort(toMonthISO(m.monthStart))}</span>
-                ))}
-              </div>
-            </div>
-            <hr className="report-divider" />
-            <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
-            <FoodCategoryChart records={records} />
-          </>
-        )}
-      </section>
+        </div>
+        <hr className="report-divider" />
+        <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
+        <FoodCategoryChart records={records} />
+      </>,
     )
   }
 
-  return (
-    <section className="settings-card">
-      <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-        <div className="settings-card__title-row">
-          <h2 className="settings-card__title">Food</h2>
-          <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
-        </div>
-        <FoodGauge value={gaugeValue} />
-      </button>
-      {expanded && (
-        <>
-          {(period === 'week' || period === 'month') && (
-            <>
-              <p className="trend-chart__caption">Punteggio di ogni giorno (0-12)</p>
-              <FoodDailyChart days={days} records={records} />
-            </>
-          )}
-          <hr className="report-divider" />
-          <RatingMiniRow label="Breakfast" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
-          <RatingMiniRow label="Lunch" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
-          <RatingMiniRow label="Dinner" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
-          <RatingMiniRow label="Alcohol" values={records.map((r) => r?.alcol ?? null)} goalBadge={fieldBadge('alcol')} />
-          <RatingMiniRow label="Sweets" values={records.map((r) => r?.dolci ?? null)} goalBadge={fieldBadge('dolci')} />
-          <ExtraMiniRow values={records.map((r) => r?.extra ?? null)} goalBadge={extraBadge} />
-          {days.length <= 7 ? (
-            <WeekAxisRow days={days} />
-          ) : (
-            <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-              {axisLegend(days)}
-            </p>
-          )}
-          <hr className="report-divider" />
-          <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
-          <FoodCategoryChart records={records} />
-        </>
-      )}
-    </section>
+  return row(
+    <>
+      <FoodGauge value={gaugeValue} />
+      <p className="trend-chart__caption">Punteggio di ogni giorno (0-12)</p>
+      <FoodDailyChart days={days} records={records} />
+      <hr className="report-divider" />
+      <RatingMiniRow label="Breakfast" values={records.map((r) => r?.colazione ?? null)} goalBadge={fieldBadge('colazione')} />
+      <RatingMiniRow label="Lunch" values={records.map((r) => r?.pranzo ?? null)} goalBadge={fieldBadge('pranzo')} />
+      <RatingMiniRow label="Dinner" values={records.map((r) => r?.cena ?? null)} goalBadge={fieldBadge('cena')} />
+      <RatingMiniRow label="Alcohol" values={records.map((r) => r?.alcol ?? null)} goalBadge={fieldBadge('alcol')} />
+      <RatingMiniRow label="Sweets" values={records.map((r) => r?.dolci ?? null)} goalBadge={fieldBadge('dolci')} />
+      <ExtraMiniRow values={records.map((r) => r?.extra ?? null)} goalBadge={extraBadge} />
+      {days.length <= 7 ? <WeekAxisRow days={days} /> : <p className="trend-chart__caption">{axisLegend(days)}</p>}
+      <hr className="report-divider" />
+      <p className="trend-chart__caption">Media punti (0-2) sui giorni segnati per categoria, su scala 0-14 a settimana</p>
+      <FoodCategoryChart records={records} />
+    </>,
   )
 }

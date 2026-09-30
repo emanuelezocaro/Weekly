@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import { dayLabel, formatMonthShort, groupDaysByMonth, toISODate, toMonthISO } from '../utils/date'
 import { POINT_VALUE, RATING_COLOR, clusterFor } from '../utils/foodPoints'
-import { goalForMonth, goalTargetForDays, isGoalMet } from '../utils/goals'
-import GoalTrendIndicator from './GoalTrendIndicator'
+import { goalForMonth, goalNote, goalTargetForDays } from '../utils/goals'
+import { colorVar } from '../utils/palette'
+import ReportRow, { ScoreSummary } from './ReportRow'
 import TrendChartYAxis from './TrendChartYAxis'
 
 // Rating-mode activities (Sleep, Put off, Work) get the exact same
@@ -57,18 +57,12 @@ function formatScaleValue(v) {
 function RatingGauge({ dailyAverage }) {
   if (dailyAverage === null) return <p className="trend-chart__caption">Nessun dato per questo periodo</p>
   const value = dailyAverage * 7
-  const cluster = clusterFor(value, WEEK_POINTS_MAX)
   const pct = Math.min(100, Math.max(0, (value / WEEK_POINTS_MAX) * 100))
   const badUpTo = WEEK_POINTS_MAX * (4 / 12)
   const midUpTo = WEEK_POINTS_MAX * (9 / 12)
 
   return (
     <>
-      <div className="gauge-head">
-        <span className={`gauge-head__value is-${cluster.key}`}>{value.toFixed(1)}</span>
-        <span className="gauge-head__unit">/ {WEEK_POINTS_MAX} points a week</span>
-      </div>
-      <p className={`gauge-cluster is-${cluster.key}`}>{cluster.label}</p>
       <div className="gauge-track">
         <span className="gauge-zone gauge-zone--bad" style={{ width: `${(badUpTo / WEEK_POINTS_MAX) * 100}%` }} />
         <span className="gauge-zone gauge-zone--mid" style={{ width: `${((midUpTo - badUpTo) / WEEK_POINTS_MAX) * 100}%` }} />
@@ -175,62 +169,44 @@ function RatingMonthlyChart({ months, ratingMap }) {
   )
 }
 
-// Rating-mode activities (Sleep, Put off, Work): a single Bad/Medium/Good
-// tap per day, shown with the exact same gauge + zone-colored chart as
-// Food, on a 0-14 "a settimana" scale (Male=0, Medio=1, Buono=2 points a
-// day, x7) instead of Food's own 0-12 -- plus the "how many Good days" goal
-// Cibo/checklist activities already use.
+// Rating-mode activities (Sleep, Put off): a single Bad/Medium/Good tap per
+// day, on a 0-14 "a settimana" scale (Male=0, Medio=1, Buono=2 points a
+// day, x7). The row shows the score; the detail adds the full gauge, the
+// per-day chart and the "how many Good days" goal.
 export default function ActivityRatingReportCard({ activity, ratings, days, period, goals }) {
-  const [expanded, setExpanded] = useState(false)
   const ratingMap = ratingMapFor(ratings, activity.id)
   const values = days.map((d) => ratingMap.get(toISODate(d)) ?? null)
   const goodCount = values.filter((v) => v === 'good').length
 
   const goal = goalForMonth(goals, activity.id, toMonthISO(days[days.length - 1]))
   const target = goalTargetForDays(goal, days.length)
+  const note = goalNote(goal, goodCount, target)
 
   const dailyAverage = averagePoints(values)
 
   return (
-    <section className="settings-card">
-      <button type="button" className="trend-chart__toggle" onClick={() => setExpanded((e) => !e)}>
-        <div className="settings-card__title-row">
-          <h2 className="settings-card__title">{activity.name}</h2>
-          <GoalTrendIndicator goal={goal} actual={goodCount} target={target} />
-          <span className="settings-card__chevron">{expanded ? '▴' : '▾'}</span>
-        </div>
-        <RatingGauge dailyAverage={dailyAverage} />
-      </button>
-      {expanded && (
+    <ReportRow
+      label={activity.name}
+      color={colorVar(activity.colorSlot)}
+      summary={<ScoreSummary value={dailyAverage === null ? null : dailyAverage * 7} max={WEEK_POINTS_MAX} />}
+    >
+      <RatingGauge dailyAverage={dailyAverage} />
+      {period === 'year' ? (
         <>
-          {period === 'year' ? (
-            <>
-              <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
-              <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
-            </>
-          ) : (
-            <>
-              <p className="trend-chart__caption">Punteggio di ogni giorno (0-{DAY_POINTS_MAX})</p>
-              <RatingDailyChart days={days} ratingMap={ratingMap} />
-              {days.length <= 7 ? null : (
-                <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-                  {axisLegend(days)}
-                </p>
-              )}
-            </>
-          )}
-          <p className="trend-chart__caption">
-            {goodCount}/{days.length} giorni buono
-            {goal && target !== null && (
-              <span className="report-card__delta">
-                {' '}
-                (obiettivo {goal.value}/{goal.period === 'day' ? 'giorno' : 'settimana'}:{' '}
-                {isGoalMet(goal, goodCount, Math.round(target)) ? 'raggiunto' : 'non raggiunto'})
-              </span>
-            )}
-          </p>
+          <p className="trend-chart__caption">Media punti di ogni mese (0-{DAY_POINTS_MAX})</p>
+          <RatingMonthlyChart months={groupDaysByMonth(days)} ratingMap={ratingMap} />
+        </>
+      ) : (
+        <>
+          <p className="trend-chart__caption">Punteggio di ogni giorno (0-{DAY_POINTS_MAX})</p>
+          <RatingDailyChart days={days} ratingMap={ratingMap} />
+          {days.length > 7 && <p className="trend-chart__caption">{axisLegend(days)}</p>}
         </>
       )}
-    </section>
+      <p className="trend-chart__caption">
+        {goodCount}/{days.length} giorni buono
+        {note && <span className="report-card__delta"> · {note}</span>}
+      </p>
+    </ReportRow>
   )
 }

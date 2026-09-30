@@ -2,142 +2,13 @@ import { useState } from 'react'
 import { goalForMonth, hoursToMinutes, minutesToHours } from '../utils/goals'
 import { colorVar } from '../utils/palette'
 
-const GOAL_PERIODS = [
-  { id: 'day', label: 'Giorno' },
-  { id: 'week', label: 'Settimana' },
+// Tapping the arrow cycles through the three directions -- rarely changed,
+// so it doesn't deserve a full dropdown of its own.
+const DIRECTIONS = [
+  { id: 'higher_is_better', glyph: '↑', label: 'Più è meglio' },
+  { id: 'lower_is_better', glyph: '↓', label: 'Meno è meglio' },
+  { id: 'none', glyph: '–', label: 'Solo traccia' },
 ]
-
-const GOAL_DIRECTIONS = [
-  { id: 'higher_is_better', label: 'Più è meglio ↑' },
-  { id: 'lower_is_better', label: 'Meno è meglio ↓' },
-  { id: 'none', label: 'Nessun obiettivo (solo traccia)' },
-]
-
-function directionClass(direction) {
-  if (direction === 'lower_is_better') return 'is-bad'
-  if (direction === 'none') return 'is-neutral'
-  return 'is-good'
-}
-
-function PeriodSelect({ period, onChange }) {
-  return (
-    <select className="goal-row__select" value={period} onChange={(e) => onChange(e.target.value)}>
-      {GOAL_PERIODS.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.label}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-function DirectionSelect({ direction, onChange }) {
-  return (
-    <select
-      className={`goal-row__select ${directionClass(direction)}`}
-      value={direction}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {GOAL_DIRECTIONS.map((d) => (
-        <option key={d.id} value={d.id}>
-          {d.label}
-        </option>
-      ))}
-    </select>
-  )
-}
-
-function DurationGoalRow({ itemKey, label, swatchColor, goal, onSave }) {
-  const [period, setPeriod] = useState(goal?.period || 'week')
-  const [direction, setDirection] = useState(goal?.direction || 'higher_is_better')
-  const [hours, setHours] = useState(goal ? String(minutesToHours(goal.value)) : '')
-
-  function commit(nextPeriod, nextDirection, nextHours) {
-    const minutes = hoursToMinutes(nextHours)
-    if (minutes === 0) return
-    onSave(itemKey, nextPeriod, minutes, nextDirection)
-  }
-
-  return (
-    <div className="goal-row">
-      <div className="goal-row__name">
-        <span className="goal-row__swatch" style={{ background: swatchColor }} />
-        {label}
-      </div>
-      <div className="goal-row__controls">
-        <PeriodSelect
-          period={period}
-          onChange={(p) => {
-            setPeriod(p)
-            commit(p, direction, hours)
-          }}
-        />
-        <DirectionSelect
-          direction={direction}
-          onChange={(d) => {
-            setDirection(d)
-            commit(period, d, hours)
-          }}
-        />
-        <input
-          className="goal-row__value"
-          type="number"
-          min="0"
-          step="0.5"
-          placeholder="7.5"
-          value={hours}
-          onChange={(e) => setHours(e.target.value)}
-          onBlur={() => commit(period, direction, hours)}
-        />
-        <span className="goal-row__unit">h</span>
-      </div>
-    </div>
-  )
-}
-
-function CountGoalRow({ itemKey, label, goal, onSave, defaultPeriod = 'day', withDirection, defaultDirection = 'higher_is_better' }) {
-  const [period, setPeriod] = useState(goal?.period || defaultPeriod)
-  const [direction, setDirection] = useState(goal?.direction || defaultDirection)
-  const [value, setValue] = useState(goal ? String(goal.value) : '')
-
-  function commit(nextPeriod, nextDirection, nextValue) {
-    if (nextValue === '') return
-    onSave(itemKey, nextPeriod, Number(nextValue) || 0, withDirection ? nextDirection : undefined)
-  }
-
-  return (
-    <div className="goal-row">
-      <div className="goal-row__name">{label}</div>
-      <div className="goal-row__controls">
-        <PeriodSelect
-          period={period}
-          onChange={(p) => {
-            setPeriod(p)
-            commit(p, direction, value)
-          }}
-        />
-        {withDirection && (
-          <DirectionSelect
-            direction={direction}
-            onChange={(d) => {
-              setDirection(d)
-              commit(period, d, value)
-            }}
-          />
-        )}
-        <input
-          className="goal-row__value"
-          type="number"
-          min="0"
-          placeholder="5"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={() => commit(period, direction, value)}
-        />
-      </div>
-    </div>
-  )
-}
 
 const FOOD_GOALS = [
   { itemKey: 'food_colazione', label: 'Colazione buona' },
@@ -148,62 +19,113 @@ const FOOD_GOALS = [
   { itemKey: 'food_extra', label: 'Extra evitato' },
 ]
 
-export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
+// Duration goals are stored in minutes but edited in hours.
+function GoalRow({ label, color, goal, isDuration = false, defaultPeriod, onSave }) {
+  const [period, setPeriod] = useState(goal?.period || defaultPeriod)
+  const [direction, setDirection] = useState(goal?.direction || 'higher_is_better')
+  const [value, setValue] = useState(goal ? String(isDuration ? minutesToHours(goal.value) : goal.value) : '')
+
+  function commit(nextPeriod, nextDirection, nextValue) {
+    if (nextValue === '') return
+    const stored = isDuration ? hoursToMinutes(nextValue) : Number(nextValue) || 0
+    if (isDuration && stored === 0) return
+    onSave(nextPeriod, stored, nextDirection)
+  }
+
+  const dirIndex = Math.max(0, DIRECTIONS.findIndex((d) => d.id === direction))
+  const dir = DIRECTIONS[dirIndex]
+
   return (
-    <section className="settings-card">
-      <h2 className="settings-card__title">Obiettivi</h2>
-      <p className="settings-card__hint">
-        Imposta un valore di riferimento per attività, sigarette e alimentazione: per le
-        prime due lo vedrai come linea nei grafici del Report, per l'alimentazione come conteggio
-        "X/obiettivo" accanto a ogni riga. Per le attività scegli anche se superare l'obiettivo è
-        un bene o un male: nel grafico la zona sopra e sotto la linea si colora di verde/rosso di
-        conseguenza. Le modifiche valgono da questo mese in poi; i mesi passati mantengono
-        l'obiettivo che avevano allora.
-      </p>
-      {activities.map((a) =>
-        a.mode === 'checklist' ? (
-          <CountGoalRow
-            key={a.id}
-            itemKey={a.id}
-            label={a.name}
-            withDirection
-            goal={goalForMonth(goals, a.id, monthIso)}
-            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-          />
-        ) : a.mode === 'rating' ? (
-          <CountGoalRow
-            key={a.id}
-            itemKey={a.id}
-            label={`${a.name} buono`}
-            defaultPeriod="week"
-            withDirection
-            defaultDirection="higher_is_better"
-            goal={goalForMonth(goals, a.id, monthIso)}
-            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-          />
-        ) : (
-          <DurationGoalRow
-            key={a.id}
-            itemKey={a.id}
-            label={a.name}
-            swatchColor={colorVar(a.colorSlot)}
-            goal={goalForMonth(goals, a.id, monthIso)}
-            onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
-          />
-        ),
-      )}
-      {FOOD_GOALS.map((f) => (
-        <CountGoalRow
-          key={f.itemKey}
-          itemKey={f.itemKey}
-          label={f.label}
-          defaultPeriod="week"
-          withDirection
-          defaultDirection="higher_is_better"
-          goal={goalForMonth(goals, f.itemKey, monthIso)}
-          onSave={(itemKey, period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)}
+    <div className="list-row">
+      <span className="list-row__label">
+        {color && <span className="list-row__dot" style={{ background: color }} />}
+        <span className="list-row__name">{label}</span>
+      </span>
+      <div className="goal-control">
+        <input
+          className="goal-control__value"
+          type="number"
+          min="0"
+          step={isDuration ? '0.5' : '1'}
+          inputMode="decimal"
+          placeholder="–"
+          aria-label={`Obiettivo ${label}`}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={() => commit(period, direction, value)}
         />
-      ))}
-    </section>
+        {isDuration && <span className="goal-control__unit">h</span>}
+        <select
+          className="goal-control__period"
+          aria-label="Periodo"
+          value={period}
+          onChange={(e) => {
+            setPeriod(e.target.value)
+            commit(e.target.value, direction, value)
+          }}
+        >
+          <option value="day">/ giorno</option>
+          <option value="week">/ sett.</option>
+        </select>
+        <button
+          type="button"
+          className={`goal-control__dir is-${dir.id}`}
+          aria-label={`Direzione: ${dir.label}`}
+          title={dir.label}
+          onClick={() => {
+            const next = DIRECTIONS[(dirIndex + 1) % DIRECTIONS.length].id
+            setDirection(next)
+            commit(period, next, value)
+          }}
+        >
+          {dir.glyph}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function GoalsCard({ activities, goals, monthIso, onSetGoal }) {
+  const save = (itemKey) => (period, value, direction) => onSetGoal(itemKey, monthIso, period, value, direction)
+  return (
+    <>
+      <p className="list-section__hint">
+        Valgono da questo mese in poi. ↑ più è meglio · ↓ meno è meglio · – solo traccia.
+      </p>
+
+      {activities.length > 0 && (
+        <section className="list-section">
+          <h2 className="list-section__title">Attività</h2>
+          <div className="list-card">
+            {activities.map((a) => (
+              <GoalRow
+                key={a.id}
+                label={a.mode === 'rating' ? `${a.name} buono` : a.name}
+                color={colorVar(a.colorSlot)}
+                goal={goalForMonth(goals, a.id, monthIso)}
+                isDuration={a.mode === 'time'}
+                defaultPeriod={a.mode === 'checklist' ? 'day' : 'week'}
+                onSave={save(a.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="list-section">
+        <h2 className="list-section__title">Alimentazione</h2>
+        <div className="list-card">
+          {FOOD_GOALS.map((f) => (
+            <GoalRow
+              key={f.itemKey}
+              label={f.label}
+              goal={goalForMonth(goals, f.itemKey, monthIso)}
+              defaultPeriod="week"
+              onSave={save(f.itemKey)}
+            />
+          ))}
+        </div>
+      </section>
+    </>
   )
 }

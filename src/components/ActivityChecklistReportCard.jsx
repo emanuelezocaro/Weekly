@@ -1,9 +1,9 @@
 import { dayLabel, formatMonthShort, groupDaysByMonth, isFuture, toISODate, toMonthISO } from '../utils/date'
-import { goalForMonth, goalPerBar, goalTargetForDays } from '../utils/goals'
+import { goalForMonth, goalNote, goalPerBar, goalTargetForDays } from '../utils/goals'
 import { clipPrevDays, deltaPct } from '../utils/periodDelta'
 import { colorVar } from '../utils/palette'
 import GoalLine from './GoalLine'
-import GoalTrendIndicator from './GoalTrendIndicator'
+import ReportRow from './ReportRow'
 import TrendChartYAxis from './TrendChartYAxis'
 
 // Mirrors ActivityTrendChart/FoodReportCard's sparse-axis logic: spell out
@@ -74,12 +74,30 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
   const elapsedDaysCount = Math.max(1, days.filter((d) => !isFuture(d)).length)
   const weeklyRate = (doneCount / elapsedDaysCount) * 7
 
+  const note = goalNote(goal, doneCount, target)
+
+  // Week: the seven days themselves are the summary. Longer periods: a count.
+  const summary =
+    days.length <= 7 ? (
+      <span className="week-dots" aria-label={`${doneCount}/${days.length} giorni fatti`}>
+        {days.map((d) => (
+          <span key={toISODate(d)} className={doneSet.has(toISODate(d)) ? 'is-on' : ''} style={{ '--dot-color': color }} />
+        ))}
+      </span>
+    ) : period === 'year' ? (
+      <>
+        <span className="report-row__value">{formatWeeklyRate(weeklyRate)}</span>
+        <span className="report-row__unit">/sett</span>
+      </>
+    ) : (
+      <>
+        <span className="report-row__value">{doneCount}</span>
+        <span className="report-row__unit">/{days.length}</span>
+      </>
+    )
+
   return (
-    <section className="settings-card">
-      <div className="settings-card__title-row">
-        <h2 className="settings-card__title">{activity.name}</h2>
-        <GoalTrendIndicator goal={goal} actual={doneCount} target={target} />
-      </div>
+    <ReportRow label={activity.name} color={color} summary={summary}>
       <p className="trend-chart__caption">
         {period === 'year' ? `${formatWeeklyRate(weeklyRate)} volte a settimana` : `${doneCount}/${days.length} giorni fatti`}
         {delta !== null && (
@@ -89,20 +107,17 @@ export default function ActivityChecklistReportCard({ activity, checklist, days,
             {delta}%)
           </span>
         )}
+        {note && <span className="report-card__delta"> · {note}</span>}
       </p>
       {period === 'year' ? (
         <YearBars activity={activity} days={days} doneSet={doneSet} goals={goals} color={color} />
       ) : (
         <>
           <DotsRow isOnByKey={days.map((d) => ({ key: toISODate(d), isOn: doneSet.has(toISODate(d)) }))} color={color} />
-          {days.length <= 7 ? <WeekAxisRow days={days} /> : (
-            <p className="trend-chart__caption" style={{ marginTop: 4 }}>
-              {axisLegend(days)}
-            </p>
-          )}
+          {days.length <= 7 ? <WeekAxisRow days={days} /> : <p className="trend-chart__caption">{axisLegend(days)}</p>}
         </>
       )}
-    </section>
+    </ReportRow>
   )
 }
 

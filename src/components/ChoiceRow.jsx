@@ -4,10 +4,10 @@
 // option -- at rest the row stays neutral.
 export default function ChoiceRow({ label, color, options, value, onChange, disabled }) {
   return (
-    <div className="add-row">
-      <span className="add-row__label">
-        {color && <span className="add-row__dot" style={{ background: color }} />}
-        <span className="add-row__name">{label}</span>
+    <div className="list-row">
+      <span className="list-row__label">
+        {color && <span className="list-row__dot" style={{ background: color }} />}
+        <span className="list-row__name">{label}</span>
       </span>
       <div className="choice" role="radiogroup" aria-label={label}>
         {options.map((opt) => (

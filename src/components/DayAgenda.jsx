@@ -34,13 +34,13 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
   }
 
   return (
-    <div className="add-item">
-      <div className="add-row">
-        <span className="add-row__label">
-          <span className="add-row__dot" style={{ background: colorVar(activity.colorSlot) }} />
-          <span className="add-row__text">
-            <span className="add-row__name">{activity.name}</span>
-            {totalMinutes > 0 && <span className="add-row__meta">{formatDuration(totalMinutes * 60000)}</span>}
+    <div className="list-item">
+      <div className="list-row">
+        <span className="list-row__label">
+          <span className="list-row__dot" style={{ background: colorVar(activity.colorSlot) }} />
+          <span className="list-row__text">
+            <span className="list-row__name">{activity.name}</span>
+            {totalMinutes > 0 && <span className="list-row__meta">{formatDuration(totalMinutes * 60000)}</span>}
           </span>
         </span>
         <form
@@ -181,7 +181,7 @@ export default function DayAgenda({
   const checklistActivities = activities.filter((a) => a.mode === 'checklist')
 
   return (
-    <div className="panel add-view" {...swipeHandlers}>
+    <div className="panel list-view" {...swipeHandlers}>
       {showUnlockButton && (
         <button type="button" className="text-btn add-view__unlock" onClick={() => setForceUnlock(true)}>
           Sblocca per modificare
@@ -193,9 +193,9 @@ export default function DayAgenda({
       )}
 
       {listActivities.length > 0 && (
-        <section className="add-section">
-          <h2 className="add-section__title">Activities</h2>
-          <div className="add-list">
+        <section className="list-section">
+          <h2 className="list-section__title">Activities</h2>
+          <div className="list-card">
             {listActivities.map((a) =>
               a.mode === 'rating' ? (
                 <RatingActivityRow
@@ -219,8 +219,8 @@ export default function DayAgenda({
       )}
 
       {checklistActivities.length > 0 && (
-        <section className="add-section">
-          <h2 className="add-section__title">Checklist</h2>
+        <section className="list-section">
+          <h2 className="list-section__title">Checklist</h2>
           <div className="check-grid">
             {checklistActivities.map((a) => (
               <ChecklistActivityTile

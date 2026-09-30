@@ -17,9 +17,9 @@ const FIELDS = [
 
 export default function FoodCard({ food, onChange, locked }) {
   return (
-    <section className="add-section">
-      <h2 className="add-section__title">Food</h2>
-      <div className="add-list">
+    <section className="list-section">
+      <h2 className="list-section__title">Food</h2>
+      <div className="list-card">
         {FIELDS.map((f) => (
           <ChoiceRow
             key={f.key}
@@ -31,7 +31,7 @@ export default function FoodCard({ food, onChange, locked }) {
           />
         ))}
       </div>
-      {locked && <p className="add-section__hint">No longer editable.</p>}
+      {locked && <p className="list-section__hint">No longer editable.</p>}
     </section>
   )
 }
