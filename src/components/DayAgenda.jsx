@@ -35,29 +35,34 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
   return (
     <div className="day-activity-row">
       <div className="day-activity-row__header">
-        <span className="day-activity-row__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+        <span className="day-activity-row__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
         <span className="day-activity-row__name">{activity.name}</span>
         {totalMinutes > 0 && (
           <span className="day-activity-row__total">{formatDuration(totalMinutes * 60000)}</span>
         )}
       </div>
       <div className="day-activity-row__custom">
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          placeholder="h"
-          value={hours}
-          onChange={(e) => setHours(e.target.value)}
-        />
-        <input
-          type="number"
-          min="0"
-          inputMode="numeric"
-          placeholder="min"
-          value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
-        />
+        <div className="duration-input">
+          <input
+            type="number"
+            min="0"
+            inputMode="numeric"
+            placeholder="0"
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+          />
+          <span className="duration-input__unit">h</span>
+          <span className="duration-input__sep" />
+          <input
+            type="number"
+            min="0"
+            inputMode="numeric"
+            placeholder="0"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+          />
+          <span className="duration-input__unit">min</span>
+        </div>
         <button type="button" onClick={addCustom}>
           Aggiungi
         </button>
@@ -93,7 +98,7 @@ function ChecklistActivityTile({ activity, done, missing, onToggle }) {
       className={`day-activity-tile ${done ? 'is-done' : ''} ${missing ? 'is-missing' : ''}`}
       onClick={onToggle}
     >
-      <span className="day-activity-tile__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+      <span className="day-activity-tile__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
       <span className="day-activity-tile__name">{activity.name}</span>
       {done && <span className="day-activity-tile__check-state">Fatto ✓</span>}
     </button>
@@ -109,7 +114,7 @@ function RatingActivityRow({ activity, value, onSet }) {
   return (
     <div className="day-activity-row">
       <div className="day-activity-row__header">
-        <span className="day-activity-row__swatch" style={{ background: colorVar(activity.colorSlot) }} />
+        <span className="day-activity-row__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
         <span className="day-activity-row__name">{activity.name}</span>
       </div>
       <div className="rating-seg">
@@ -122,6 +127,7 @@ function RatingActivityRow({ activity, value, onSet }) {
               className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
               onClick={() => onSet(opt.value)}
             >
+              <span className="rating-seg__dot" />
               <span className="rating-seg__label">{opt.label}</span>
               {hint && <span className="rating-seg__hint">{hint}</span>}
             </button>

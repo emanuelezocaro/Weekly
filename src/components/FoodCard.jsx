@@ -22,7 +22,8 @@ function RatingRow({ label, value, options, onChange, locked }) {
             onClick={() => onChange(opt.value)}
             disabled={locked}
           >
-            {opt.label}
+            <span className="rating-seg__dot" />
+            <span className="rating-seg__label">{opt.label}</span>
           </button>
         ))}
       </div>
