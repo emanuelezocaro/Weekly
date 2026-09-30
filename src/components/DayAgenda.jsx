@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { addDays, APP_START_DATE, endOfDay, formatDuration, formatFullDate, isFuture, isSameDay, toISODate } from '../utils/date'
 import { useSwipeNav } from '../hooks/useSwipeNav'
 import { colorVar } from '../utils/palette'
+import ChoiceRow from './ChoiceRow'
 import FoodCard from './FoodCard'
 import { RATING_OPTIONS, thresholdHint } from '../utils/timeRatings'
 
@@ -33,108 +34,95 @@ function DurationActivityRow({ activity, logs, onAdd, onRemove }) {
   }
 
   return (
-    <div className="day-activity-row">
-      <div className="day-activity-row__header">
-        <span className="day-activity-row__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
-        <span className="day-activity-row__name">{activity.name}</span>
-        {totalMinutes > 0 && (
-          <span className="day-activity-row__total">{formatDuration(totalMinutes * 60000)}</span>
-        )}
-      </div>
-      <div className="day-activity-row__custom">
-        <div className="duration-input">
+    <div className="add-item">
+      <div className="add-row">
+        <span className="add-row__label">
+          <span className="add-row__dot" style={{ background: colorVar(activity.colorSlot) }} />
+          <span className="add-row__text">
+            <span className="add-row__name">{activity.name}</span>
+            {totalMinutes > 0 && <span className="add-row__meta">{formatDuration(totalMinutes * 60000)}</span>}
+          </span>
+        </span>
+        <form
+          className="time-entry"
+          onSubmit={(e) => {
+            e.preventDefault()
+            addCustom()
+          }}
+        >
           <input
             type="number"
             min="0"
             inputMode="numeric"
             placeholder="0"
+            aria-label="Ore"
             value={hours}
             onChange={(e) => setHours(e.target.value)}
           />
-          <span className="duration-input__unit">h</span>
-          <span className="duration-input__sep" />
+          <span className="time-entry__unit">h</span>
           <input
             type="number"
             min="0"
             inputMode="numeric"
             placeholder="0"
+            aria-label="Minuti"
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
           />
-          <span className="duration-input__unit">min</span>
-        </div>
-        <button type="button" onClick={addCustom}>
-          Aggiungi
-        </button>
+          <span className="time-entry__unit">m</span>
+          <button type="submit" className="time-entry__add" aria-label="Aggiungi">
+            +
+          </button>
+        </form>
       </div>
       {logs.length > 0 && (
-        <ul className="outputs-list">
+        <div className="time-logs">
           {logs.map((d) => (
-            <li key={d.id} className="outputs-list__item">
-              <span className="outputs-list__text">{formatDuration(d.minutes * 60000)}</span>
-              <button type="button" className="text-btn text-btn--danger" onClick={() => onRemove(d.id)}>
-                Elimina
+            <span key={d.id} className="time-log">
+              {formatDuration(d.minutes * 60000)}
+              <button type="button" aria-label="Elimina" onClick={() => onRemove(d.id)}>
+                ×
               </button>
-            </li>
+            </span>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   )
 }
 
-// Checklist activities are a single yes/no tap, so unlike the other modes
-// they don't need a full-width row -- a compact square/rectangular tile
-// lets three fit per line, cutting a long stack of near-identical rows down
-// to a grid. Today's still-untouched tiles turn red (not just neutral) --
-// every one of them needs an explicit done/not-done by end of day, so an
-// unmarked tile is a real gap to close, not a quiet default. Past days
-// don't get this: whatever they ended up as is just history now, nothing
-// left to nag about.
+// Checklist activities are a single yes/no tap: a compact tile, four per
+// line. Today's still-untouched tiles turn red -- every one needs an
+// explicit done/not-done by end of day. Past days don't get this: whatever
+// they ended up as is just history now.
 function ChecklistActivityTile({ activity, done, missing, onToggle }) {
   return (
     <button
       type="button"
-      className={`day-activity-tile ${done ? 'is-done' : ''} ${missing ? 'is-missing' : ''}`}
+      aria-pressed={done}
+      className={`check-tile ${done ? 'is-done' : ''} ${missing ? 'is-missing' : ''}`}
       onClick={onToggle}
     >
-      <span className="day-activity-tile__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
-      <span className="day-activity-tile__name">{activity.name}</span>
-      {done && <span className="day-activity-tile__check-state">Fatto ✓</span>}
+      <span className="check-tile__mark" aria-hidden="true">
+        {done ? '✓' : ''}
+      </span>
+      <span className="check-tile__name">{activity.name}</span>
     </button>
   )
 }
 
-// A single Bad/Medium/Good tap per day -- same input shape as Food's rating
-// buttons, just one field instead of six. Each button carries its own
-// threshold (only known for Sleep and Put off) right inside it, instead of
-// a separate legend line, since there's no number entry here to make it
-// obvious otherwise.
+// The threshold for each option (only known for Sleep and Put off) sits
+// inside the option itself, since there's no number entry to explain it.
 function RatingActivityRow({ activity, value, onSet }) {
+  const options = RATING_OPTIONS.map((opt) => ({ ...opt, hint: thresholdHint(activity.name, opt.value) }))
   return (
-    <div className="day-activity-row">
-      <div className="day-activity-row__header">
-        <span className="day-activity-row__swatch" style={{ '--dot-color': colorVar(activity.colorSlot) }} />
-        <span className="day-activity-row__name">{activity.name}</span>
-      </div>
-      <div className="rating-seg">
-        {RATING_OPTIONS.map((opt) => {
-          const hint = thresholdHint(activity.name, opt.value)
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
-              onClick={() => onSet(opt.value)}
-            >
-              <span className="rating-seg__dot" />
-              <span className="rating-seg__label">{opt.label}</span>
-              {hint && <span className="rating-seg__hint">{hint}</span>}
-            </button>
-          )
-        })}
-      </div>
-    </div>
+    <ChoiceRow
+      label={activity.name}
+      color={colorVar(activity.colorSlot)}
+      options={options}
+      value={value}
+      onChange={onSet}
+    />
   )
 }
 
@@ -189,63 +177,69 @@ export default function DayAgenda({
   const foodLocked =
     isDayLocked(isToday, FOOD_FIELD_KEYS.every((k) => !!dayFoodRecord?.[k]), cursor, now) && !forceUnlock
   const showUnlockButton = !forceUnlock && !isToday && foodLocked
+  const listActivities = activities.filter((a) => a.mode !== 'checklist')
+  const checklistActivities = activities.filter((a) => a.mode === 'checklist')
 
   return (
-    <div className="panel" {...swipeHandlers}>
+    <div className="panel add-view" {...swipeHandlers}>
       {showUnlockButton && (
-        <button type="button" className="text-btn" style={{ marginBottom: 12 }} onClick={() => setForceUnlock(true)}>
+        <button type="button" className="text-btn add-view__unlock" onClick={() => setForceUnlock(true)}>
           Sblocca per modificare
         </button>
       )}
 
-      <div className="activity-day-list">
-        {activities.length === 0 ? (
-          <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
-        ) : (
-          <>
-            {activities
-              .filter((a) => a.mode !== 'checklist')
-              .map((a) =>
-                a.mode === 'rating' ? (
-                  <RatingActivityRow
-                    key={a.id}
-                    activity={a}
-                    value={dayRatingByActivity.get(a.id) ?? null}
-                    onSet={(value) => onSetRating(a.id, dayIso, value)}
-                  />
-                ) : (
-                  <DurationActivityRow
-                    key={a.id}
-                    activity={a}
-                    logs={dayDurations.filter((d) => d.activityId === a.id)}
-                    onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
-                    onRemove={onRemoveDuration}
-                  />
-                ),
-              )}
-            {activities.some((a) => a.mode === 'checklist') && (
-              <div className="day-activity-grid">
-                {activities
-                  .filter((a) => a.mode === 'checklist')
-                  .map((a) => (
-                    <ChecklistActivityTile
-                      key={a.id}
-                      activity={a}
-                      done={dayChecklistDone.has(a.id)}
-                      missing={isToday && !dayChecklistDone.has(a.id)}
-                      onToggle={() => onToggleChecklist(a.id, dayIso)}
-                    />
-                  ))}
-              </div>
+      {activities.length === 0 && (
+        <p className="empty-state">Aggiungi un'attività dalla scheda "Impostazioni" per iniziare.</p>
+      )}
+
+      {listActivities.length > 0 && (
+        <section className="add-section">
+          <h2 className="add-section__title">Activities</h2>
+          <div className="add-list">
+            {listActivities.map((a) =>
+              a.mode === 'rating' ? (
+                <RatingActivityRow
+                  key={a.id}
+                  activity={a}
+                  value={dayRatingByActivity.get(a.id) ?? null}
+                  onSet={(value) => onSetRating(a.id, dayIso, value)}
+                />
+              ) : (
+                <DurationActivityRow
+                  key={a.id}
+                  activity={a}
+                  logs={dayDurations.filter((d) => d.activityId === a.id)}
+                  onAdd={(minutes) => onAddDuration(a.id, dayIso, minutes)}
+                  onRemove={onRemoveDuration}
+                />
+              ),
             )}
-          </>
-        )}
-        <FoodCard
-          food={dayFoodRecord}
-          onChange={(field, value) => onSetFoodField(dayIso, field, value)}
-          locked={foodLocked}
-        />
-      </div>
+          </div>
+        </section>
+      )}
+
+      {checklistActivities.length > 0 && (
+        <section className="add-section">
+          <h2 className="add-section__title">Checklist</h2>
+          <div className="check-grid">
+            {checklistActivities.map((a) => (
+              <ChecklistActivityTile
+                key={a.id}
+                activity={a}
+                done={dayChecklistDone.has(a.id)}
+                missing={isToday && !dayChecklistDone.has(a.id)}
+                onToggle={() => onToggleChecklist(a.id, dayIso)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <FoodCard
+        food={dayFoodRecord}
+        onChange={(field, value) => onSetFoodField(dayIso, field, value)}
+        locked={foodLocked}
+      />
     </div>
   )
 }

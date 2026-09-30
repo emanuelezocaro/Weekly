@@ -1,91 +1,37 @@
-const RATING_OPTIONS = [
-  { value: 'bad', label: 'Bad', cls: 'sel-bad' },
-  { value: 'mid', label: 'Medium', cls: 'sel-mid' },
-  { value: 'good', label: 'Good', cls: 'sel-good' },
-]
+import ChoiceRow from './ChoiceRow'
+import { RATING_OPTIONS } from '../utils/timeRatings'
 
 const EXTRA_OPTIONS = [
-  { value: 'yes', label: 'Yes', cls: 'sel-yes' },
-  { value: 'no', label: 'No', cls: 'sel-no' },
+  { value: 'yes', label: 'Yes', tone: 'bad' },
+  { value: 'no', label: 'No', tone: 'good' },
 ]
 
-function RatingRow({ label, value, options, onChange, locked }) {
-  return (
-    <div className="rating-field">
-      <span className="rating-field__label">{label}</span>
-      <div className="rating-seg">
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            className={`${opt.cls} ${value === opt.value ? 'is-selected' : ''}`}
-            onClick={() => onChange(opt.value)}
-            disabled={locked}
-          >
-            <span className="rating-seg__dot" />
-            <span className="rating-seg__label">{opt.label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+const FIELDS = [
+  { key: 'colazione', label: 'Breakfast', options: RATING_OPTIONS },
+  { key: 'pranzo', label: 'Lunch', options: RATING_OPTIONS },
+  { key: 'cena', label: 'Dinner', options: RATING_OPTIONS },
+  { key: 'alcol', label: 'Alcohol', options: RATING_OPTIONS },
+  { key: 'dolci', label: 'Sweets', options: RATING_OPTIONS },
+  { key: 'extra', label: 'Extra', options: EXTRA_OPTIONS },
+]
 
 export default function FoodCard({ food, onChange, locked }) {
-  const {
-    colazione = null,
-    pranzo = null,
-    cena = null,
-    alcol = null,
-    dolci = null,
-    extra = null,
-  } = food || {}
   return (
-    <section className="settings-card">
-      <h2 className="settings-card__title">Food</h2>
-      <RatingRow
-        label="Breakfast"
-        value={colazione}
-        options={RATING_OPTIONS}
-        onChange={(v) => onChange('colazione', v)}
-        locked={locked}
-      />
-      <RatingRow
-        label="Lunch"
-        value={pranzo}
-        options={RATING_OPTIONS}
-        onChange={(v) => onChange('pranzo', v)}
-        locked={locked}
-      />
-      <RatingRow
-        label="Dinner"
-        value={cena}
-        options={RATING_OPTIONS}
-        onChange={(v) => onChange('cena', v)}
-        locked={locked}
-      />
-      <RatingRow
-        label="Alcohol"
-        value={alcol}
-        options={RATING_OPTIONS}
-        onChange={(v) => onChange('alcol', v)}
-        locked={locked}
-      />
-      <RatingRow
-        label="Sweets"
-        value={dolci}
-        options={RATING_OPTIONS}
-        onChange={(v) => onChange('dolci', v)}
-        locked={locked}
-      />
-      <RatingRow
-        label="Extra"
-        value={extra}
-        options={EXTRA_OPTIONS}
-        onChange={(v) => onChange('extra', v)}
-        locked={locked}
-      />
-      {locked && <p className="settings-card__hint">No longer editable.</p>}
+    <section className="add-section">
+      <h2 className="add-section__title">Food</h2>
+      <div className="add-list">
+        {FIELDS.map((f) => (
+          <ChoiceRow
+            key={f.key}
+            label={f.label}
+            options={f.options}
+            value={food?.[f.key] ?? null}
+            onChange={(v) => onChange(f.key, v)}
+            disabled={locked}
+          />
+        ))}
+      </div>
+      {locked && <p className="add-section__hint">No longer editable.</p>}
     </section>
   )
 }

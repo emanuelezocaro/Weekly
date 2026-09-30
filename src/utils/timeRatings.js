@@ -30,9 +30,9 @@ const THRESHOLDS = {
 }
 
 export const RATING_OPTIONS = [
-  { value: 'bad', label: 'Bad', cls: 'sel-bad' },
-  { value: 'mid', label: 'Medium', cls: 'sel-mid' },
-  { value: 'good', label: 'Good', cls: 'sel-good' },
+  { value: 'bad', label: 'Bad', tone: 'bad' },
+  { value: 'mid', label: 'Medium', tone: 'mid' },
+  { value: 'good', label: 'Good', tone: 'good' },
 ]
 
 // Only activities in THRESHOLDS have known boundaries -- any other one

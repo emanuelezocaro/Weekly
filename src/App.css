@@ -1401,31 +1401,6 @@
   gap: 8px;
 }
 
-.outputs-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.outputs-list__item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  font-size: 13.5px;
-}
-
-.outputs-list__text {
-  flex: 1;
-  min-width: 0;
-  word-break: break-word;
-}
-
 .activity-manage-row {
   display: flex;
   align-items: center;
@@ -1472,203 +1447,6 @@
   width: 100%;
 }
 
-.activity-day-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.day-activity-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.day-activity-row__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* A tinted icon chip (soft fill in the activity's own color, a solid dot
-   centered inside) instead of a bare flat dot -- gives every row its own
-   visual anchor at a glance, the same "tinted chip" language the status
-   colors use elsewhere, instead of reading as a plain list of text rows. */
-.day-activity-row__swatch {
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
-  flex-shrink: 0;
-  position: relative;
-  background: color-mix(in srgb, var(--dot-color) 20%, var(--surface-2));
-}
-
-.day-activity-row__swatch::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--dot-color);
-  transform: translate(-50%, -50%);
-}
-
-.day-activity-row__name {
-  flex: 1;
-  min-width: 0;
-  font-size: 14.5px;
-  font-weight: 600;
-  text-align: left;
-}
-
-.day-activity-row__total {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.day-activity-row__custom {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* A single grouped pill ("2 h | 15 min") instead of two bare number boxes
-   -- the unit labels stay visible next to the digits instead of only
-   showing as a placeholder that vanishes the moment you type, so it never
-   reads as a raw, unlabeled form field. */
-.duration-input {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-}
-
-.duration-input input {
-  width: 24px;
-  min-width: 0;
-  border: none;
-  background: none;
-  padding: 0;
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
-  text-align: right;
-}
-
-.duration-input input::placeholder {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.duration-input__unit {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.duration-input__sep {
-  flex-shrink: 0;
-  width: 1px;
-  height: 16px;
-  margin: 0 2px;
-  background: var(--border);
-}
-
-.day-activity-row__custom button {
-  flex-shrink: 0;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-/* Four checklist tiles per line instead of one full-width row each --
-   there's nothing in a tile but a name and a done/not-done state, so a
-   whole row was mostly empty space. */
-.day-activity-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.day-activity-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 76px;
-  padding: 10px 6px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  text-align: center;
-}
-
-.day-activity-tile.is-done {
-  background: var(--status-good-bg);
-  box-shadow: inset 0 0 0 1.5px var(--status-good);
-}
-
-.day-activity-tile.is-missing {
-  background: var(--status-bad-bg);
-  box-shadow: inset 0 0 0 1.5px var(--status-bad);
-}
-
-.day-activity-tile__swatch {
-  width: 20px;
-  height: 20px;
-  border-radius: 7px;
-  position: relative;
-  background: color-mix(in srgb, var(--dot-color) 20%, var(--surface-2));
-}
-
-.day-activity-tile__swatch::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--dot-color);
-  transform: translate(-50%, -50%);
-}
-
-.day-activity-tile__name {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
-  overflow-wrap: break-word;
-}
-
-.day-activity-tile__check-state {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--status-good);
-}
-
 .color-picker {
   display: flex;
   flex-wrap: wrap;
@@ -1687,11 +1465,6 @@
 .color-picker__swatch.is-selected {
   border-color: var(--text);
   box-shadow: 0 0 0 2px var(--surface);
-}
-
-.rating-seg button:disabled {
-  cursor: default;
-  opacity: 0.5;
 }
 
 .field-readout {
@@ -1810,116 +1583,6 @@
   transform: translateX(-100%);
 }
 
-.rating-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.rating-field__label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.rating-seg {
-  display: flex;
-  background: var(--surface-2);
-  border-radius: var(--radius-sm);
-  padding: 3px;
-  gap: 3px;
-}
-
-.rating-seg button {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border: none;
-  background: none;
-  padding: 9px 4px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.rating-seg__label {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.rating-seg__hint {
-  font-size: 12.5px;
-  font-weight: 600;
-  opacity: 0.8;
-}
-
-/* A faint colored dot on every option, even unselected -- at rest the row
-   already hints at which side is bad/good instead of reading as three
-   identical grey buttons; tapping one brings its own color up to full
-   strength (see the .is-selected rules below). */
-.rating-seg__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  opacity: 0.3;
-}
-
-.rating-seg button.sel-bad .rating-seg__dot,
-.rating-seg button.sel-yes .rating-seg__dot {
-  background: var(--status-bad);
-}
-
-.rating-seg button.sel-mid .rating-seg__dot {
-  background: var(--status-mid);
-}
-
-.rating-seg button.sel-good .rating-seg__dot,
-.rating-seg button.sel-no .rating-seg__dot {
-  background: var(--status-good);
-}
-
-.rating-seg button.is-selected .rating-seg__dot {
-  opacity: 1;
-}
-
-/* A tinted chip (soft fill + a hairline ring in the same hue) reads as
-   "selected" just as clearly as a solid block, without turning the whole
-   button into a flat traffic-light color -- calmer at a glance, especially
-   with three of these sitting side by side. */
-.rating-seg button.sel-bad.is-selected {
-  background: var(--status-bad-bg);
-  color: var(--status-bad);
-  box-shadow: inset 0 0 0 1.5px var(--status-bad);
-}
-
-.rating-seg button.sel-mid.is-selected {
-  background: var(--status-mid-bg);
-  color: var(--status-mid);
-  box-shadow: inset 0 0 0 1.5px var(--status-mid);
-}
-
-.rating-seg button.sel-good.is-selected {
-  background: var(--status-good-bg);
-  color: var(--status-good);
-  box-shadow: inset 0 0 0 1.5px var(--status-good);
-}
-
-.rating-seg button.sel-yes.is-selected {
-  background: var(--status-bad-bg);
-  color: var(--status-bad);
-  box-shadow: inset 0 0 0 1.5px var(--status-bad);
-}
-
-.rating-seg button.sel-no.is-selected {
-  background: var(--status-good-bg);
-  color: var(--status-good);
-  box-shadow: inset 0 0 0 1.5px var(--status-good);
-}
-
 .text-btn {
   padding: 6px 10px;
   border-radius: 8px;
@@ -1975,4 +1638,311 @@
   margin: 0;
   font-size: 12.5px;
   color: var(--accent);
+}
+
+/* Add screen -- built by subtraction: one grouped list per section, rows
+   split by a hairline, label on the left and a single control on the
+   right. No boxes inside boxes, no per-row icons; color only shows up on
+   what's actually been chosen. */
+.add-view {
+  gap: 24px;
+}
+
+.add-view__unlock {
+  align-self: flex-start;
+}
+
+.add-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-section__title {
+  margin: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.add-section__hint {
+  margin: 0 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.add-list {
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.add-list > * + * {
+  border-top: 1px solid var(--border);
+}
+
+.add-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 0;
+}
+
+.add-row__label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.add-row__text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-row__dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.add-row__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.add-row__meta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Segmented choice: a quiet grey track, the chosen option lifts into its
+   own status tint. Fixed width so every control in the list lines up on
+   the same right-hand column. */
+.choice {
+  flex: 0 0 216px;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 11px;
+  background: var(--surface-2);
+}
+
+.choice__opt {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 2px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.choice__opt:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.choice__hint {
+  font-size: 10.5px;
+  opacity: 0.75;
+}
+
+.choice__opt.is-selected {
+  font-weight: 700;
+}
+
+.choice__opt.is-bad.is-selected {
+  background: var(--status-bad-bg);
+  color: var(--status-bad);
+}
+
+.choice__opt.is-mid.is-selected {
+  background: var(--status-mid-bg);
+  color: var(--status-mid);
+}
+
+.choice__opt.is-good.is-selected {
+  background: var(--status-good-bg);
+  color: var(--status-good);
+}
+
+/* Duration entry: same footprint as .choice so it sits on the same
+   column -- digits and units inline, a small "+" at the end. */
+.time-entry {
+  flex: 0 0 216px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 2px 2px 12px;
+  border-radius: 11px;
+  background: var(--surface-2);
+}
+
+.time-entry input {
+  width: 28px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.time-entry input::-webkit-outer-spin-button,
+.time-entry input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.time-entry input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.time-entry input:focus {
+  outline: none;
+}
+
+.time-entry__unit {
+  margin-right: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.time-entry__add {
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  border: none;
+  border-radius: 9px;
+  background: var(--accent-bg);
+  color: var(--accent-strong);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.time-logs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 12px 16px;
+}
+
+.time-log {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 3px 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.time-log button {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Checklist: four tiles a line, just a name and a round mark. Done fills
+   green with a check; today's still-unmarked ones go red. */
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.check-tile {
+  min-width: 0;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.check-tile__mark {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--border);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.check-tile__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.check-tile.is-done {
+  background: var(--status-good-bg);
+}
+
+.check-tile.is-done .check-tile__mark {
+  background: var(--status-good);
+  box-shadow: none;
+}
+
+.check-tile.is-missing {
+  background: var(--status-bad-bg);
+}
+
+.check-tile.is-missing .check-tile__mark {
+  box-shadow: inset 0 0 0 1.5px var(--status-bad);
 }
