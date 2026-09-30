@@ -1545,12 +1545,12 @@
   font-size: 13px;
 }
 
-/* Three checklist tiles per line instead of one full-width row each --
+/* Four checklist tiles per line instead of one full-width row each --
    there's nothing in a tile but a name and a done/not-done state, so a
    whole row was mostly empty space. */
 .day-activity-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
