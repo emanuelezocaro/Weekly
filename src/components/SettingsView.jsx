@@ -135,6 +135,7 @@ export default function SettingsView({
   onDelete,
   onExport,
   onImport,
+  onClearAll,
   goals,
   onSetGoal,
   initialTab,
@@ -149,6 +150,7 @@ export default function SettingsView({
   const [editColorSlot, setEditColorSlot] = useState(0)
   const [editMode, setEditMode] = useState('time')
   const [backupMessage, setBackupMessage] = useState('')
+  const [clearMessage, setClearMessage] = useState('')
   const fileInputRef = useRef(null)
 
   function handleAdd() {
@@ -183,6 +185,13 @@ export default function SettingsView({
     const shared = await shareOrDownloadText(`weekly-backup-${today}.json`, onExport())
     if (shared) markBackupDone()
     setBackupMessage(shared ? 'Backup esportato ✓' : '')
+  }
+
+  function handleClearAll() {
+    if (!confirm('Cancellare tutti i dati da questo telefono? Attività, storico e obiettivi verranno eliminati.')) return
+    if (prompt('Non si può annullare. Scrivi CANCELLA per confermare.')?.trim().toUpperCase() !== 'CANCELLA') return
+    onClearAll()
+    setClearMessage('Tutti i dati sono stati cancellati.')
   }
 
   function handleImportClick() {
@@ -322,6 +331,18 @@ export default function SettingsView({
               </div>
               <CopyRow label="URL dell'app" value={APP_URL} />
             </div>
+          </section>
+
+          <section className="list-section">
+            <h2 className="list-section__title">Cancella dati</h2>
+            <div className="list-card">
+              <button type="button" className="list-row list-action is-danger" onClick={handleClearAll}>
+                Cancella tutti i dati
+              </button>
+            </div>
+            <p className="list-section__hint">
+              {clearMessage || 'Elimina attività, storico e obiettivi da questo telefono. Fai prima "Esporta backup".'}
+            </p>
           </section>
 
           <section className="list-section">

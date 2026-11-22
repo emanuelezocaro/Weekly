@@ -70,6 +70,7 @@ function App() {
     setGoal,
     exportData,
     importData,
+    clearAllData,
   } = useHabitData()
 
   return (
@@ -126,6 +127,7 @@ function App() {
             onDelete={deleteActivity}
             onExport={exportData}
             onImport={importData}
+            onClearAll={clearAllData}
             goals={goals}
             onSetGoal={setGoal}
             initialTab="goals"

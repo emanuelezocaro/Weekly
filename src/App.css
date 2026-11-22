@@ -1643,6 +1643,10 @@
   color: var(--text);
 }
 
+.list-action.is-danger {
+  color: var(--status-bad);
+}
+
 /* Small borderless text button living inside a list row. */
 .row-btn {
   flex-shrink: 0;

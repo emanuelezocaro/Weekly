@@ -480,6 +480,20 @@ export function useHabitData() {
     setGoalsMeta(Array.isArray(parsed.goals) ? parsed.goals : [])
   }, [])
 
+  // Wipes every record on this device. The one-time migration flags stay
+  // set on purpose: clearing them would re-run old migrations (e.g. the
+  // Diario backfill) the next time a matching activity is created.
+  const clearAllData = useCallback(() => {
+    setActivitiesMeta([])
+    setEntriesMeta([])
+    setDurationsMeta([])
+    setChecklistMeta([])
+    setCigarettesMeta([])
+    setFoodMeta([])
+    setRatingsMeta([])
+    setGoalsMeta([])
+  }, [])
+
   return {
     activities,
     addActivity,
@@ -499,5 +513,6 @@ export function useHabitData() {
     setGoal,
     exportData,
     importData,
+    clearAllData,
   }
 }
